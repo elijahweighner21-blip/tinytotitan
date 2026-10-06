@@ -59,7 +59,7 @@ local AscensionConfig = {
 	BasePoints = 10,
 	PointsPerTierAbove = 6,
 	PointsMassExponent = 0.35,
-	PointsMassDivisor = 2.2e6,
+	PointsMassDivisor = 4.8e7, -- the Titan threshold: ascending right at Titan gives +4
 
 	-- Ascension tree ---------------------------------------------------------
 	Tree = {

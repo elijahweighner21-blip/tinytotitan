@@ -353,3 +353,16 @@ function __finish()
 	print(string.format("\n%d passed, %d failed", passed, failed))
 	if failed > 0 then error("tests failed", 0) end
 end
+
+-- Runs a standalone script (tools/sim) with the same globals specs get.
+function __runScript(source)
+	__env.Shared = rootNode.ReplicatedStorage.Shared
+	__env.Server = rootNode.ServerScriptService and rootNode.ServerScriptService.Server
+	__env.Client = rootNode.StarterPlayer and rootNode.StarterPlayer.Client
+	local fn, err = loadstring(source, "=script")
+	if not fn then
+		error(err)
+	end
+	setfenv(fn, setmetatable({}, { __index = __env }))
+	fn()
+end

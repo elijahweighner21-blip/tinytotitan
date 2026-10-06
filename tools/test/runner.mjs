@@ -14,7 +14,11 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const luau = path.join(root, ".tools", "luau");
-const filter = process.argv[2] ?? "";
+// `--script <file>` runs a standalone Luau script (e.g. the economy simulator)
+// against the same virtual tree instead of the specs.
+const scriptIndex = process.argv.indexOf("--script");
+const scriptFile = scriptIndex >= 0 ? process.argv[scriptIndex + 1] : null;
+const filter = scriptFile ? "\u0000" : (process.argv[2] ?? "");
 
 const mounts = [
 	["ReplicatedStorage", "Shared", "src/shared"],
@@ -67,7 +71,12 @@ for (const spec of specs) {
 	const source = fs.readFileSync(path.join(specsDir, spec), "utf8");
 	bundle += `__runSpec(${JSON.stringify(spec)}, ${longString(source)})\n`;
 }
-bundle += "__finish()\n";
+if (scriptFile) {
+	const source = fs.readFileSync(path.resolve(root, scriptFile), "utf8");
+	bundle += `__runScript(${longString(source)})\n`;
+} else {
+	bundle += "__finish()\n";
+}
 
 const outFile = path.join(root, "build", "test-bundle.luau");
 fs.mkdirSync(path.dirname(outFile), { recursive: true });

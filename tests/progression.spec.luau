@@ -107,3 +107,18 @@ describe("ScaleMath", function()
 		expect(ScaleMath.height(1e9)).toBe(ScaleMath.height(GameConfig.MaxScale))
 	end)
 end)
+
+describe("Pacing guard rails", function()
+	-- Re-tune with tools/sim/economy.luau; these only catch accidental collapse.
+	it("each tier needs clearly more Mass than the previous one", function()
+		for i = 3, #SizeConfig.Tiers do
+			local ratio = SizeConfig.Tiers[i].MassRequired / SizeConfig.Tiers[i - 1].MassRequired
+			if ratio < 1.4 then
+				error(string.format("tier %d is only %.2fx tier %d", i, ratio, i - 1))
+			end
+		end
+	end)
+	it("the final tier is a long-term goal", function()
+		expect(SizeConfig.Tiers[#SizeConfig.Tiers].MassRequired >= 1e8).toBe(true)
+	end)
+end)
