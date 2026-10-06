@@ -18,6 +18,11 @@ local Net = require(Server.Net)
 local Loader = require(Server.Loader)
 local WorldBuilder = require(Server.World.WorldBuilder)
 
+-- Characters must not spawn until the world exists and the save is loaded:
+-- an auto-spawned character would fall into the void while the world is
+-- still being built. (Also set in default.project.json.)
+game:GetService("Players").CharacterAutoLoads = false
+
 Net.init()
 WorldBuilder.build()
 

@@ -212,13 +212,26 @@ function CharacterService:Start()
 		player.CharacterAdded:Connect(function(character)
 			onCharacterAdded(player, character)
 		end)
+		-- A character that spawned before this service started (e.g. Studio
+		-- auto-spawn during world building) is never set up; replace it.
+		if player.Character then
+			player.Character:Destroy()
+			player.Character = nil
+		end
+		if PlayerDataService:IsLoaded(player) then
+			task.spawn(function()
+				player:LoadCharacterAsync()
+			end)
+		end
 	end
 	Players.PlayerAdded:Connect(onPlayer)
 	for _, player in Players:GetPlayers() do
 		onPlayer(player)
 	end
 	PlayerDataService.Loaded:Connect(function(player)
-		if not player.Character then
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not character or not humanoid or humanoid.Health <= 0 then
 			player:LoadCharacterAsync()
 		end
 	end)
