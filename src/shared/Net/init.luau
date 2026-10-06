@@ -32,7 +32,7 @@ Net.Remotes = {
 	Signal = "RemoteEvent",
 	Fx = "UnreliableRemoteEvent",
 	Energy = "UnreliableRemoteEvent",
-}
+} :: { [string]: string }
 
 Net.Actions = {
 	ClientReady = { Rate = 0.2, Burst = 2, Purpose = "Client finished loading; server sends full state." },
@@ -100,6 +100,6 @@ Net.Signals = {
 	Gate = true,
 	Damage = true,
 	AbilityState = true,
-}
+} :: { [string]: boolean }
 
 return Net
