@@ -89,19 +89,14 @@ Net.Signals = {
 	Challenge = true,
 	Boss = true,
 	WorldEvent = true,
-	Dialogue = true,
 	Achievement = true,
 	PurchaseResult = true,
 	WorldInfo = true,
-	Leaderboard = true,
 	Party = true,
-	Admin = true,
 	Teleported = true,
-	Welcome = true,
 	ScanResult = true,
 	Gate = true,
 	Damage = true,
-	AbilityState = true,
 } :: { [string]: boolean }
 
 return Net

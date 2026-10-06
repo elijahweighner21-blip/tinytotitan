@@ -48,11 +48,11 @@ end
 
 describe("Remotes", function()
 	it("client actions are declared", function()
-		expectNone(missing(names(clientSrc, 'Net%.action%("([%w_]+)"'), Net.Actions), "undeclared actions")
+		expectNone(missing(names(clientSrc, 'Net%.action%(%s*"([%w_]+)"'), Net.Actions), "undeclared actions")
 	end)
 	it("client requests are declared", function()
-		local used = names(clientSrc, 'Net%.request%("([%w_]+)"')
-		for k in names(clientSrc, 'Common%.request%("([%w_]+)"') do
+		local used = names(clientSrc, 'Net%.request%(%s*"([%w_]+)"')
+		for k in names(clientSrc, 'Common%.request%(%s*"([%w_]+)"') do
 			used[k] = true
 		end
 		expectNone(missing(used, Net.Requests), "undeclared requests")
@@ -75,18 +75,21 @@ describe("Remotes", function()
 end)
 
 describe("Signals", function()
-	local sent = names(serverSrc, 'Net%.signal%([%w_%.]+,%s*"([%w_]+)"')
-	for k in names(serverSrc, 'Net%.signalAll%("([%w_]+)"') do
+	local sent = names(serverSrc, 'Net%.signal%(%s*[%w_%.]+,%s*"([%w_]+)"')
+	for k in names(serverSrc, 'Net%.signalAll%(%s*"([%w_]+)"') do
 		sent[k] = true
 	end
 	sent.Challenge = true -- sent through ChallengeService's local helper
 	sent.Boss = true -- sent through BossService's broadcast helper
-	local heard = names(clientSrc, 'Net%.onSignal%("([%w_]+)"')
+	local heard = names(clientSrc, 'Net%.onSignal%(%s*"([%w_]+)"')
 	it("server signals are declared", function()
 		expectNone(missing(sent, Net.Signals), "undeclared signals")
 	end)
 	it("client listens only to declared signals", function()
 		expectNone(missing(heard, Net.Signals), "unknown signals")
+	end)
+	it("every declared signal is actually sent", function()
+		expectNone(missing(Net.Signals, sent), "declared but never sent")
 	end)
 	it("every signal the server sends has a client listener", function()
 		expectNone(missing(sent, heard), "signals with no listener")
@@ -95,19 +98,19 @@ end)
 
 describe("Effects", function()
 	it("every Fx the server broadcasts is rendered by the client", function()
-		local fired = names(serverSrc, 'Net%.fx%("([%w_]+)"')
-		for k in names(serverSrc, 'Net%.fxTo%([%w_]+,%s*"([%w_]+)"') do
+		local fired = names(serverSrc, 'Net%.fx%(%s*"([%w_]+)"')
+		for k in names(serverSrc, 'Net%.fxTo%(%s*[%w_]+,%s*"([%w_]+)"') do
 			fired[k] = true
 		end
-		expectNone(missing(fired, names(clientSrc, 'Net%.onFx%("([%w_]+)"')), "Fx with no client handler")
+		expectNone(missing(fired, names(clientSrc, 'Net%.onFx%(%s*"([%w_]+)"')), "Fx with no client handler")
 	end)
 end)
 
 describe("Menus", function()
 	local registered = names(clientSrc, 'MenuBase%.new%(%{%s*Name = "([%w_]+)"')
 	it("every opened menu is registered", function()
-		local opened = names(clientSrc, 'UIManager:Open%("([%w_]+)"')
-		for k in names(clientSrc, 'UIManager:Toggle%("([%w_]+)"') do
+		local opened = names(clientSrc, 'UIManager:Open%(%s*"([%w_]+)"')
+		for k in names(clientSrc, 'UIManager:Toggle%(%s*"([%w_]+)"') do
 			opened[k] = true
 		end
 		for k in names(clientSrc, 'Menu = "([%w_]+)", Icon') do -- HUD dock entries
@@ -170,7 +173,7 @@ describe("Audio", function()
 				end
 			end
 		end
-		for name in string.gmatch(clientSrc, 'Sound%.play%("([%w_]+)"') do
+		for name in string.gmatch(clientSrc, 'Sound%.play%(%s*"([%w_]+)"') do
 			if not AudioConfig.Sounds[name] then
 				table.insert(bad, name)
 			end
