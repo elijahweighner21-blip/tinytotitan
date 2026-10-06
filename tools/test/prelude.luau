@@ -333,6 +333,7 @@ function __runSpec(name, source)
 	currentSpec = name
 	__env.Shared = rootNode.ReplicatedStorage.Shared
 	__env.Server = rootNode.ServerScriptService and rootNode.ServerScriptService.Server
+	__env.Client = rootNode.StarterPlayer and rootNode.StarterPlayer.Client
 	local fn, err = loadstring(source, "=" .. name)
 	if not fn then
 		failed += 1

@@ -442,6 +442,53 @@ function EffectsController:Init()
 			AudioController:Play("Splash", { Position = p.P })
 		end
 	end)
+	Net.onFx("Attack", function(p)
+		-- Other players' swings: a short whoosh so fights read at a glance.
+		if fromOther(p) and not SettingsController:Get("HideOtherEffects") then
+			local other = Players:GetPlayerByUserId(p.U)
+			local character = other and other.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if root then
+				AudioController:Play("Swing", { Position = root.Position, Pitch = if p.K == "Light" then 1.1 else 0.8 })
+			end
+		end
+	end)
+	Net.onFx("Throw", function(p)
+		if typeof(p.P) == "Vector3" then
+			EffectsController:Burst(
+				p.P,
+				Color3.fromRGB(230, 240, 255),
+				ScaleMath.height((p.S :: number?) or 1) * 0.2,
+				8
+			)
+			AudioController:Play("Dash", { Position = p.P, Pitch = 0.7 })
+		end
+	end)
+	Net.onFx("EnemyWindup", function(p)
+		-- A quick red pulse on the enemy so attacks can be read and dodged.
+		if typeof(p.P) == "Vector3" and shouldRender(p, p.P) then
+			local h = ScaleMath.height((p.S :: number?) or 1)
+			EffectsController:Ring(
+				p.P - Vector3.new(0, h * 0.5, 0),
+				Color3.fromRGB(255, 70, 70),
+				h * 1.2,
+				math.clamp((p.T :: number?) or 0.4, 0.15, 1.2)
+			)
+		end
+	end)
+	Net.onFx("BossPhase", function(p)
+		if typeof(p.P) == "Vector3" then
+			EffectsController:Ring(p.P, Color3.fromRGB(255, 60, 60), 40, 0.8)
+			CameraController:ShakeAt(p.P, 0.5, 400)
+			AudioController:Play("BossRoar", { Position = p.P })
+		end
+	end)
+	Net.onFx("BossSummon", function(p)
+		if typeof(p.P) == "Vector3" then
+			EffectsController:Burst(p.P, Color3.fromRGB(200, 120, 255), 4, 24, true)
+			AudioController:Play("Telegraph", { Position = p.P })
+		end
+	end)
 	Net.onFx("Lightning", function(p)
 		if typeof(p.P) == "Vector3" then
 			local h = (p.S :: number?) or 10

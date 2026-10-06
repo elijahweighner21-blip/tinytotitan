@@ -19,6 +19,8 @@ const filter = process.argv[2] ?? "";
 const mounts = [
 	["ReplicatedStorage", "Shared", "src/shared"],
 	["ServerScriptService", "Server", "src/server"],
+	// Client sources are mounted for static (source-scanning) specs only.
+	["StarterPlayer", "Client", "src/client"],
 ];
 
 function collect(dir, virtualPath, out) {
