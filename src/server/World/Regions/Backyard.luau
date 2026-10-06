@@ -54,7 +54,7 @@ local function grassForest(m: Instance)
 			CanCollide = rng:NextNumber() < 0.35,
 			CastShadow = false,
 		})
-		blade:SetAttribute("Sway", true)
+		Kit.tag(blade, "Sway")
 	end
 	-- Stepping stones path through the forest.
 	for i = 0, 8 do

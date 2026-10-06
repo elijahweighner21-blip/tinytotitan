@@ -336,11 +336,6 @@ function EffectsController:Init()
 	folder = Instance.new("Folder")
 	folder.Name = "TT_Effects"
 	folder.Parent = workspace
-	SettingsController.Changed:Connect(function(key, value)
-		if key == "PerformancePreset" and value ~= "Auto" then
-			EffectsController:SetPreset(value)
-		end
-	end)
 	Net.onFx("Hit", function(p)
 		if typeof(p.P) == "Vector3" and SettingsController:Get("DamageNumbers") then
 			local h = MovementController:GetHeight()

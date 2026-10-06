@@ -45,6 +45,8 @@ local GameConfig = {
 	MaxLevel = 250,
 	MinScale = 0.2,
 	MaxScale = 400,
+	-- World units: the Human tier (scale 16) is ~80 studs ≈ 6 ft, so 1 ft ≈ 13.3 studs.
+	StudsPerFoot = 13.3,
 	KillPlaneY = -350,
 
 	-- Respawn / world -------------------------------------------------------------

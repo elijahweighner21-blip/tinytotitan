@@ -680,6 +680,11 @@ function MovementController:GetRoot(): BasePart?
 end
 
 -- Used by the growth sequence: briefly slows the player.
+-- -1 / 1 for a wall on the left / right while wall running, else 0.
+function MovementController:GetWallSide(): number
+	return if ctx then ctx.WallSide else 0
+end
+
 function MovementController:Slow(seconds: number)
 	if ctx then
 		ctx.SlowUntil = os.clock() + seconds

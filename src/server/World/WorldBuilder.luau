@@ -79,7 +79,7 @@ local function buildVipLounge(root: Instance)
 	end
 	Kit.block(m, "Ceiling", c + Vector3.new(0, 222, 0), Vector3.new(900, 4, 900), Color3.fromRGB(40, 30, 55), Enum.Material.SmoothPlastic)
 	local dance = Kit.block(m, "DanceFloor", c + Vector3.new(0, 0.1, 150), Vector3.new(300, 0.4, 300), Color3.fromRGB(255, 200, 60), Enum.Material.Neon)
-	dance:SetAttribute("Disco", true)
+	Kit.tag(dance, "Disco")
 	Kit.light(dance, Color3.fromRGB(255, 210, 120), 60, 1.5)
 	for _, x in { -300, 300 } do
 		local lamp = Kit.ball(m, "GoldLamp", c + Vector3.new(x, 200, -300), 30, Color3.fromRGB(255, 220, 120), Enum.Material.Neon)
@@ -133,6 +133,35 @@ local function validate()
 	end
 end
 
+-- Positions of every named world target, published outside Workspace so the
+-- client can point quest arrows and the map at things that are not streamed
+-- in. Attributes on ReplicatedStorage.WorldIndex: "<Kind>_<Id>" = Vector3.
+local INDEX_TAGS: { { Tag: string, Attribute: string, Kind: string } } = {
+	{ Tag = "DiscoveryRegion", Attribute = "DiscoveryId", Kind = "Discovery" },
+	{ Tag = "NPCSpawn", Attribute = "NPCId", Kind = "NPC" },
+	{ Tag = "ChallengeStart", Attribute = "ChallengeId", Kind = "Challenge" },
+	{ Tag = "BossArena", Attribute = "BossId", Kind = "Boss" },
+	{ Tag = "FastTravelStation", Attribute = "StationId", Kind = "Station" },
+}
+
+local function publishIndex()
+	local existing = ReplicatedStorage:FindFirstChild("WorldIndex")
+	if existing then
+		existing:Destroy()
+	end
+	local index = Instance.new("Folder")
+	index.Name = "WorldIndex"
+	for _, spec in INDEX_TAGS do
+		for _, inst in CollectionService:GetTagged(spec.Tag) do
+			local id = inst:GetAttribute(spec.Attribute)
+			if type(id) == "string" and inst:IsA("BasePart") then
+				index:SetAttribute(spec.Kind .. "_" .. id, inst.Position)
+			end
+		end
+	end
+	index.Parent = ReplicatedStorage
+end
+
 function WorldBuilder.build()
 	if WorldBuilder.Built then
 		return
@@ -169,6 +198,7 @@ function WorldBuilder.build()
 	root.Parent = workspace
 	WorldBuilder.Built = true
 	validate()
+	publishIndex()
 	Log.info("World", string.format("built %d parts in %.2fs", Kit.partCount(), os.clock() - started))
 end
 
