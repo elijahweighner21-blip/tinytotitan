@@ -72,6 +72,8 @@ Net.Requests = {
 	GetLeaderboard = { Rate = 1, Burst = 4, Purpose = "Fetch cached leaderboard pages." },
 	ShopCatalog = { Rate = 0.5, Burst = 3, Purpose = "Fetch product prices, daily shop and limited items." },
 	ToggleShrink = { Rate = 1, Burst = 2, Purpose = "Choose a Shrink Mode target tier." },
+	VipLounge = { Rate = 0.5, Burst = 2, Purpose = "Enter/leave the VIP Lounge (server checks the VIP pass)." },
+	UseKey = { Rate = 1, Burst = 3, Purpose = "Use a key item on a locked door (distance + ownership checked)." },
 	Admin = { Rate = 4, Burst = 10, Purpose = "Developer commands. Rejected unless the UserId is authorised." },
 } :: { [string]: Limit }
 

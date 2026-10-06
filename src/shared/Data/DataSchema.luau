@@ -78,6 +78,8 @@ DataSchema.Defaults = {
 	},
 	Bosses = {} :: { [string]: { Kills: number, BestTime: number, LastRewardAt: number } },
 	FastTravel = {} :: { [string]: boolean },
+	NPCs = {} :: { [string]: number }, -- npc id -> player tier when first met
+	UnlockedDoors = {} :: { [string]: boolean },
 	Daily = {
 		Day = 0,
 		Objectives = {} :: { { Id: string, Progress: number, Claimed: boolean } },
@@ -243,6 +245,8 @@ function DataSchema.sanitize(data: { [string]: any })
 	sanitizeBoolMap(data.Titles.Owned)
 	sanitizeBoolMap(data.Cosmetics.Owned)
 	sanitizeBoolMap(data.FastTravel)
+	sanitizeBoolMap(data.UnlockedDoors)
+	sanitizeNumberMap(data.NPCs, 0, 99)
 	sanitizeBoolMap(data.Inventory.Relics)
 	sanitizeBoolMap(data.Inventory.Lore)
 	sanitizeNumberMap(data.Inventory.KeyItems, 0, 1e6)

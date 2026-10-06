@@ -48,7 +48,7 @@ local CollectibleConfig = {
 	CollectionMilestones = {
 		{ Fraction = 0.5, Reward = { TitanShards = 5, XP = 150 } },
 		{ Fraction = 1.0, Reward = { TitanShards = 20, XP = 600 } },
-	},
+	} :: { { Fraction: number, Reward: Types.Reward } },
 	-- Hidden collectibles are invisible until within this many player heights
 	-- (multiplied by SecretFinder stat).
 	SecretRevealHeights = 6,

@@ -23,6 +23,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Types = require(Shared.Types)
 local RewardConfig = require(Shared.Config.RewardConfig)
+local ZoneConfig = require(Shared.Config.ZoneConfig)
 local MonetizationConfig = require(Shared.Config.MonetizationConfig)
 local RewardMath = require(Shared.Formulas.RewardMath)
 local MathUtil = require(Shared.Util.MathUtil)
@@ -297,7 +298,28 @@ function RewardService:Grant(player: Player, reward: Reward, context: Context): 
 	return granted
 end
 
--- Multiplies every numeric field of a reward (for zone scaling / fractions).
+-- Zone scaling: Mass and Growth Energy scale with the zone's RewardScale,
+-- XP with its square root (keeps levelling pace sane late game). Titan
+-- Shards, resources, items and cosmetics are NEVER zone-scaled.
+function RewardService:ScaleZone(reward: Reward, zoneId: string, extraFactor: number?): Reward
+	local zone = ZoneConfig.get(zoneId)
+	local scale = if zone then zone.RewardScale else 1
+	local extra = extraFactor or 1
+	local out: { [string]: any } = table.clone(reward :: any)
+	if reward.Mass then
+		out.Mass = math.floor(reward.Mass * scale * extra)
+	end
+	if reward.GrowthEnergy then
+		out.GrowthEnergy = math.floor(reward.GrowthEnergy * scale * extra)
+	end
+	if reward.XP then
+		out.XP = math.floor(reward.XP * math.sqrt(scale) * extra)
+	end
+	return out :: any
+end
+
+-- Multiplies every numeric field of a reward (fractions such as repeat-kill
+-- rewards). Use ScaleZone for zone scaling.
 function RewardService:Scale(reward: Reward, factor: number): Reward
 	local out: { [string]: any } = {}
 	for key, value in reward :: any do
