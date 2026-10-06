@@ -67,6 +67,12 @@ local highlight: Highlight
 local lastScan = 0
 local busyUntil = 0
 
+-- Station "Menu" attributes that map to a differently named menu.
+local MENU_ALIAS: { [string]: string } = {
+	SkillTree = "Skills",
+	Cosmetics = "Inventory",
+}
+
 local KEY_GLYPH: { [string]: string } = {
 	Keyboard = "E",
 	Gamepad = "X",
@@ -150,7 +156,14 @@ local function buildTarget(kind: string, instance: Instance): Target?
 			Label = if type(label) == "string" then label else menu,
 			Enabled = true,
 			Run = function()
-				UIManager:Open(menu)
+				if menu == "LeaveLounge" then
+					local result = Net.request("VipLounge", { Enter = false })
+					if not result.ok then
+						Bus.toast(result.err or "Can't leave right now", "Warning")
+					end
+					return
+				end
+				UIManager:Open(MENU_ALIAS[menu] or menu)
 			end,
 		}
 	elseif kind == "FastTravelStation" then

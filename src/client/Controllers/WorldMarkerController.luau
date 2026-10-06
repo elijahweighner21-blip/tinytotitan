@@ -245,6 +245,16 @@ local function update()
 	end
 end
 
+-- A player-chosen waypoint (e.g. "show me this challenge pad"). Replaces the
+-- previous waypoint; disappears after a few minutes or on arrival.
+function WorldMarkerController:SetWaypoint(position: Vector3, label: string)
+	place("Waypoint", position, label, Theme.Colors.Accent, "➜", os.clock() + 300)
+end
+
+function WorldMarkerController:ClearWaypoint()
+	remove("Waypoint")
+end
+
 function WorldMarkerController:Init()
 	folder = Instance.new("Folder")
 	folder.Name = "TT_Markers"

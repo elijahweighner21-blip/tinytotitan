@@ -373,7 +373,6 @@ function EffectsController:Init()
 		if typeof(p.P) == "Vector3" then
 			CameraController:ShakeAt(p.P, 0.6, ScaleMath.height((p.S :: number?) or 1) * 40)
 			AudioController:Play("BossRoar", { Position = p.P })
-			AudioController:SetBossMusic(true)
 		end
 	end)
 	Net.onFx("BossDefeat", function(p)
@@ -382,7 +381,6 @@ function EffectsController:Init()
 			EffectsController:Burst(p.P, Color3.fromRGB(255, 220, 120), h, 40)
 			EffectsController:Ring(p.P, Color3.fromRGB(255, 220, 120), h * 4, 1)
 			EffectsController:Flash(Color3.fromRGB(255, 240, 200), 0.3)
-			AudioController:SetBossMusic(false)
 		end
 	end)
 	Net.onFx("ObjectHit", function(p)

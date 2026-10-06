@@ -138,7 +138,7 @@ local function onCollected(payload: { [string]: any })
 		setVisible(e, false)
 		local def = CollectibleConfig.get(payload.Type or e.Type)
 		local rare = def ~= nil and (def.Unique or def.Rarity == "Rare")
-		AudioController:Play(if rare then "CollectRare" else "Collect", { Position = e.Part.Position })
+		AudioController:Play(if rare then "RareCollect" else "Collect", { Position = e.Part.Position })
 	end
 end
 

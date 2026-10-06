@@ -24,6 +24,7 @@ local Bus = require(Client.UI.Bus)
 local InputController = require(script.Parent.InputController)
 local MovementController = require(script.Parent.MovementController)
 local DataController = require(script.Parent.DataController)
+local AudioController = require(script.Parent.AudioController)
 
 local CombatController = {}
 
@@ -91,6 +92,7 @@ function CombatController:Attack(kind: string): boolean
 	end
 	Net.action("Attack", { Kind = kind, Facing = dir })
 	CombatController.Swing:Fire(kind)
+	AudioController:Play("Swing", { Pitch = if kind == "Light" then 1.1 else 0.8 })
 	return true
 end
 
