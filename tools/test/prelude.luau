@@ -149,8 +149,13 @@ setmetatable(services, {
 		return svc
 	end,
 })
+local rootNodeRef
 local game = {
-	GetService = function(_, name) return services[name] end,
+	GetService = function(_, name)
+		local node = rootNodeRef and rawget(rootNodeRef, "__children")[name]
+		if node then return node end
+		return services[name]
+	end,
 	PlaceId = 0,
 	JobId = "test-job",
 }
@@ -186,6 +191,7 @@ NodeMT.__index = function(self, key)
 	return nil
 end
 setmetatable(rootNode, NodeMT)
+rootNodeRef = rootNode
 
 local function ensureNode(vp)
 	local node = rootNode

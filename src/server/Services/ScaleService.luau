@@ -38,7 +38,7 @@ ScaleService.GrewIntoGeometry = Signal.new() :: Signal.Signal<Player>
 -- (player, newScale)
 ScaleService.ScaleChanged = Signal.new() :: Signal.Signal<Player, number>
 
-type Modifier = { Scale: number?, Multiplier: number?, Expires: number }
+type Modifier = { Scale: number?, Multiplier: number?, Fixed: number?, Expires: number }
 type State = {
 	LastApply: number,
 	Sequence: boolean,
@@ -79,6 +79,12 @@ function ScaleService:GetTargetScale(player: Player): number
 	for _, mod in s.Modifiers do
 		if mod.Expires > now and mod.Multiplier then
 			scale *= mod.Multiplier
+		end
+	end
+	-- Fixed overrides everything (e.g. the human-scale VIP Lounge).
+	for _, mod in s.Modifiers do
+		if mod.Expires > now and mod.Fixed then
+			scale = mod.Fixed
 		end
 	end
 	return math.clamp(scale, GameConfig.MinScale, GameConfig.MaxScale)
@@ -240,9 +246,9 @@ function ScaleService:PlaySequence(player: Player, duration: number?)
 end
 
 -- Temporary size modifiers (Shrink Mode, Overgrowth).
-function ScaleService:SetModifier(player: Player, id: string, modifier: { Scale: number?, Multiplier: number? }, duration: number)
+function ScaleService:SetModifier(player: Player, id: string, modifier: { Scale: number?, Multiplier: number?, Fixed: number? }, duration: number)
 	local s = getState(player)
-	s.Modifiers[id] = { Scale = modifier.Scale, Multiplier = modifier.Multiplier, Expires = os.clock() + duration }
+	s.Modifiers[id] = { Scale = modifier.Scale, Multiplier = modifier.Multiplier, Fixed = modifier.Fixed, Expires = os.clock() + duration }
 	player:SetAttribute(id, true)
 	task.spawn(function()
 		ScaleService:PlaySequence(player, 0.9)

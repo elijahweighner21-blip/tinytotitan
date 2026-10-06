@@ -489,11 +489,15 @@ function PlayerDataService:Init()
 end
 
 function PlayerDataService:Start()
-	Players.PlayerAdded:Connect(loadProfile)
+	-- Deferred so every other service's Start has connected to `Loaded`
+	-- first (with the Studio mock store a load completes without yielding).
+	task.defer(function()
+		Players.PlayerAdded:Connect(loadProfile)
+		for _, player in Players:GetPlayers() do
+			task.spawn(loadProfile, player)
+		end
+	end)
 	Players.PlayerRemoving:Connect(releaseProfile)
-	for _, player in Players:GetPlayers() do
-		task.spawn(loadProfile, player)
-	end
 
 	if not usingMock then
 		pcall(function()
