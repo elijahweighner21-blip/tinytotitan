@@ -25,21 +25,35 @@ export type Window = {
 	Close: (self: Window) -> (),
 	IsOpen: (self: Window) -> boolean,
 	SetSubtitle: (self: Window, text: string) -> (),
-	OnClose: ((() -> ())?),
+	OnClose: (() -> ())?,
 }
 
 local Window = {}
 Window.__index = Window
 
-function Window.new(props: { Name: string, Title: string, Icon: string?, Accent: Color3?, Size: UDim2?, Parent: Instance, Tabs: boolean? }): Window
+function Window.new(props: {
+	Name: string,
+	Title: string,
+	Icon: string?,
+	Accent: Color3?,
+	Size: UDim2?,
+	Parent: Instance,
+	Tabs: boolean?,
+}): Window
 	local accent = props.Accent or Theme.Colors.Accent
 	local scale = Create("UIScale", { Scale = 0.9 })
-	local title = Create.label((if props.Icon then props.Icon .. "  " else "") .. string.upper(props.Title), Theme.TextSize.Title, Theme.Colors.Text, Theme.Fonts.Display, {
-		Size = UDim2.new(1, -60, 0, 32),
-		Position = UDim2.fromOffset(0, 0),
-		TextWrapped = false,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-	})
+	local title = Create.label(
+		(if props.Icon then props.Icon .. "  " else "") .. string.upper(props.Title),
+		Theme.TextSize.Title,
+		Theme.Colors.Text,
+		Theme.Fonts.Display,
+		{
+			Size = UDim2.new(1, -60, 0, 32),
+			Position = UDim2.fromOffset(0, 0),
+			TextWrapped = false,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+		}
+	)
 	local subtitle = Create.label("", Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, {
 		Size = UDim2.new(1, -60, 0, 18),
 		Position = UDim2.fromOffset(0, 32),
@@ -59,7 +73,9 @@ function Window.new(props: { Name: string, Title: string, Icon: string?, Accent:
 		Size = UDim2.new(1, 0, 0, if props.Tabs then 38 else 0),
 		Position = UDim2.fromOffset(0, 66),
 		Visible = props.Tabs == true,
-		[Create.Children] = { Create.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center) },
+		[Create.Children] = {
+			Create.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center),
+		},
 	})
 	local contentTop = if props.Tabs then 112 else 70
 	local content = Create("Frame", {

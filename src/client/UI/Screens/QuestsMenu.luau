@@ -77,10 +77,20 @@ local function questPanel(def: Types.Quest, order: number): Frame
 		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = order,
 		Parent = list,
-		[Create.Children] = { Create.corner(Theme.Radius), Create.padding(12), Create.list(Enum.FillDirection.Vertical, 6) },
+		[Create.Children] = {
+			Create.corner(Theme.Radius),
+			Create.padding(12),
+			Create.list(Enum.FillDirection.Vertical, 6),
+		},
 	})
 	local story = def.Category == "Story"
-	Create.label((CATEGORY_ICONS[def.Category] or "•") .. "  " .. def.Name, Theme.TextSize.Heading, if story then Theme.Colors.Gold else Theme.Colors.Text, Theme.Fonts.Title, { LayoutOrder = 1, Parent = frame })
+	Create.label(
+		(CATEGORY_ICONS[def.Category] or "•") .. "  " .. def.Name,
+		Theme.TextSize.Heading,
+		if story then Theme.Colors.Gold else Theme.Colors.Text,
+		Theme.Fonts.Title,
+		{ LayoutOrder = 1, Parent = frame }
+	)
 	Create.label(def.Description, Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -115,7 +125,13 @@ local function renderActive(data: any)
 		return a < b
 	end)
 	if #ids == 0 then
-		Create.label("No active quests. Check the Available tab or talk to the people you meet!", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = list })
+		Create.label(
+			"No active quests. Check the Available tab or talk to the people you meet!",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = list }
+		)
 	end
 	for i, id in ids do
 		local def = QuestConfig.get(id)
@@ -132,9 +148,22 @@ local function renderActive(data: any)
 					TextSize = Theme.TextSize.Tiny,
 				})
 				bar:Set(progress / math.max(objective.Count, 1), true)
-				bar:SetText(string.format("%s   %s/%s", objective.Text, Format.abbreviate(progress), Format.abbreviate(objective.Count)))
+				bar:SetText(
+					string.format(
+						"%s   %s/%s",
+						objective.Text,
+						Format.abbreviate(progress),
+						Format.abbreviate(objective.Count)
+					)
+				)
 			end
-			Create.label("Rewards: " .. Common.rewardText(def.Rewards :: any), Theme.TextSize.Small, Theme.Colors.Accent, Theme.Fonts.Title, { LayoutOrder = 20, Parent = frame })
+			Create.label(
+				"Rewards: " .. Common.rewardText(def.Rewards :: any),
+				Theme.TextSize.Small,
+				Theme.Colors.Accent,
+				Theme.Fonts.Title,
+				{ LayoutOrder = 20, Parent = frame }
+			)
 			local row = buttonRow(frame, 21)
 			local tracked = data.Quests.Tracked == id
 			Button.new({
@@ -155,7 +184,13 @@ local function renderActive(data: any)
 					TextSize = Theme.TextSize.Small,
 					Parent = row,
 					OnClick = function()
-						Dialog.confirm({ Title = "Abandon " .. def.Name .. "?", Body = "Progress on this quest will be lost. You can accept it again later.", Confirm = "Abandon", Danger = true, Parent = UIManager.Menus }, function(ok)
+						Dialog.confirm({
+							Title = "Abandon " .. def.Name .. "?",
+							Body = "Progress on this quest will be lost. You can accept it again later.",
+							Confirm = "Abandon",
+							Danger = true,
+							Parent = UIManager.Menus,
+						}, function(ok)
 							if ok then
 								Common.request("AbandonQuest", { Id = id })
 							end
@@ -174,7 +209,13 @@ local function renderAvailable(data: any)
 		if ok or (reason and reason ~= "hidden") then
 			n += 1
 			local frame = questPanel(def, n)
-			Create.label("Given by " .. giverName(def) .. "   ·   Rewards: " .. Common.rewardText(def.Rewards :: any), Theme.TextSize.Small, Theme.Colors.Accent, Theme.Fonts.Title, { LayoutOrder = 3, Parent = frame })
+			Create.label(
+				"Given by " .. giverName(def) .. "   ·   Rewards: " .. Common.rewardText(def.Rewards :: any),
+				Theme.TextSize.Small,
+				Theme.Colors.Accent,
+				Theme.Fonts.Title,
+				{ LayoutOrder = 3, Parent = frame }
+			)
 			local row = buttonRow(frame, 4)
 			if ok then
 				Button.new({
@@ -188,16 +229,28 @@ local function renderAvailable(data: any)
 					end,
 				})
 			else
-				Create.label("🔒 " .. tostring(reason), Theme.TextSize.Small, Theme.Colors.Danger, Theme.Fonts.Title, {
-					Size = UDim2.fromOffset(260, 32),
-					TextXAlignment = Enum.TextXAlignment.Right,
-					Parent = row,
-				})
+				Create.label(
+					"🔒 " .. tostring(reason),
+					Theme.TextSize.Small,
+					Theme.Colors.Danger,
+					Theme.Fonts.Title,
+					{
+						Size = UDim2.fromOffset(260, 32),
+						TextXAlignment = Enum.TextXAlignment.Right,
+						Parent = row,
+					}
+				)
 			end
 		end
 	end
 	if n == 0 then
-		Create.label("Nothing new right now — finish your active quests to unlock more.", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = list })
+		Create.label(
+			"Nothing new right now — finish your active quests to unlock more.",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = list }
+		)
 	end
 end
 
@@ -219,16 +272,28 @@ local function renderCompleted(data: any)
 	for i, entry in done do
 		local frame = questPanel(entry.def, i)
 		if entry.def.Story then
-			Create.label("“" .. entry.def.Story .. "”", Theme.TextSize.Small, Theme.Colors.Gold, Theme.Fonts.Light, {
-				Size = UDim2.new(1, 0, 0, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				LayoutOrder = 3,
-				Parent = frame,
-			})
+			Create.label(
+				"“" .. entry.def.Story .. "”",
+				Theme.TextSize.Small,
+				Theme.Colors.Gold,
+				Theme.Fonts.Light,
+				{
+					Size = UDim2.new(1, 0, 0, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
+					LayoutOrder = 3,
+					Parent = frame,
+				}
+			)
 		end
 	end
 	if #done == 0 then
-		Create.label("Your quest log is empty — for now.", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = list })
+		Create.label(
+			"Your quest log is empty — for now.",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = list }
+		)
 	end
 end
 

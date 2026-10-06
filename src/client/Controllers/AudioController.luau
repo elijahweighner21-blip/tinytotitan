@@ -143,7 +143,10 @@ function AudioController:Footstep(position: Vector3, scale: number, material: En
 	elseif material == Enum.Material.Metal or material == Enum.Material.DiamondPlate then
 		pitch *= 1.15
 	end
-	AudioController:Play("Footstep", { Position = position, Pitch = pitch, Volume = math.min(volume / 0.3, AudioConfig.TitanVolumeCeiling / 0.3) })
+	AudioController:Play(
+		"Footstep",
+		{ Position = position, Pitch = pitch, Volume = math.min(volume / 0.3, AudioConfig.TitanVolumeCeiling / 0.3) }
+	)
 end
 
 local function crossfade(current: Sound?, name: string): Sound?
@@ -214,7 +217,10 @@ function AudioController:Start()
 	end)
 	MovementController.Jumped:Connect(function(kind)
 		local root = MovementController:GetRoot()
-		AudioController:Play(if kind == "Jump" then "Jump" else "Dash", { Position = if root then root.Position else nil, Pitch = if kind == "DoubleJump" then 1.25 else nil })
+		AudioController:Play(
+			if kind == "Jump" then "Jump" else "Dash",
+			{ Position = if root then root.Position else nil, Pitch = if kind == "DoubleJump" then 1.25 else nil }
+		)
 	end)
 	MovementController.Landed:Connect(function(bodies, pound)
 		local root = MovementController:GetRoot()

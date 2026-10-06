@@ -36,7 +36,11 @@ local unlocks: TextLabel
 local token = 0
 
 local function fade(label: TextLabel, to: number, time: number)
-	TweenService:Create(label, TweenInfo.new(time, Enum.EasingStyle.Quad), { TextTransparency = to, TextStrokeTransparency = if to >= 1 then 1 else 0.3 }):Play()
+	TweenService:Create(
+		label,
+		TweenInfo.new(time, Enum.EasingStyle.Quad),
+		{ TextTransparency = to, TextStrokeTransparency = if to >= 1 then 1 else 0.3 }
+	):Play()
 end
 
 function GrowthSequence.play(newTier: number, oldTier: number, unlockList: { string }?)
@@ -134,7 +138,11 @@ function GrowthSequence.mount()
 	unlocks = line("", Theme.TextSize.Body, Theme.Colors.Gold, Theme.Fonts.Title, 4)
 	Net.onSignal("TierUp", function(p)
 		if type(p) == "table" and type(p.Tier) == "number" then
-			GrowthSequence.play(p.Tier, tonumber(p.OldTier) or (p.Tier - 1), if type(p.Unlocks) == "table" then p.Unlocks else nil)
+			GrowthSequence.play(
+				p.Tier,
+				tonumber(p.OldTier) or (p.Tier - 1),
+				if type(p.Unlocks) == "table" then p.Unlocks else nil
+			)
 		end
 	end)
 end

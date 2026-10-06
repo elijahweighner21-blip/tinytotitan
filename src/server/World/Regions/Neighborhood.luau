@@ -40,8 +40,22 @@ local function ground(m: Instance)
 	road(-1300, -3200, -980, 2200) -- west cross street
 	-- Lane markings.
 	for x = -2500, 3300, 200 do
-		Kit.box(m, "LaneMark", Vector3.new(x, 0.6, 857), Vector3.new(100, 0.1, 6), Color3.fromRGB(240, 220, 80), Enum.Material.SmoothPlastic)
-		Kit.box(m, "LaneMark", Vector3.new(x, 0.6, -1503), Vector3.new(100, 0.1, 6), Color3.fromRGB(240, 220, 80), Enum.Material.SmoothPlastic)
+		Kit.box(
+			m,
+			"LaneMark",
+			Vector3.new(x, 0.6, 857),
+			Vector3.new(100, 0.1, 6),
+			Color3.fromRGB(240, 220, 80),
+			Enum.Material.SmoothPlastic
+		)
+		Kit.box(
+			m,
+			"LaneMark",
+			Vector3.new(x, 0.6, -1503),
+			Vector3.new(100, 0.1, 6),
+			Color3.fromRGB(240, 220, 80),
+			Enum.Material.SmoothPlastic
+		)
 	end
 	-- Sidewalk path from the yard gate to the back road.
 	Kit.box(m, "Sidewalk", Vector3.new(230, 0, -1350), Vector3.new(70, 1, 150), C.Concrete, Enum.Material.Concrete)
@@ -50,16 +64,58 @@ end
 local function house(m: Instance, center: Vector3, color: Color3, special: string?)
 	local model = Kit.model(m, special or "House", true)
 	local w, d, h = 560, 480, 300
-	Kit.block(model, "Walls", center + Vector3.new(0, h / 2, 0), Vector3.new(w, h, d), color, Enum.Material.SmoothPlastic)
-	Kit.wedge(model, "Roof", CFrame.new(center + Vector3.new(0, h + 90, d / 4)), Vector3.new(w + 40, 180, d / 2 + 20), Color3.fromRGB(90, 55, 50), Enum.Material.Slate)
-	Kit.wedge(model, "Roof", CFrame.new(center + Vector3.new(0, h + 90, -d / 4)) * CFrame.Angles(0, math.rad(180), 0), Vector3.new(w + 40, 180, d / 2 + 20), Color3.fromRGB(90, 55, 50), Enum.Material.Slate)
-	Kit.block(model, "Door", center + Vector3.new(0, 50, d / 2 + 1), Vector3.new(50, 100, 2), Kit.Colors.Wood, Enum.Material.Wood)
+	Kit.block(
+		model,
+		"Walls",
+		center + Vector3.new(0, h / 2, 0),
+		Vector3.new(w, h, d),
+		color,
+		Enum.Material.SmoothPlastic
+	)
+	Kit.wedge(
+		model,
+		"Roof",
+		CFrame.new(center + Vector3.new(0, h + 90, d / 4)),
+		Vector3.new(w + 40, 180, d / 2 + 20),
+		Color3.fromRGB(90, 55, 50),
+		Enum.Material.Slate
+	)
+	Kit.wedge(
+		model,
+		"Roof",
+		CFrame.new(center + Vector3.new(0, h + 90, -d / 4)) * CFrame.Angles(0, math.rad(180), 0),
+		Vector3.new(w + 40, 180, d / 2 + 20),
+		Color3.fromRGB(90, 55, 50),
+		Enum.Material.Slate
+	)
+	Kit.block(
+		model,
+		"Door",
+		center + Vector3.new(0, 50, d / 2 + 1),
+		Vector3.new(50, 100, 2),
+		Kit.Colors.Wood,
+		Enum.Material.Wood
+	)
 	for _, x in { -180, 180 } do
-		local win = Kit.block(model, "Window", center + Vector3.new(x, 170, d / 2 + 1), Vector3.new(80, 70, 2), Kit.Colors.Glass, Enum.Material.Glass)
+		local win = Kit.block(
+			model,
+			"Window",
+			center + Vector3.new(x, 170, d / 2 + 1),
+			Vector3.new(80, 70, 2),
+			Kit.Colors.Glass,
+			Enum.Material.Glass
+		)
 		win.Transparency = 0.3
 	end
 	-- Flat chimney ledge so rooftops chain together for parkour.
-	Kit.block(model, "Chimney", center + Vector3.new(w / 2 - 80, h + 140, 0), Vector3.new(50, 120, 50), Kit.Colors.Brick, Enum.Material.Brick)
+	Kit.block(
+		model,
+		"Chimney",
+		center + Vector3.new(w / 2 - 80, h + 140, 0),
+		Vector3.new(50, 120, 50),
+		Kit.Colors.Brick,
+		Enum.Material.Brick
+	)
 	return model
 end
 
@@ -91,15 +147,46 @@ local function houses(m: Instance)
 	Kit.collectible(m, "TitanShard", ZONE, Vector3.new(650, 450, 1450))
 	-- Mailbox outside our own house.
 	Kit.pillar(m, "MailboxPost", Vector3.new(400, 0, 660), 50, 6, Kit.Colors.Wood, Enum.Material.Wood)
-	Kit.box(m, "Mailbox", Vector3.new(385, 50, 650), Vector3.new(30, 22, 20), Color3.fromRGB(60, 90, 160), Enum.Material.Metal)
+	Kit.box(
+		m,
+		"Mailbox",
+		Vector3.new(385, 50, 650),
+		Vector3.new(30, 22, 20),
+		Color3.fromRGB(60, 90, 160),
+		Enum.Material.Metal
+	)
 	Kit.discovery(m, "OldMailbox", Vector3.new(400, 50, 660), Vector3.new(80, 100, 80))
 	Kit.collectible(m, "LostCoin", ZONE, Vector3.new(400, 72, 660))
 	-- Parked cars and street furniture along the front street.
 	for i = 0, 7 do
 		local x = -2200 + i * 700
-		Kit.interactable(m, "Car", CFrame.new(x, 38, 760), Vector3.new(200, 75, 90), Color3.fromHSV(rng:NextNumber(), 0.55, 0.8), Enum.Material.Metal, nil)
-		Kit.interactable(m, "TrashBin", CFrame.new(x + 300, 25, 640), Vector3.new(40, 50, 40), Color3.fromRGB(60, 120, 70), Enum.Material.Plastic, nil)
-		Kit.interactable(m, "StreetSign", CFrame.new(x + 150, 70, 650), Vector3.new(8, 140, 40), Color3.fromRGB(60, 160, 80), Enum.Material.Metal, nil)
+		Kit.interactable(
+			m,
+			"Car",
+			CFrame.new(x, 38, 760),
+			Vector3.new(200, 75, 90),
+			Color3.fromHSV(rng:NextNumber(), 0.55, 0.8),
+			Enum.Material.Metal,
+			nil
+		)
+		Kit.interactable(
+			m,
+			"TrashBin",
+			CFrame.new(x + 300, 25, 640),
+			Vector3.new(40, 50, 40),
+			Color3.fromRGB(60, 120, 70),
+			Enum.Material.Plastic,
+			nil
+		)
+		Kit.interactable(
+			m,
+			"StreetSign",
+			CFrame.new(x + 150, 70, 650),
+			Vector3.new(8, 140, 40),
+			Color3.fromRGB(60, 160, 80),
+			Enum.Material.Metal,
+			nil
+		)
 	end
 	Kit.enemySpawner(m, "Crow", Vector3.new(-800, 380, 1450), 3, 600)
 	Kit.enemySpawner(m, "Crow", Vector3.new(2350, 380, -300), 3, 500)
@@ -108,26 +195,93 @@ end
 local function playground(m: Instance)
 	local center = Vector3.new(0, 0, -2450)
 	local model = Kit.model(m, "Playground", true)
-	Kit.box(model, "Sandbox", center + Vector3.new(-800, 0, -550), Vector3.new(1600, 2, 1100), Color3.fromRGB(220, 200, 150), Enum.Material.Sand)
+	Kit.box(
+		model,
+		"Sandbox",
+		center + Vector3.new(-800, 0, -550),
+		Vector3.new(1600, 2, 1100),
+		Color3.fromRGB(220, 200, 150),
+		Enum.Material.Sand
+	)
 	-- Slide tower.
-	Kit.box(model, "SlideTower", center + Vector3.new(-100, 0, -100), Vector3.new(200, 160, 200), Color3.fromRGB(230, 80, 70), Enum.Material.SmoothPlastic)
-	Kit.ramp(model, "Slide", center + Vector3.new(400, 2, 0), center + Vector3.new(100, 160, 0), 80, Color3.fromRGB(250, 200, 60), Enum.Material.SmoothPlastic)
+	Kit.box(
+		model,
+		"SlideTower",
+		center + Vector3.new(-100, 0, -100),
+		Vector3.new(200, 160, 200),
+		Color3.fromRGB(230, 80, 70),
+		Enum.Material.SmoothPlastic
+	)
+	Kit.ramp(
+		model,
+		"Slide",
+		center + Vector3.new(400, 2, 0),
+		center + Vector3.new(100, 160, 0),
+		80,
+		Color3.fromRGB(250, 200, 60),
+		Enum.Material.SmoothPlastic
+	)
 	-- Swing set.
-	Kit.rod(model, "SwingBar", center + Vector3.new(-600, 200, -400), center + Vector3.new(-200, 200, -400), 14, Kit.Colors.Steel, Enum.Material.Metal)
+	Kit.rod(
+		model,
+		"SwingBar",
+		center + Vector3.new(-600, 200, -400),
+		center + Vector3.new(-200, 200, -400),
+		14,
+		Kit.Colors.Steel,
+		Enum.Material.Metal
+	)
 	for _, x in { -600, -200 } do
-		Kit.rod(model, "SwingLeg", center + Vector3.new(x, 0, -480), center + Vector3.new(x, 200, -400), 12, Kit.Colors.Steel, Enum.Material.Metal)
-		Kit.rod(model, "SwingLeg", center + Vector3.new(x, 0, -320), center + Vector3.new(x, 200, -400), 12, Kit.Colors.Steel, Enum.Material.Metal)
+		Kit.rod(
+			model,
+			"SwingLeg",
+			center + Vector3.new(x, 0, -480),
+			center + Vector3.new(x, 200, -400),
+			12,
+			Kit.Colors.Steel,
+			Enum.Material.Metal
+		)
+		Kit.rod(
+			model,
+			"SwingLeg",
+			center + Vector3.new(x, 0, -320),
+			center + Vector3.new(x, 200, -400),
+			12,
+			Kit.Colors.Steel,
+			Enum.Material.Metal
+		)
 	end
 	for _, x in { -500, -300 } do
-		Kit.box(model, "SwingSeat", center + Vector3.new(x - 30, 50, -415), Vector3.new(60, 6, 30), Color3.fromRGB(60, 60, 60), Enum.Material.Rubber)
+		Kit.box(
+			model,
+			"SwingSeat",
+			center + Vector3.new(x - 30, 50, -415),
+			Vector3.new(60, 6, 30),
+			Color3.fromRGB(60, 60, 60),
+			Enum.Material.Rubber
+		)
 	end
 	-- Jungle gym: a grid of bars to climb.
 	for i = 0, 3 do
 		for j = 0, 3 do
-			Kit.box(model, "GymBar", center + Vector3.new(300 + i * 80, 0, -400 + j * 80), Vector3.new(8, 120 + ((i + j) % 2) * 40, 8), Color3.fromRGB(80, 160, 230), Enum.Material.Metal)
+			Kit.box(
+				model,
+				"GymBar",
+				center + Vector3.new(300 + i * 80, 0, -400 + j * 80),
+				Vector3.new(8, 120 + ((i + j) % 2) * 40, 8),
+				Color3.fromRGB(80, 160, 230),
+				Enum.Material.Metal
+			)
 		end
 	end
-	Kit.box(model, "GymTop", center + Vector3.new(296, 160, -404), Vector3.new(250, 6, 250), Color3.fromRGB(80, 160, 230), Enum.Material.Metal)
+	Kit.box(
+		model,
+		"GymTop",
+		center + Vector3.new(296, 160, -404),
+		Vector3.new(250, 6, 250),
+		Color3.fromRGB(80, 160, 230),
+		Enum.Material.Metal
+	)
 	Kit.discovery(m, "Playground", center + Vector3.new(0, 100, -100), Vector3.new(1400, 200, 900))
 	Kit.orbLine(m, ZONE, center + Vector3.new(-700, 2, 200), center + Vector3.new(700, 2, 200), 12)
 	Kit.orbLine(m, ZONE, center + Vector3.new(400, 4, 0), center + Vector3.new(120, 162, 0), 6)
@@ -137,21 +291,58 @@ local function playground(m: Instance)
 	-- Water tower behind the playground.
 	local towerBase = Vector3.new(750, 0, -2950)
 	for _, o in { Vector3.new(-80, 0, -80), Vector3.new(80, 0, -80), Vector3.new(-80, 0, 80), Vector3.new(80, 0, 80) } do
-		Kit.rod(model, "TowerLeg", towerBase + o * 1.6, towerBase + o * 0.6 + Vector3.new(0, 700, 0), 20, Kit.Colors.Steel, Enum.Material.Metal)
+		Kit.rod(
+			model,
+			"TowerLeg",
+			towerBase + o * 1.6,
+			towerBase + o * 0.6 + Vector3.new(0, 700, 0),
+			20,
+			Kit.Colors.Steel,
+			Enum.Material.Metal
+		)
 	end
 	-- Maintenance ladder platforms up one leg.
 	for i = 1, 8 do
-		Kit.block(model, "LadderLanding", towerBase + Vector3.new(-200 + i * 12, i * 80, -100), Vector3.new(80, 6, 80), Kit.Colors.Steel, Enum.Material.DiamondPlate)
+		Kit.block(
+			model,
+			"LadderLanding",
+			towerBase + Vector3.new(-200 + i * 12, i * 80, -100),
+			Vector3.new(80, 6, 80),
+			Kit.Colors.Steel,
+			Enum.Material.DiamondPlate
+		)
 	end
-	Kit.pillar(model, "Tank", towerBase + Vector3.new(0, 700, 0), 220, 300, Color3.fromRGB(200, 205, 210), Enum.Material.Metal)
-	Kit.block(model, "TankRoof", towerBase + Vector3.new(0, 923, 0), Vector3.new(220, 6, 220), Color3.fromRGB(180, 70, 60), Enum.Material.Metal)
+	Kit.pillar(
+		model,
+		"Tank",
+		towerBase + Vector3.new(0, 700, 0),
+		220,
+		300,
+		Color3.fromRGB(200, 205, 210),
+		Enum.Material.Metal
+	)
+	Kit.block(
+		model,
+		"TankRoof",
+		towerBase + Vector3.new(0, 923, 0),
+		Vector3.new(220, 6, 220),
+		Color3.fromRGB(180, 70, 60),
+		Enum.Material.Metal
+	)
 	Kit.discovery(m, "WaterTower", towerBase + Vector3.new(0, 960, 0), Vector3.new(260, 80, 260))
 	Kit.collectible(m, "TitanShard", ZONE, towerBase + Vector3.new(0, 926, 0))
 end
 
 local function park(m: Instance)
 	local center = Vector3.new(2350, 0, -2450)
-	Kit.box(m, "ParkLawn", center + Vector3.new(-900, 0, -650), Vector3.new(1800, 1, 1300), Kit.Colors.DarkGrass, Enum.Material.Grass)
+	Kit.box(
+		m,
+		"ParkLawn",
+		center + Vector3.new(-900, 0, -650),
+		Vector3.new(1800, 1, 1300),
+		Kit.Colors.DarkGrass,
+		Enum.Material.Grass
+	)
 	Kit.pillar(m, "FountainBasin", center, 30, 400, Kit.Colors.Concrete, Enum.Material.Concrete)
 	Kit.pillar(m, "FountainColumn", center + Vector3.new(0, 30, 0), 150, 40, Kit.Colors.Concrete, Enum.Material.Marble)
 	Kit.pillar(m, "FountainTop", center + Vector3.new(0, 180, 0), 10, 120, Kit.Colors.Concrete, Enum.Material.Marble)
@@ -162,7 +353,15 @@ local function park(m: Instance)
 	Kit.collectible(m, "GoldenOrb", ZONE, center + Vector3.new(0, 190, 0))
 	for i = 0, 5 do
 		local a = i / 6 * math.pi * 2
-		Kit.interactable(m, "Bench", CFrame.new(center + Vector3.new(math.cos(a) * 450, 18, math.sin(a) * 450)) * CFrame.Angles(0, -a, 0), Vector3.new(140, 36, 40), Kit.Colors.Wood, Enum.Material.WoodPlanks, nil)
+		Kit.interactable(
+			m,
+			"Bench",
+			CFrame.new(center + Vector3.new(math.cos(a) * 450, 18, math.sin(a) * 450)) * CFrame.Angles(0, -a, 0),
+			Vector3.new(140, 36, 40),
+			Kit.Colors.Wood,
+			Enum.Material.WoodPlanks,
+			nil
+		)
 	end
 	Kit.orbRing(m, ZONE, center, 300, 12)
 	-- Trees.
@@ -178,15 +377,78 @@ local function park(m: Instance)
 	-- only 40 studs tall: Child-sized or smaller (Shrink Mode for most players).
 	local drain = Kit.model(m, "StormDrain", true)
 	local base = Vector3.new(1450, 0, -1950)
-	Kit.box(drain, "Headwall", base + Vector3.new(0, 0, -60), Vector3.new(30, 120, 30), Kit.Colors.Concrete, Enum.Material.Concrete)
-	Kit.box(drain, "Headwall", base + Vector3.new(0, 0, 30), Vector3.new(30, 120, 30), Kit.Colors.Concrete, Enum.Material.Concrete)
-	Kit.box(drain, "Headwall", base + Vector3.new(0, 40, -30), Vector3.new(30, 80, 60), Kit.Colors.Concrete, Enum.Material.Concrete)
-	Kit.box(drain, "PipeFloor", base + Vector3.new(30, -1, -40), Vector3.new(400, 2, 80), Color3.fromRGB(90, 95, 100), Enum.Material.Concrete)
-	Kit.box(drain, "PipeRoof", base + Vector3.new(30, 40, -40), Vector3.new(400, 4, 80), Color3.fromRGB(90, 95, 100), Enum.Material.Concrete)
-	Kit.box(drain, "PipeWall", base + Vector3.new(30, 0, -42), Vector3.new(400, 40, 2), Color3.fromRGB(90, 95, 100), Enum.Material.Concrete)
-	Kit.box(drain, "PipeWall", base + Vector3.new(30, 0, 40), Vector3.new(400, 40, 2), Color3.fromRGB(90, 95, 100), Enum.Material.Concrete)
-	Kit.box(drain, "PipeEnd", base + Vector3.new(430, 0, -42), Vector3.new(4, 44, 84), Color3.fromRGB(90, 95, 100), Enum.Material.Concrete)
-	local glow = Kit.ball(drain, "DrainGlow", base + Vector3.new(380, 12, 0), 8, Color3.fromRGB(90, 200, 255), Enum.Material.Neon)
+	Kit.box(
+		drain,
+		"Headwall",
+		base + Vector3.new(0, 0, -60),
+		Vector3.new(30, 120, 30),
+		Kit.Colors.Concrete,
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"Headwall",
+		base + Vector3.new(0, 0, 30),
+		Vector3.new(30, 120, 30),
+		Kit.Colors.Concrete,
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"Headwall",
+		base + Vector3.new(0, 40, -30),
+		Vector3.new(30, 80, 60),
+		Kit.Colors.Concrete,
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"PipeFloor",
+		base + Vector3.new(30, -1, -40),
+		Vector3.new(400, 2, 80),
+		Color3.fromRGB(90, 95, 100),
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"PipeRoof",
+		base + Vector3.new(30, 40, -40),
+		Vector3.new(400, 4, 80),
+		Color3.fromRGB(90, 95, 100),
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"PipeWall",
+		base + Vector3.new(30, 0, -42),
+		Vector3.new(400, 40, 2),
+		Color3.fromRGB(90, 95, 100),
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"PipeWall",
+		base + Vector3.new(30, 0, 40),
+		Vector3.new(400, 40, 2),
+		Color3.fromRGB(90, 95, 100),
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		drain,
+		"PipeEnd",
+		base + Vector3.new(430, 0, -42),
+		Vector3.new(4, 44, 84),
+		Color3.fromRGB(90, 95, 100),
+		Enum.Material.Concrete
+	)
+	local glow = Kit.ball(
+		drain,
+		"DrainGlow",
+		base + Vector3.new(380, 12, 0),
+		8,
+		Color3.fromRGB(90, 200, 255),
+		Enum.Material.Neon
+	)
 	glow.CanCollide = false
 	Kit.light(glow, Color3.fromRGB(90, 200, 255), 40, 2)
 	Kit.discovery(m, "StormDrain", base + Vector3.new(300, 20, 0), Vector3.new(200, 36, 70))
@@ -197,32 +459,113 @@ end
 local function construction(m: Instance)
 	local model = Kit.model(m, "ConstructionSite", true)
 	local base = Vector3.new(-2000, 0, -2500)
-	Kit.box(model, "SiteDirt", base + Vector3.new(-500, 0, -600), Vector3.new(1000, 2, 1200), Kit.Colors.Dirt, Enum.Material.Ground)
+	Kit.box(
+		model,
+		"SiteDirt",
+		base + Vector3.new(-500, 0, -600),
+		Vector3.new(1000, 2, 1200),
+		Kit.Colors.Dirt,
+		Enum.Material.Ground
+	)
 	-- Unfinished building frame: floors to climb.
 	for floor = 0, 4 do
-		Kit.box(model, "Slab", base + Vector3.new(-350, floor * 150, -350), Vector3.new(500, 10, 500), Kit.Colors.Concrete, Enum.Material.Concrete)
-		for _, o in { Vector3.new(-350, 0, -350), Vector3.new(130, 0, -350), Vector3.new(-350, 0, 130), Vector3.new(130, 0, 130) } do
-			Kit.box(model, "Column", base + o + Vector3.new(0, floor * 150, 0), Vector3.new(20, 150, 20), Kit.Colors.Concrete, Enum.Material.Concrete)
+		Kit.box(
+			model,
+			"Slab",
+			base + Vector3.new(-350, floor * 150, -350),
+			Vector3.new(500, 10, 500),
+			Kit.Colors.Concrete,
+			Enum.Material.Concrete
+		)
+		for _, o in
+			{
+				Vector3.new(-350, 0, -350),
+				Vector3.new(130, 0, -350),
+				Vector3.new(-350, 0, 130),
+				Vector3.new(130, 0, 130),
+			}
+		do
+			Kit.box(
+				model,
+				"Column",
+				base + o + Vector3.new(0, floor * 150, 0),
+				Vector3.new(20, 150, 20),
+				Kit.Colors.Concrete,
+				Enum.Material.Concrete
+			)
 		end
 	end
 	-- Stair ramps between floors.
 	for floor = 0, 3 do
 		local y0 = floor * 150 + 10
-		Kit.ramp(model, "Stairs", base + Vector3.new(-300 + (floor % 2) * 300, y0, 200), base + Vector3.new(-300 + (floor % 2) * 300, y0 + 150, -100), 60, Kit.Colors.Concrete, Enum.Material.Concrete)
+		Kit.ramp(
+			model,
+			"Stairs",
+			base + Vector3.new(-300 + (floor % 2) * 300, y0, 200),
+			base + Vector3.new(-300 + (floor % 2) * 300, y0 + 150, -100),
+			60,
+			Kit.Colors.Concrete,
+			Enum.Material.Concrete
+		)
 	end
 	-- The crane: a lattice mast and a jib to walk along.
 	local craneBase = base + Vector3.new(350, 0, 300)
-	Kit.tower(model, "CraneMast", craneBase, Vector2.new(50, 50), 900, Color3.fromRGB(240, 200, 40), Enum.Material.DiamondPlate)
+	Kit.tower(
+		model,
+		"CraneMast",
+		craneBase,
+		Vector2.new(50, 50),
+		900,
+		Color3.fromRGB(240, 200, 40),
+		Enum.Material.DiamondPlate
+	)
 	for i = 1, 11 do
-		Kit.block(model, "MastRung", craneBase + Vector3.new(40, i * 75, 0), Vector3.new(30, 6, 60), Color3.fromRGB(240, 200, 40), Enum.Material.Metal)
+		Kit.block(
+			model,
+			"MastRung",
+			craneBase + Vector3.new(40, i * 75, 0),
+			Vector3.new(30, 6, 60),
+			Color3.fromRGB(240, 200, 40),
+			Enum.Material.Metal
+		)
 	end
-	Kit.block(model, "Jib", craneBase + Vector3.new(-300, 905, 0), Vector3.new(800, 20, 40), Color3.fromRGB(240, 200, 40), Enum.Material.DiamondPlate)
-	Kit.block(model, "CounterWeight", craneBase + Vector3.new(130, 880, 0), Vector3.new(80, 60, 60), Kit.Colors.Concrete, Enum.Material.Concrete)
+	Kit.block(
+		model,
+		"Jib",
+		craneBase + Vector3.new(-300, 905, 0),
+		Vector3.new(800, 20, 40),
+		Color3.fromRGB(240, 200, 40),
+		Enum.Material.DiamondPlate
+	)
+	Kit.block(
+		model,
+		"CounterWeight",
+		craneBase + Vector3.new(130, 880, 0),
+		Vector3.new(80, 60, 60),
+		Kit.Colors.Concrete,
+		Enum.Material.Concrete
+	)
 	Kit.discovery(m, "ConstructionCrane", craneBase + Vector3.new(-200, 950, 0), Vector3.new(900, 80, 100))
 	Kit.collectible(m, "TitanShard", ZONE, craneBase + Vector3.new(-650, 915, 0))
 	for i = 0, 5 do
-		Kit.interactable(m, "Barricade", CFrame.new(base + Vector3.new(-700 + i * 110, 25, 450)), Vector3.new(90, 50, 12), Color3.fromRGB(240, 140, 40), Enum.Material.SmoothPlastic, nil)
-		Kit.interactable(m, "TrafficCone", CFrame.new(base + Vector3.new(-650 + i * 110, 25, 520)), Vector3.new(24, 50, 24), Color3.fromRGB(255, 120, 30), Enum.Material.SmoothPlastic, nil)
+		Kit.interactable(
+			m,
+			"Barricade",
+			CFrame.new(base + Vector3.new(-700 + i * 110, 25, 450)),
+			Vector3.new(90, 50, 12),
+			Color3.fromRGB(240, 140, 40),
+			Enum.Material.SmoothPlastic,
+			nil
+		)
+		Kit.interactable(
+			m,
+			"TrafficCone",
+			CFrame.new(base + Vector3.new(-650 + i * 110, 25, 520)),
+			Vector3.new(24, 50, 24),
+			Color3.fromRGB(255, 120, 30),
+			Enum.Material.SmoothPlastic,
+			nil
+		)
 	end
 	Kit.orbLine(m, ZONE, base + Vector3.new(-300, 12, 200), base + Vector3.new(-300, 610, -300), 10)
 	Kit.collectible(m, "Relic", ZONE, base + Vector3.new(-100, 610, -100))
@@ -233,14 +576,74 @@ local function borders(m: Instance)
 	local stone = Color3.fromRGB(150, 145, 140)
 	local model = Kit.model(m, "BorderWalls", true)
 	-- Neighborhood | Downtown (z = 2200): highway sound wall, cross-street gap.
-	Kit.wall(model, "SoundWall", "X", 2200, -2600, 3400, 0, 140, 30, { { 1000, 1320, 140 } }, stone, Enum.Material.Concrete)
-	Kit.gate(model, "RoadClosed", Vector3.new(1160, 70, 2200), Vector3.new(320, 140, 6), 10, "Road closed — Large players can step over")
+	Kit.wall(
+		model,
+		"SoundWall",
+		"X",
+		2200,
+		-2600,
+		3400,
+		0,
+		140,
+		30,
+		{ { 1000, 1320, 140 } },
+		stone,
+		Enum.Material.Concrete
+	)
+	Kit.gate(
+		model,
+		"RoadClosed",
+		Vector3.new(1160, 70, 2200),
+		Vector3.new(320, 140, 6),
+		10,
+		"Road closed — Large players can step over"
+	)
 	-- Titan City wall (x = 3400) across both lower regions, Titan Gate gap.
-	Kit.wall(model, "TitanWall", "Z", 3400, -3200, 8200, 0, 500, 120, { { 2300, 2900, 500 } }, Kit.Colors.TitanStone, Enum.Material.Sandstone)
-	Kit.gate(model, "TitanGate", Vector3.new(3400, 250, 2600), Vector3.new(30, 500, 600), 12, "The Titan Gate opens only for Titans")
+	Kit.wall(
+		model,
+		"TitanWall",
+		"Z",
+		3400,
+		-3200,
+		8200,
+		0,
+		500,
+		120,
+		{ { 2300, 2900, 500 } },
+		Kit.Colors.TitanStone,
+		Enum.Material.Sandstone
+	)
+	Kit.gate(
+		model,
+		"TitanGate",
+		Vector3.new(3400, 250, 2600),
+		Vector3.new(30, 500, 600),
+		12,
+		"The Titan Gate opens only for Titans"
+	)
 	-- Wilderness cliff wall (x = -2600), archway gap.
-	Kit.wall(model, "CliffWall", "Z", -2600, -6000, 8200, 0, 800, 200, { { 900, 1400, 800 } }, Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.gate(model, "WildArch", Vector3.new(-2600, 400, 1150), Vector3.new(40, 800, 500), 13, "The wilderness calls only to Colossal Titans")
+	Kit.wall(
+		model,
+		"CliffWall",
+		"Z",
+		-2600,
+		-6000,
+		8200,
+		0,
+		800,
+		200,
+		{ { 900, 1400, 800 } },
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.gate(
+		model,
+		"WildArch",
+		Vector3.new(-2600, 400, 1150),
+		Vector3.new(40, 800, 500),
+		13,
+		"The wilderness calls only to Colossal Titans"
+	)
 end
 
 function Neighborhood.build(root: Instance)

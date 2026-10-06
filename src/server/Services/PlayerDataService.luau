@@ -471,8 +471,8 @@ function PlayerDataService:ResetData(player: Player)
 		return
 	end
 	local keepMonetization = TableUtil.deepCopy((profile.Data :: any).Monetization)
-	profile.Data = DataSchema.new()
-	;(profile.Data :: any).Monetization = keepMonetization
+	profile.Data = DataSchema.new();
+	(profile.Data :: any).Monetization = keepMonetization
 	PlayerDataService:SendFull(player)
 end
 

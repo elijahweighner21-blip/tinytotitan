@@ -50,7 +50,13 @@ local function flag(player: Player, reason: string)
 	end
 end
 
-local function admit(player: Player, name: any, payload: any, defs: { [string]: NetDefs.Limit }, handlers: any): (Handler?, any)
+local function admit(
+	player: Player,
+	name: any,
+	payload: any,
+	defs: { [string]: NetDefs.Limit },
+	handlers: any
+): (Handler?, any)
 	if type(name) ~= "string" or #name > 40 then
 		flag(player, "malformed remote name")
 		return nil, "bad request"

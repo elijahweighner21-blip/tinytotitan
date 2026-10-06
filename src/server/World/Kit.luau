@@ -122,7 +122,14 @@ end
 
 -- Axis-aligned block from its MIN corner (x, y, z) and size: matches how the
 -- region layouts are written ("a desk from x=-150..-60").
-function Kit.box(parent: Instance, name: string, min: Vector3, size: Vector3, color: Color3?, material: Enum.Material?): Part
+function Kit.box(
+	parent: Instance,
+	name: string,
+	min: Vector3,
+	size: Vector3,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	return Kit.part(parent, {
 		Name = name,
 		Size = size,
@@ -133,11 +140,25 @@ function Kit.box(parent: Instance, name: string, min: Vector3, size: Vector3, co
 end
 
 -- Block centered at `center`.
-function Kit.block(parent: Instance, name: string, center: Vector3, size: Vector3, color: Color3?, material: Enum.Material?): Part
+function Kit.block(
+	parent: Instance,
+	name: string,
+	center: Vector3,
+	size: Vector3,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	return Kit.part(parent, { Name = name, Size = size, Position = center, Color = color, Material = material })
 end
 
-function Kit.wedge(parent: Instance, name: string, cframe: CFrame, size: Vector3, color: Color3?, material: Enum.Material?): WedgePart
+function Kit.wedge(
+	parent: Instance,
+	name: string,
+	cframe: CFrame,
+	size: Vector3,
+	color: Color3?,
+	material: Enum.Material?
+): WedgePart
 	local w = Instance.new("WedgePart")
 	w.Name = name
 	w.Anchored = true
@@ -155,7 +176,15 @@ end
 
 -- A walkable ramp from `bottom` (ground point) to `top` (ground point at the
 -- higher end), `width` wide.
-function Kit.ramp(parent: Instance, name: string, bottom: Vector3, top: Vector3, width: number, color: Color3?, material: Enum.Material?): Part
+function Kit.ramp(
+	parent: Instance,
+	name: string,
+	bottom: Vector3,
+	top: Vector3,
+	width: number,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	local flat = Vector3.new(top.X - bottom.X, 0, top.Z - bottom.Z)
 	local length = (top - bottom).Magnitude
 	local mid = (top + bottom) / 2
@@ -173,7 +202,15 @@ function Kit.ramp(parent: Instance, name: string, bottom: Vector3, top: Vector3,
 end
 
 -- Cylinder whose axis runs from `a` to `b`.
-function Kit.rod(parent: Instance, name: string, a: Vector3, b: Vector3, diameter: number, color: Color3?, material: Enum.Material?): Part
+function Kit.rod(
+	parent: Instance,
+	name: string,
+	a: Vector3,
+	b: Vector3,
+	diameter: number,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	local length = (b - a).Magnitude
 	local mid = (a + b) / 2
 	local cf = CFrame.lookAt(mid, b) * CFrame.Angles(0, math.rad(90), 0)
@@ -188,7 +225,15 @@ function Kit.rod(parent: Instance, name: string, a: Vector3, b: Vector3, diamete
 end
 
 -- Upright cylinder (disc / pillar) standing on `base`.
-function Kit.pillar(parent: Instance, name: string, base: Vector3, height: number, diameter: number, color: Color3?, material: Enum.Material?): Part
+function Kit.pillar(
+	parent: Instance,
+	name: string,
+	base: Vector3,
+	height: number,
+	diameter: number,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	return Kit.part(parent, {
 		Name = name,
 		Shape = Enum.PartType.Cylinder,
@@ -199,7 +244,14 @@ function Kit.pillar(parent: Instance, name: string, base: Vector3, height: numbe
 	})
 end
 
-function Kit.ball(parent: Instance, name: string, center: Vector3, diameter: number, color: Color3?, material: Enum.Material?): Part
+function Kit.ball(
+	parent: Instance,
+	name: string,
+	center: Vector3,
+	diameter: number,
+	color: Color3?,
+	material: Enum.Material?
+): Part
 	return Kit.part(parent, {
 		Name = name,
 		Shape = Enum.PartType.Ball,
@@ -281,7 +333,13 @@ local SHAPES = {
 }
 
 -- Places a collectible. Ids are stable as long as placement order is stable.
-function Kit.collectible(parent: Instance, typeId: string, zoneId: string, position: Vector3, sizeOverride: number?): Part?
+function Kit.collectible(
+	parent: Instance,
+	typeId: string,
+	zoneId: string,
+	position: Vector3,
+	sizeOverride: number?
+): Part?
 	local def = CollectibleConfig.get(typeId)
 	if not def then
 		warn("[Kit] unknown collectible type", typeId)
@@ -294,10 +352,16 @@ function Kit.collectible(parent: Instance, typeId: string, zoneId: string, posit
 	local shape = SHAPES[def.Shape]
 	local dims = if def.Shape == "Coin"
 		then Vector3.new(size * 0.18, size, size)
-		elseif def.Shape == "Shard" or def.Shape == "Crystal"
-		then Vector3.new(size * 0.45, size * 1.1, size * 0.45)
-		elseif def.Shape == "Relic" or def.Shape == "Toy" or def.Shape == "Fragment"
-		then Vector3.new(size * 0.8, size * 0.8, size * 0.8)
+		elseif def.Shape == "Shard" or def.Shape == "Crystal" then Vector3.new(
+			size * 0.45,
+			size * 1.1,
+			size * 0.45
+		)
+		elseif def.Shape == "Relic" or def.Shape == "Toy" or def.Shape == "Fragment" then Vector3.new(
+			size * 0.8,
+			size * 0.8,
+			size * 0.8
+		)
 		else Vector3.new(size, size, size)
 	local p = Kit.part(parent, {
 		Name = id,
@@ -330,15 +394,34 @@ end
 function Kit.orbRing(parent: Instance, zoneId: string, center: Vector3, radius: number, count: number, typeId: string?)
 	for i = 1, count do
 		local a = (i / count) * math.pi * 2
-		Kit.collectible(parent, typeId or "GrowthOrb", zoneId, center + Vector3.new(math.cos(a) * radius, 0, math.sin(a) * radius))
+		Kit.collectible(
+			parent,
+			typeId or "GrowthOrb",
+			zoneId,
+			center + Vector3.new(math.cos(a) * radius, 0, math.sin(a) * radius)
+		)
 	end
 end
 
-function Kit.station(parent: Instance, menu: string, label: string, position: Vector3, scale: number, color: Color3?): Model
+function Kit.station(
+	parent: Instance,
+	menu: string,
+	label: string,
+	position: Vector3,
+	scale: number,
+	color: Color3?
+): Model
 	local m = Kit.model(parent, "Station_" .. menu)
 	local h = ScaleMath.height(scale)
 	local base = Kit.pillar(m, "Base", position, h * 0.25, h * 1.4, Color3.fromRGB(40, 45, 60), Enum.Material.Metal)
-	local core = Kit.ball(m, "Core", position + Vector3.new(0, h * 0.7, 0), h * 0.45, color or Kit.Colors.Neon, Enum.Material.Neon)
+	local core = Kit.ball(
+		m,
+		"Core",
+		position + Vector3.new(0, h * 0.7, 0),
+		h * 0.45,
+		color or Kit.Colors.Neon,
+		Enum.Material.Neon
+	)
 	core.CanCollide = false
 	local light = Instance.new("PointLight")
 	light.Color = core.Color
@@ -352,10 +435,26 @@ end
 
 function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, scale: number): Part
 	local h = ScaleMath.height(scale)
-	local pad = Kit.pillar(parent, "FastTravel_" .. zoneId, position, h * 0.08, h * 2.4, Color3.fromRGB(60, 200, 255), Enum.Material.Neon)
+	local pad = Kit.pillar(
+		parent,
+		"FastTravel_" .. zoneId,
+		position,
+		h * 0.08,
+		h * 2.4,
+		Color3.fromRGB(60, 200, 255),
+		Enum.Material.Neon
+	)
 	pad.Transparency = 0.2
 	pad.CanCollide = true
-	local ring = Kit.pillar(parent, "FastTravelRing_" .. zoneId, position + Vector3.new(0, h * 1.6, 0), h * 0.06, h * 2.2, Color3.fromRGB(150, 230, 255), Enum.Material.Neon)
+	local ring = Kit.pillar(
+		parent,
+		"FastTravelRing_" .. zoneId,
+		position + Vector3.new(0, h * 1.6, 0),
+		h * 0.06,
+		h * 2.2,
+		Color3.fromRGB(150, 230, 255),
+		Enum.Material.Neon
+	)
 	ring.CanCollide = false
 	ring.Transparency = 0.5
 	Kit.tag(pad, "FastTravelStation", { StationId = zoneId })
@@ -364,7 +463,14 @@ end
 
 -- A size gate: a shimmering barrier the client makes passable once the player
 -- reaches RequiredTier. `size`/`center` describe the doorway it fills.
-function Kit.gate(parent: Instance, name: string, center: Vector3, size: Vector3, requiredTier: number, message: string?): Part
+function Kit.gate(
+	parent: Instance,
+	name: string,
+	center: Vector3,
+	size: Vector3,
+	requiredTier: number,
+	message: string?
+): Part
 	local tier = SizeConfig.getTier(requiredTier)
 	local g = Kit.part(parent, {
 		Name = "Gate_" .. name,
@@ -403,14 +509,30 @@ function Kit.bossArena(parent: Instance, bossId: string, center: Vector3)
 	local marker = Kit.region(parent, "BossArena_" .. bossId, center, Vector3.new(1, 1, 1))
 	Kit.tag(marker, "BossArena", { BossId = bossId, Radius = radius })
 	-- Visible arena ring so players know where the fight is.
-	local ring = Kit.pillar(parent, "ArenaRing_" .. bossId, center - Vector3.new(0, 0.02, 0), math.max(0.05, radius * 0.004), radius * 2, Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
+	local ring = Kit.pillar(
+		parent,
+		"ArenaRing_" .. bossId,
+		center - Vector3.new(0, 0.02, 0),
+		math.max(0.05, radius * 0.004),
+		radius * 2,
+		Color3.fromRGB(255, 80, 80),
+		Enum.Material.Neon
+	)
 	ring.Transparency = 0.85
 	ring.CanCollide = false
 	ring.CanQuery = false
 	ring.CastShadow = false
 end
 
-function Kit.interactable(parent: Instance, objectType: string, cframe: CFrame, size: Vector3, color: Color3?, material: Enum.Material?, shape: Enum.PartType?): Part?
+function Kit.interactable(
+	parent: Instance,
+	objectType: string,
+	cframe: CFrame,
+	size: Vector3,
+	color: Color3?,
+	material: Enum.Material?,
+	shape: Enum.PartType?
+): Part?
 	if not InteractableConfig.get(objectType) then
 		warn("[Kit] unknown interactable", objectType)
 		return nil
@@ -434,7 +556,15 @@ end
 
 function Kit.spawnPad(parent: Instance, zoneId: string, position: Vector3, scale: number)
 	local h = ScaleMath.height(scale)
-	local pad = Kit.pillar(parent, "Spawn_" .. zoneId, position - Vector3.new(0, 0.01, 0), math.max(0.05, h * 0.05), h * 3, Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+	local pad = Kit.pillar(
+		parent,
+		"Spawn_" .. zoneId,
+		position - Vector3.new(0, 0.01, 0),
+		math.max(0.05, h * 0.05),
+		h * 3,
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.Neon
+	)
 	pad.Transparency = 0.6
 	pad.CanCollide = false
 	pad.CastShadow = false
@@ -469,7 +599,9 @@ function Kit.wall(
 		local len = b - a
 		local mid = (a + b) / 2
 		local size = if axis == "X" then Vector3.new(len, y1 - y0, thickness) else Vector3.new(thickness, y1 - y0, len)
-		local center = if axis == "X" then Vector3.new(mid, (y0 + y1) / 2, fixed) else Vector3.new(fixed, (y0 + y1) / 2, mid)
+		local center = if axis == "X"
+			then Vector3.new(mid, (y0 + y1) / 2, fixed)
+			else Vector3.new(fixed, (y0 + y1) / 2, mid)
 		-- Split anything longer than the part size limit.
 		if len > 2048 then
 			segment(a, mid, y0, y1)
@@ -491,7 +623,18 @@ function Kit.wall(
 end
 
 -- Large flat ground made of <=2048 tiles. Top surface at `topY`.
-function Kit.ground(parent: Instance, name: string, minX: number, minZ: number, maxX: number, maxZ: number, topY: number, thickness: number, color: Color3, material: Enum.Material)
+function Kit.ground(
+	parent: Instance,
+	name: string,
+	minX: number,
+	minZ: number,
+	maxX: number,
+	maxZ: number,
+	topY: number,
+	thickness: number,
+	color: Color3,
+	material: Enum.Material
+)
 	local step = 2000
 	local x = minX
 	while x < maxX do
@@ -507,13 +650,31 @@ function Kit.ground(parent: Instance, name: string, minX: number, minZ: number, 
 end
 
 -- A tall tower assembled from stacked blocks (handles >2048 heights).
-function Kit.tower(parent: Instance, name: string, base: Vector3, footprint: Vector2, height: number, color: Color3, material: Enum.Material): { Part }
+function Kit.tower(
+	parent: Instance,
+	name: string,
+	base: Vector3,
+	footprint: Vector2,
+	height: number,
+	color: Color3,
+	material: Enum.Material
+): { Part }
 	local parts = {}
 	local remaining = height
 	local y = base.Y
 	while remaining > 0.01 do
 		local h = math.min(2000, remaining)
-		table.insert(parts, Kit.block(parent, name, Vector3.new(base.X, y + h / 2, base.Z), Vector3.new(footprint.X, h, footprint.Y), color, material))
+		table.insert(
+			parts,
+			Kit.block(
+				parent,
+				name,
+				Vector3.new(base.X, y + h / 2, base.Z),
+				Vector3.new(footprint.X, h, footprint.Y),
+				color,
+				material
+			)
+		)
 		y += h
 		remaining -= h
 	end

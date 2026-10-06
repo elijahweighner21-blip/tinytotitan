@@ -71,7 +71,12 @@ function VipLoungeService:Init()
 		end
 		local height = root.Size.Y
 		returnPoints[player] = root.Position - Vector3.new(0, height * 1.5, 0)
-		ScaleService:SetModifier(player, MODIFIER, { Fixed = SizeConfig.getTier(SizeConfig.HumanTier).Scale }, 60 * 60 * 6)
+		ScaleService:SetModifier(
+			player,
+			MODIFIER,
+			{ Fixed = SizeConfig.getTier(SizeConfig.HumanTier).Scale },
+			60 * 60 * 6
+		)
 		pcall(function()
 			player:RequestStreamAroundAsync(WorldBuilder.VipLounge, 5)
 		end)

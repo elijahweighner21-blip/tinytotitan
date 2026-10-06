@@ -46,7 +46,11 @@ local function advance(player: Player, eventName: string)
 	data.Tutorial.Step = index
 	if index >= #TutorialConfig.Steps then
 		data.Tutorial.Done = true
-		RewardService:Grant(player, { GrowthEnergy = 60, TitanShards = 5, XP = 80 }, { Source = "Tutorial", Multipliers = false })
+		RewardService:Grant(
+			player,
+			{ GrowthEnergy = 60, TitanShards = 5, XP = 80 },
+			{ Source = "Tutorial", Multipliers = false }
+		)
 		Net.signal(player, "Notify", { Kind = "Success", Text = "Tutorial complete! Keep growing." })
 	end
 	PlayerDataService:Changed(player, "Tutorial")

@@ -52,7 +52,10 @@ describe("Reward stacking", function()
 	end)
 	it("two boosts in the same group do not stack", function()
 		local m = table.clone(mods)
-		table.insert(m, { Source = "Boost:Mass2x#2", Currency = "Mass", Kind = "Multiplicative", Value = 2, Group = "Boost" })
+		table.insert(
+			m,
+			{ Source = "Boost:Mass2x#2", Currency = "Mass", Kind = "Multiplicative", Value = 2, Group = "Boost" }
+		)
 		expect(RewardMath.apply("Mass", 100, m, true).Final).toBe(270)
 	end)
 	it("does not apply to other currencies", function()
@@ -66,7 +69,10 @@ describe("Reward stacking", function()
 		local m = {}
 		for i = 1, 50 do
 			table.insert(m, { Source = "A" .. i, Currency = "Mass", Kind = "Additive", Value = 1 })
-			table.insert(m, { Source = "M" .. i, Currency = "Mass", Kind = "Multiplicative", Value = 3, Group = "G" .. i })
+			table.insert(
+				m,
+				{ Source = "M" .. i, Currency = "Mass", Kind = "Multiplicative", Value = 3, Group = "G" .. i }
+			)
 		end
 		local b = RewardMath.apply("Mass", 100, m, true)
 		expect(b.Final).toBe(100 * RewardConfig.MaxTotalMultiplier)

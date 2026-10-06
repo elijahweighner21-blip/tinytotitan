@@ -41,7 +41,14 @@ local HazardService = require(script.Parent.HazardService)
 
 local WorldEventService = {}
 
-type Pickup = { Id: string, Position: Vector3, Radius: number, Reward: (player: Player) -> Types.Reward, Collected: { [Player]: boolean }, Part: BasePart? }
+type Pickup = {
+	Id: string,
+	Position: Vector3,
+	Radius: number,
+	Reward: (player: Player) -> Types.Reward,
+	Collected: { [Player]: boolean },
+	Part: BasePart?,
+}
 
 type ActiveEvent = {
 	Def: WorldEventConfig.WorldEvent,
@@ -106,7 +113,13 @@ local function pointNear(player: Player, minBodies: number, maxBodies: number): 
 	return if hit then hit.Position else root.Position - Vector3.new(0, h * 0.5, 0), h
 end
 
-local function addPickup(event: ActiveEvent, position: Vector3, size: number, color: Color3, reward: (player: Player) -> Types.Reward): Pickup
+local function addPickup(
+	event: ActiveEvent,
+	position: Vector3,
+	size: number,
+	color: Color3,
+	reward: (player: Player) -> Types.Reward
+): Pickup
 	pickupCounter += 1
 	local part = Instance.new("Part")
 	part.Name = "EventPickup"
@@ -125,7 +138,14 @@ local function addPickup(event: ActiveEvent, position: Vector3, size: number, co
 	light.Range = math.clamp(size * 4, 4, 60)
 	light.Parent = part
 	event.Trove:Add(part)
-	local pickup: Pickup = { Id = "EV_" .. pickupCounter, Position = part.Position, Radius = size * 1.5, Reward = reward, Collected = {}, Part = part }
+	local pickup: Pickup = {
+		Id = "EV_" .. pickupCounter,
+		Position = part.Position,
+		Radius = size * 1.5,
+		Reward = reward,
+		Collected = {},
+		Part = part,
+	}
 	table.insert(event.Pickups, pickup)
 	return pickup
 end
@@ -140,7 +160,12 @@ local handlers: { [string]: (event: ActiveEvent) -> () } = {}
 
 handlers.GrowthSurge = function(event)
 	local id = "Event:GrowthSurge"
-	GlobalModifierService:Set(id, { Source = "Event:GrowthSurge", Currency = "Mass", Kind = "Additive", Value = event.Def.Params.MassBonus :: number }, event.Def.Name, event.Def.Duration)
+	GlobalModifierService:Set(id, {
+		Source = "Event:GrowthSurge",
+		Currency = "Mass",
+		Kind = "Additive",
+		Value = event.Def.Params.MassBonus :: number,
+	}, event.Def.Name, event.Def.Duration)
 	event.Trove:Add(function()
 		GlobalModifierService:Clear(id)
 	end)
@@ -224,11 +249,17 @@ handlers.MeteorFragment = function(event)
 		Net.fx("BossImpact", { P = point, R = h * 3 })
 		for i = 1, 5 do
 			local a = i / 5 * math.pi * 2
-			addPickup(event, point + Vector3.new(math.cos(a), 0, math.sin(a)) * h * 1.5, h * 0.5, Color3.fromRGB(90, 200, 255), function(p)
-				local reward = zoneReward(zone, (event.Def.Params.RewardWeight :: number) / 5)
-				reward.TitanShards = 1
-				return reward
-			end)
+			addPickup(
+				event,
+				point + Vector3.new(math.cos(a), 0, math.sin(a)) * h * 1.5,
+				h * 0.5,
+				Color3.fromRGB(90, 200, 255),
+				function(p)
+					local reward = zoneReward(zone, (event.Def.Params.RewardWeight :: number) / 5)
+					reward.TitanShards = 1
+					return reward
+				end
+			)
 		end
 	end))
 end
@@ -257,7 +288,11 @@ handlers.SupplyCrate = function(event)
 	Net.signalAll("WorldEvent", { State = "Marker", Id = event.Def.Id, Position = point, Radius = size })
 	-- Parachute drop (server tween so everyone sees the same landing).
 	local TweenService = game:GetService("TweenService")
-	TweenService:Create(crate, TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Position = point + Vector3.new(0, size * 0.5, 0) }):Play()
+	TweenService:Create(
+		crate,
+		TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		{ Position = point + Vector3.new(0, size * 0.5, 0) }
+	):Play()
 	local hitsLeft = event.Def.Params.Hits :: number
 	local hitters: { [Player]: boolean } = {}
 	local conn = CombatService.AttackPerformed:Connect(function(attacker, origin, _facing, range)
@@ -274,7 +309,11 @@ handlers.SupplyCrate = function(event)
 				for hitter in hitters do
 					if hitter.Parent then
 						join(event, hitter)
-						RewardService:Grant(hitter, zoneReward(zone, event.Def.Params.RewardWeight :: number), { Source = "Event", SourceId = event.Def.Id })
+						RewardService:Grant(
+							hitter,
+							zoneReward(zone, event.Def.Params.RewardWeight :: number),
+							{ Source = "Event", SourceId = event.Def.Id }
+						)
 					end
 				end
 			end
@@ -284,7 +323,10 @@ handlers.SupplyCrate = function(event)
 end
 
 handlers.PowerOutage = function(event)
-	Net.signalAll("WorldEvent", { State = "Lighting", Id = event.Def.Id, Preset = "Outage", Duration = event.Def.Duration })
+	Net.signalAll(
+		"WorldEvent",
+		{ State = "Lighting", Id = event.Def.Id, Preset = "Outage", Duration = event.Def.Duration }
+	)
 	local houseZones = { FloorWorld = true, Bedroom = true, Kitchen = true }
 	for _, player in playersIn(event.Def.Zones) do
 		local zone = zoneOf(player)
@@ -331,10 +373,16 @@ handlers.RarePortal = function(event)
 	for i = 1, event.Def.Params.Orbs :: number do
 		local a = i / (event.Def.Params.Orbs :: number) * math.pi * 2
 		local r = h * (3 + (i % 3) * 2)
-		addPickup(event, point + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r), h * 0.3, Color3.fromRGB(200, 140, 255), function(p)
-			local _ = p
-			return zoneReward(zone, 0.3)
-		end)
+		addPickup(
+			event,
+			point + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r),
+			h * 0.3,
+			Color3.fromRGB(200, 140, 255),
+			function(p)
+				local _ = p
+				return zoneReward(zone, 0.3)
+			end
+		)
 	end
 end
 
@@ -357,7 +405,11 @@ handlers.TitanStorm = function(event)
 						Net.fx("Lightning", { P = point, S = h })
 						for _, p in Players:GetPlayers() do
 							local root = CharacterService:GetRoot(p)
-							if root and (root.Position - point).Magnitude <= radius + ScaleMath.height(ScaleService:GetScale(p)) * 0.5 then
+							if
+								root
+								and (root.Position - point).Magnitude
+									<= radius + ScaleMath.height(ScaleService:GetScale(p)) * 0.5
+							then
 								HazardService:DamageFromHazard(p, radius * 2, 25, "Titan Storm", point)
 							end
 						end
@@ -457,11 +509,22 @@ function WorldEventService:Start()
 					if root then
 						local reach = ScaleMath.height(ScaleService:GetScale(player)) * 0.8
 						for _, pickup in event.Pickups do
-							if not pickup.Collected[player] and (root.Position - pickup.Position).Magnitude <= pickup.Radius + reach then
+							if
+								not pickup.Collected[player]
+								and (root.Position - pickup.Position).Magnitude <= pickup.Radius + reach
+							then
 								pickup.Collected[player] = true
 								join(event, player)
-								RewardService:Grant(player, pickup.Reward(player), { Source = "Event", SourceId = event.Def.Id, Position = pickup.Position })
-								Net.signal(player, "WorldEvent", { State = "Picked", Id = event.Def.Id, Pickup = pickup.Id })
+								RewardService:Grant(
+									player,
+									pickup.Reward(player),
+									{ Source = "Event", SourceId = event.Def.Id, Position = pickup.Position }
+								)
+								Net.signal(
+									player,
+									"WorldEvent",
+									{ State = "Picked", Id = event.Def.Id, Pickup = pickup.Id }
+								)
 							end
 						end
 					end

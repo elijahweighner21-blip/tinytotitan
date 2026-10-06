@@ -102,7 +102,11 @@ local function sendHome(entry: Entry)
 	part.Anchored = true
 	part.AssemblyLinearVelocity = Vector3.zero
 	setGroup(part, GameConfig.MovingPropGroup)
-	local tween = TweenService:Create(part, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), { CFrame = entry.Home })
+	local tween = TweenService:Create(
+		part,
+		TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+		{ CFrame = entry.Home }
+	)
 	tween:Play()
 	tween.Completed:Once(function()
 		setGroup(part, "Default")
@@ -122,7 +126,11 @@ local function maybeReward(player: Player, entry: Entry)
 	end
 	entry.LastReward[player] = now + InteractableConfig.PerObjectRewardCooldown
 	local scaled = if entry.Def.ZoneScaled then RewardService:ScaleZone(reward :: any, entry.Zone) else reward
-	RewardService:Grant(player, scaled :: any, { Source = "Object", SourceId = entry.Def.Id, Position = entry.Part.Position })
+	RewardService:Grant(
+		player,
+		scaled :: any,
+		{ Source = "Object", SourceId = entry.Def.Id, Position = entry.Part.Position }
+	)
 end
 
 ------------------------------------------------------------------ push
@@ -137,7 +145,14 @@ local function push(player: Player, entry: Entry)
 	end
 	local derived = StatService:GetDerived(player)
 	if derived.PushStrength < def.Push then
-		notifyWeak(player, string.format("Too heavy to push — needs %s push strength (you have %s)", Format.abbreviate(def.Push), Format.abbreviate(derived.PushStrength)))
+		notifyWeak(
+			player,
+			string.format(
+				"Too heavy to push — needs %s push strength (you have %s)",
+				Format.abbreviate(def.Push),
+				Format.abbreviate(derived.PushStrength)
+			)
+		)
 		return
 	end
 	local root = rootOf(player) :: BasePart
@@ -170,9 +185,15 @@ local function push(player: Player, entry: Entry)
 	if def.Id == "Domino" then
 		-- Dominoes topple instead of sliding.
 		local axis = Vector3.new(0, 1, 0):Cross(dir)
-		goal = CFrame.new(part.Position + dir * part.Size.Y * 0.45 - Vector3.new(0, part.Size.Y * 0.4, 0)) * CFrame.fromAxisAngle(axis, math.rad(-80)) * (part.CFrame - part.Position)
+		goal = CFrame.new(part.Position + dir * part.Size.Y * 0.45 - Vector3.new(0, part.Size.Y * 0.4, 0))
+			* CFrame.fromAxisAngle(axis, math.rad(-80))
+			* (part.CFrame - part.Position)
 	end
-	local tween = TweenService:Create(part, TweenInfo.new(InteractableConfig.PushDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { CFrame = goal })
+	local tween = TweenService:Create(
+		part,
+		TweenInfo.new(InteractableConfig.PushDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ CFrame = goal }
+	)
 	tween:Play()
 	tween.Completed:Once(function()
 		setGroup(part, "Default")
@@ -217,7 +238,10 @@ local function drop(player: Player, launch: Vector3?)
 					break
 				end
 				for _, target in CombatService:GetTargets() do
-					if (target.GetPosition() - part.Position).Magnitude <= part.Size.Magnitude * 0.6 + target.Radius then
+					if
+						(target.GetPosition() - part.Position).Magnitude
+						<= part.Size.Magnitude * 0.6 + target.Radius
+					then
 						CombatService:AreaDamage(player, part.Position, part.Size.Magnitude, "Throw")
 						hitDone = true
 						break
@@ -242,7 +266,14 @@ local function carry(player: Player, entry: Entry)
 	end
 	local derived = StatService:GetDerived(player)
 	if derived.CarryStrength < def.Carry then
-		notifyWeak(player, string.format("Too heavy to carry — needs %s carry strength (you have %s)", Format.abbreviate(def.Carry), Format.abbreviate(derived.CarryStrength)))
+		notifyWeak(
+			player,
+			string.format(
+				"Too heavy to carry — needs %s carry strength (you have %s)",
+				Format.abbreviate(def.Carry),
+				Format.abbreviate(derived.CarryStrength)
+			)
+		)
 		return
 	end
 	local root = rootOf(player) :: BasePart
@@ -274,7 +305,10 @@ local function throw(player: Player, direction: Vector3)
 	local def = entry.Def
 	if not def.Throw or derived.ThrowStrength < def.Throw then
 		if def.Throw then
-			notifyWeak(player, string.format("Not strong enough to throw it — needs %s throw strength", Format.abbreviate(def.Throw)))
+			notifyWeak(
+				player,
+				string.format("Not strong enough to throw it — needs %s throw strength", Format.abbreviate(def.Throw))
+			)
 		end
 		drop(player, nil)
 		return
@@ -294,7 +328,12 @@ local function spawnDebris(part: BasePart)
 	for _ = 1, pieces do
 		local d = Instance.new("Part")
 		d.Size = part.Size * (0.15 + math.random() * 0.2)
-		d.CFrame = part.CFrame * CFrame.new((math.random() - 0.5) * part.Size.X, (math.random() - 0.5) * part.Size.Y, (math.random() - 0.5) * part.Size.Z)
+		d.CFrame = part.CFrame
+			* CFrame.new(
+				(math.random() - 0.5) * part.Size.X,
+				(math.random() - 0.5) * part.Size.Y,
+				(math.random() - 0.5) * part.Size.Z
+			)
 		d.Color = part.Color
 		d.Material = part.Material
 		d.CanQuery = false
@@ -316,7 +355,14 @@ local function breakHit(player: Player, entry: Entry, hits: number, breakPower: 
 		return
 	end
 	if breakPower < def.Break then
-		notifyWeak(player, string.format("Too tough to break — needs %s break power (you have %s)", Format.abbreviate(def.Break), Format.abbreviate(breakPower)))
+		notifyWeak(
+			player,
+			string.format(
+				"Too tough to break — needs %s break power (you have %s)",
+				Format.abbreviate(def.Break),
+				Format.abbreviate(breakPower)
+			)
+		)
 		return
 	end
 	entry.Health -= hits
@@ -436,13 +482,16 @@ end
 function InteractionService:Start()
 	CombatService.AttackPerformed:Connect(function(player, origin, facing, range, arc, kind)
 		local hits = if kind == "Heavy" or kind == "Charged" or kind == "Stomp" or kind == "Shockwave" then 2 else 1
-		local breakPower = StatService:GetDerived(player).BreakPower * (if kind == "Charged" or kind == "Stomp" then 1.5 else 1)
+		local breakPower = StatService:GetDerived(player).BreakPower
+			* (if kind == "Charged" or kind == "Stomp" then 1.5 else 1)
 		for _, entry in entries do
 			if entry.Def.Break and entry.State ~= "Broken" then
 				local offset = entry.Part.Position - origin
 				if offset.Magnitude <= range + entry.Part.Size.Magnitude * 0.5 then
 					local flat = offset * Vector3.new(1, 0, 1)
-					local ok = arc >= 360 or flat.Magnitude < 0.01 or flat.Unit:Dot((facing * Vector3.new(1, 0, 1)).Unit) >= math.cos(math.rad(arc / 2))
+					local ok = arc >= 360
+						or flat.Magnitude < 0.01
+						or flat.Unit:Dot((facing * Vector3.new(1, 0, 1)).Unit) >= math.cos(math.rad(arc / 2))
 					if ok then
 						breakHit(player, entry, hits, breakPower)
 					end

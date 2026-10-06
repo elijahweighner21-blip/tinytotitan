@@ -63,7 +63,12 @@ function UpgradeService:Buy(player: Player, upgradeId: string): { [string]: any 
 		costs["Resource:" .. resource] = amount
 	end
 	if not CurrencyService:Spend(player, costs, "Upgrade:" .. upgradeId) then
-		return { ok = false, err = "Not enough " .. (if resource and CurrencyService:GetResource(player, resource) < amount then resource else "Growth Energy") }
+		return {
+			ok = false,
+			err = "Not enough " .. (if resource and CurrencyService:GetResource(player, resource) < amount
+				then resource
+				else "Growth Energy"),
+		}
 	end
 	data.Upgrades[upgradeId] = level + 1
 	PlayerDataService:Changed(player, "Upgrades")

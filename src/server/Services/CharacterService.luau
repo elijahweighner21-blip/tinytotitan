@@ -58,7 +58,8 @@ local function setupCollisionGroups()
 			PhysicsService:RegisterCollisionGroup(name)
 		end)
 	end
-	local P, M, D, E = GameConfig.PlayerCollisionGroup, GameConfig.MovingPropGroup, GameConfig.DebrisGroup, GameConfig.EnemyGroup
+	local P, M, D, E =
+		GameConfig.PlayerCollisionGroup, GameConfig.MovingPropGroup, GameConfig.DebrisGroup, GameConfig.EnemyGroup
 	PhysicsService:CollisionGroupSetCollidable(P, P, false)
 	PhysicsService:CollisionGroupSetCollidable(P, M, false)
 	PhysicsService:CollisionGroupSetCollidable(P, D, false)
@@ -230,7 +231,11 @@ function CharacterService:Start()
 	end)
 	ScaleService.GrewIntoGeometry:Connect(function(player)
 		CharacterService:Rescue(player, "Unstuck")
-		Net.signal(player, "Notify", { Text = "You grew too big for that space! Moved you somewhere roomier.", Kind = "Info" })
+		Net.signal(
+			player,
+			"Notify",
+			{ Text = "You grew too big for that space! Moved you somewhere roomier.", Kind = "Info" }
+		)
 	end)
 
 	-- Fall recovery / kill plane. Cheap: one position read per player.

@@ -87,7 +87,14 @@ function Dialog.confirm(opts: Options, onResult: (confirmed: boolean) -> ())
 		Size = UDim2.new(1, 0, 0, 48),
 		LayoutOrder = 100,
 		Parent = panel,
-		[Create.Children] = { Create.list(Enum.FillDirection.Horizontal, 12, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center) },
+		[Create.Children] = {
+			Create.list(
+				Enum.FillDirection.Horizontal,
+				12,
+				Enum.HorizontalAlignment.Center,
+				Enum.VerticalAlignment.Center
+			),
+		},
 	})
 	local function finish(result: boolean)
 		if resolved then
@@ -98,12 +105,26 @@ function Dialog.confirm(opts: Options, onResult: (confirmed: boolean) -> ())
 		blocker:Destroy()
 		onResult(result)
 	end
-	local cancel = Button.new({ Text = opts.Cancel or "Cancel", Style = "Secondary", Size = UDim2.fromOffset(180, 44), Parent = buttons, LayoutOrder = 1, OnClick = function()
-		finish(false)
-	end })
-	Button.new({ Text = opts.Confirm or "Confirm", Style = if opts.Danger then "Danger" else "Primary", Size = UDim2.fromOffset(180, 44), Parent = buttons, LayoutOrder = 2, OnClick = function()
-		finish(true)
-	end })
+	local cancel = Button.new({
+		Text = opts.Cancel or "Cancel",
+		Style = "Secondary",
+		Size = UDim2.fromOffset(180, 44),
+		Parent = buttons,
+		LayoutOrder = 1,
+		OnClick = function()
+			finish(false)
+		end,
+	})
+	Button.new({
+		Text = opts.Confirm or "Confirm",
+		Style = if opts.Danger then "Danger" else "Primary",
+		Size = UDim2.fromOffset(180, 44),
+		Parent = buttons,
+		LayoutOrder = 2,
+		OnClick = function()
+			finish(true)
+		end,
+	})
 	TweenService:Create(blocker, Theme.Tween.Normal, { BackgroundTransparency = 0.45 }):Play()
 	GuiService.SelectedObject = cancel.Instance
 end

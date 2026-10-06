@@ -75,4 +75,13 @@ local ORDER = {
 }
 
 local count = Loader.run(Server.Services, ORDER)
-Log.info("Boot", string.format("%s v%s — %d services running%s", GameConfig.GameName, GameConfig.Version, count, if RunService:IsStudio() then " (Studio)" else ""))
+Log.info(
+	"Boot",
+	string.format(
+		"%s v%s — %d services running%s",
+		GameConfig.GameName,
+		GameConfig.Version,
+		count,
+		if RunService:IsStudio() then " (Studio)" else ""
+	)
+)

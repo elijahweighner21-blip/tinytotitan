@@ -68,7 +68,11 @@ local function discover(player: Player, region: Region)
 		reward.TitanShards = DiscoveryConfig.TitanShardsForHidden
 		StatisticsService:Increment(player, "SecretsFound")
 	end
-	local granted = RewardService:Grant(player, reward, { Source = "Discovery", SourceId = def.Id, Category = "Discovery", Notify = false })
+	local granted = RewardService:Grant(
+		player,
+		reward,
+		{ Source = "Discovery", SourceId = def.Id, Category = "Discovery", Notify = false }
+	)
 	if def.Lore then
 		InventoryService:UnlockLore(player, def.Lore)
 	end

@@ -20,7 +20,16 @@ local TitanWilderness = {}
 local ZONE = "TitanWilderness"
 
 -- Stepped mountain: stacked slabs shrinking upward (each step < a jump).
-local function mountain(parent: Instance, name: string, base: Vector3, radius: number, height: number, stepHeight: number, color: Color3, snow: boolean)
+local function mountain(
+	parent: Instance,
+	name: string,
+	base: Vector3,
+	radius: number,
+	height: number,
+	stepHeight: number,
+	color: Color3,
+	snow: boolean
+)
 	local model = Kit.model(parent, name, true)
 	local steps = math.max(1, math.floor(height / stepHeight))
 	for i = 0, steps - 1 do
@@ -64,7 +73,8 @@ function TitanWilderness.build(root: Instance)
 		local crystal = Kit.part(m, {
 			Name = "Crystal",
 			Size = Vector3.new(h * 0.25, h, h * 0.25),
-			CFrame = CFrame.new(p + Vector3.new(0, h * 0.45, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 6), rng:NextNumber(-0.3, 0.3)),
+			CFrame = CFrame.new(p + Vector3.new(0, h * 0.45, 0))
+				* CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 6), rng:NextNumber(-0.3, 0.3)),
 			Color = Kit.Colors.Crystal:Lerp(Color3.fromRGB(120, 220, 255), rng:NextNumber()),
 			Material = Enum.Material.Neon,
 		})
@@ -79,38 +89,142 @@ function TitanWilderness.build(root: Instance)
 	for i = 0, 11 do
 		local a = i / 12 * math.pi * 2
 		local h = rng:NextNumber(500, 1600)
-		Kit.tower(m, "RuinPillar", ruins + Vector3.new(math.cos(a) * 1200, 10, math.sin(a) * 1200), Vector2.new(220, 220), h, Color3.fromRGB(190, 180, 160), Enum.Material.Limestone)
+		Kit.tower(
+			m,
+			"RuinPillar",
+			ruins + Vector3.new(math.cos(a) * 1200, 10, math.sin(a) * 1200),
+			Vector2.new(220, 220),
+			h,
+			Color3.fromRGB(190, 180, 160),
+			Enum.Material.Limestone
+		)
 	end
-	Kit.block(m, "RuinAltar", ruins + Vector3.new(0, 110, 0), Vector3.new(600, 200, 600), Color3.fromRGB(170, 160, 140), Enum.Material.Limestone)
+	Kit.block(
+		m,
+		"RuinAltar",
+		ruins + Vector3.new(0, 110, 0),
+		Vector3.new(600, 200, 600),
+		Color3.fromRGB(170, 160, 140),
+		Enum.Material.Limestone
+	)
 	Kit.discovery(m, "AncientRuins", ruins + Vector3.new(0, 600, 0), Vector3.new(2600, 1200, 2600))
 	Kit.collectible(m, "MemoryFragment", ZONE, ruins + Vector3.new(0, 210, 0))
 	for i = 0, 4 do
-		Kit.interactable(m, "Monolith", CFrame.new(ruins + Vector3.new(-600 + i * 300, 410, 1600)), Vector3.new(200, 800, 120), Color3.fromRGB(80, 80, 95), Enum.Material.Basalt, nil)
+		Kit.interactable(
+			m,
+			"Monolith",
+			CFrame.new(ruins + Vector3.new(-600 + i * 300, 410, 1600)),
+			Vector3.new(200, 800, 120),
+			Color3.fromRGB(80, 80, 95),
+			Enum.Material.Basalt,
+			nil
+		)
 	end
 
 	-- Sky Falls: a cliff with a glowing waterfall.
 	local falls = Vector3.new(-12500, 0, -500)
 	Kit.tower(m, "FallsCliff", falls, Vector2.new(1600, 900), 3000, Color3.fromRGB(110, 105, 100), Enum.Material.Rock)
-	local water = Kit.block(m, "Waterfall", falls + Vector3.new(810, 1500, 0), Vector3.new(30, 3000, 400), Color3.fromRGB(120, 200, 255), Enum.Material.Neon)
+	local water = Kit.block(
+		m,
+		"Waterfall",
+		falls + Vector3.new(810, 1500, 0),
+		Vector3.new(30, 3000, 400),
+		Color3.fromRGB(120, 200, 255),
+		Enum.Material.Neon
+	)
 	water.Transparency = 0.35
 	water.CanCollide = false
 	Kit.discovery(m, "SkyFalls", falls + Vector3.new(500, 3100, 0), Vector3.new(1000, 300, 900))
 	Kit.collectible(m, "TitanShard", ZONE, falls + Vector3.new(0, 3000, 0))
 	-- Ledges up the cliff face.
 	for i = 1, 6 do
-		Kit.block(m, "CliffLedge", falls + Vector3.new(900, i * 480, -300 + (i % 2) * 600), Vector3.new(500, 60, 400), Kit.Colors.Rock, Enum.Material.Rock)
+		Kit.block(
+			m,
+			"CliffLedge",
+			falls + Vector3.new(900, i * 480, -300 + (i % 2) * 600),
+			Vector3.new(500, 60, 400),
+			Kit.Colors.Rock,
+			Enum.Material.Rock
+		)
 	end
 
 	-- First Titan's tomb inside a mountain flank (entrance 330 tall).
 	local tomb = Kit.model(m, "FirstTitanTomb", true)
 	local tc = Vector3.new(-12500, 0, 6800)
-	Kit.wall(tomb, "TombWall", "Z", tc.X + 800, tc.Z - 800, tc.Z + 800, 0, 2000, 200, { { tc.Z - 120, tc.Z + 120, 330 } }, Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.wall(tomb, "TombWall", "Z", tc.X - 800, tc.Z - 800, tc.Z + 800, 0, 2000, 200, nil, Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.wall(tomb, "TombWall", "X", tc.Z - 800, tc.X - 800, tc.X + 800, 0, 2000, 200, nil, Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.wall(tomb, "TombWall", "X", tc.Z + 800, tc.X - 800, tc.X + 800, 0, 2000, 200, nil, Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.block(tomb, "TombRoof", tc + Vector3.new(0, 2100, 0), Vector3.new(1800, 200, 1800), Kit.Colors.Rock, Enum.Material.Rock)
-	Kit.block(tomb, "Sarcophagus", tc + Vector3.new(0, 150, 0), Vector3.new(500, 300, 900), Color3.fromRGB(200, 170, 110), Enum.Material.Marble)
-	local light = Kit.ball(tomb, "TombLight", tc + Vector3.new(0, 900, 0), 120, Color3.fromRGB(200, 160, 255), Enum.Material.Neon)
+	Kit.wall(
+		tomb,
+		"TombWall",
+		"Z",
+		tc.X + 800,
+		tc.Z - 800,
+		tc.Z + 800,
+		0,
+		2000,
+		200,
+		{ { tc.Z - 120, tc.Z + 120, 330 } },
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.wall(
+		tomb,
+		"TombWall",
+		"Z",
+		tc.X - 800,
+		tc.Z - 800,
+		tc.Z + 800,
+		0,
+		2000,
+		200,
+		nil,
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.wall(
+		tomb,
+		"TombWall",
+		"X",
+		tc.Z - 800,
+		tc.X - 800,
+		tc.X + 800,
+		0,
+		2000,
+		200,
+		nil,
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.wall(
+		tomb,
+		"TombWall",
+		"X",
+		tc.Z + 800,
+		tc.X - 800,
+		tc.X + 800,
+		0,
+		2000,
+		200,
+		nil,
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.block(
+		tomb,
+		"TombRoof",
+		tc + Vector3.new(0, 2100, 0),
+		Vector3.new(1800, 200, 1800),
+		Kit.Colors.Rock,
+		Enum.Material.Rock
+	)
+	Kit.block(
+		tomb,
+		"Sarcophagus",
+		tc + Vector3.new(0, 150, 0),
+		Vector3.new(500, 300, 900),
+		Color3.fromRGB(200, 170, 110),
+		Enum.Material.Marble
+	)
+	local light =
+		Kit.ball(tomb, "TombLight", tc + Vector3.new(0, 900, 0), 120, Color3.fromRGB(200, 160, 255), Enum.Material.Neon)
 	light.CanCollide = false
 	Kit.light(light, Color3.fromRGB(200, 160, 255), 60, 2)
 	Kit.discovery(m, "FirstTitanTomb", tc + Vector3.new(0, 300, 0), Vector3.new(1300, 600, 1300))
@@ -120,7 +234,16 @@ function TitanWilderness.build(root: Instance)
 	local arena = Vector3.new(-7000, 0, -2800)
 	for i = 0, 15 do
 		local a = i / 16 * math.pi * 2
-		Kit.block(m, "CraterRim", arena + Vector3.new(math.cos(a) * 3400, 200, math.sin(a) * 3400), Vector3.new(1400, 400, 500), Kit.Colors.Rock, Enum.Material.Rock).CFrame = CFrame.new(arena + Vector3.new(math.cos(a) * 3400, 200, math.sin(a) * 3400)) * CFrame.Angles(0, -a + math.pi / 2, 0)
+		Kit.block(
+			m,
+			"CraterRim",
+			arena + Vector3.new(math.cos(a) * 3400, 200, math.sin(a) * 3400),
+			Vector3.new(1400, 400, 500),
+			Kit.Colors.Rock,
+			Enum.Material.Rock
+		).CFrame = CFrame.new(
+			arena + Vector3.new(math.cos(a) * 3400, 200, math.sin(a) * 3400)
+		) * CFrame.Angles(0, -a + math.pi / 2, 0)
 	end
 	Kit.discovery(m, "ColossusArena", arena + Vector3.new(0, 400, 0), Vector3.new(5000, 800, 5000))
 	Kit.bossArena(m, "Colossus", arena)

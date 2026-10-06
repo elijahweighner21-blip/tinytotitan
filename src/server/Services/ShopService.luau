@@ -70,7 +70,11 @@ function ShopService:Init()
 			return { ok = false, err = "Not in the shop right now" }
 		end
 		if not CurrencyService:Remove(player, def.Price.Currency, def.Price.Amount, "Shop:" .. def.Id) then
-			return { ok = false, err = "Not enough " .. (if def.Price.Currency == "TitanShards" then "Titan Shards" else "Growth Energy") }
+			return {
+				ok = false,
+				err = "Not enough "
+					.. (if def.Price.Currency == "TitanShards" then "Titan Shards" else "Growth Energy"),
+			}
 		end
 		InventoryService:GrantCosmetic(player, def.Id)
 		AnalyticsService:Track(player, "ShopPurchase", 1, def.Id)

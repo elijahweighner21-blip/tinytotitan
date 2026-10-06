@@ -175,7 +175,8 @@ local function step(dt: number)
 		return
 	end
 	local h = MovementController:GetHeight()
-	local offset = CFrame.new(0, -pose.Drop * h, 0) * CFrame.Angles(math.rad(-pitch), math.rad(pose.Yaw), math.rad(pose.Roll))
+	local offset = CFrame.new(0, -pose.Drop * h, 0)
+		* CFrame.Angles(math.rad(-pitch), math.rad(pose.Yaw), math.rad(pose.Roll))
 	motor.Transform = motor.Transform * offset
 end
 
@@ -192,7 +193,11 @@ local function onCharacter(character: Model)
 	animator = humanoid:WaitForChild("Animator", 10) :: Animator?
 	-- R15: LowerTorso.Root ; R6: HumanoidRootPart.RootJoint
 	local lower = character:WaitForChild("LowerTorso", 2)
-	local motor = (lower and lower:FindFirstChild("Root")) or (character:FindFirstChild("HumanoidRootPart") and (character :: any).HumanoidRootPart:FindFirstChild("RootJoint"))
+	local motor = (lower and lower:FindFirstChild("Root"))
+		or (
+			character:FindFirstChild("HumanoidRootPart")
+			and (character :: any).HumanoidRootPart:FindFirstChild("RootJoint")
+		)
 	if motor and motor:IsA("Motor6D") then
 		rootMotor = motor
 	end
@@ -222,7 +227,11 @@ function AnimationController:Init()
 		end
 	end)
 	CombatController.Swing:Connect(function(kind)
-		local name = if kind == "Light" then (if lightCombo % 2 == 0 then "LightAttack1" else "LightAttack2") elseif kind == "Heavy" then "HeavyAttack" elseif kind == "Charged" then "ChargedAttack" else "DashAttack"
+		local name = if kind == "Light"
+			then (if lightCombo % 2 == 0 then "LightAttack1" else "LightAttack2")
+			elseif kind == "Heavy" then "HeavyAttack"
+			elseif kind == "Charged" then "ChargedAttack"
+			else "DashAttack"
 		if kind == "Light" then
 			lightCombo += 1
 		end

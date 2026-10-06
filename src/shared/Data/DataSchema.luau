@@ -314,7 +314,12 @@ function DataSchema.sanitize(data: { [string]: any })
 	s.Particles = MathUtil.sanitize(s.Particles, 0, 1, 1)
 	s.UIScale = MathUtil.sanitize(s.UIScale, 0.7, 1.3, 1)
 	s.FieldOfView = MathUtil.sanitize(s.FieldOfView, 60, 100, 70)
-	if s.PerformancePreset ~= "Low" and s.PerformancePreset ~= "Medium" and s.PerformancePreset ~= "High" and s.PerformancePreset ~= "Auto" then
+	if
+		s.PerformancePreset ~= "Low"
+		and s.PerformancePreset ~= "Medium"
+		and s.PerformancePreset ~= "High"
+		and s.PerformancePreset ~= "Auto"
+	then
 		s.PerformancePreset = "Auto"
 	end
 	-- Bound the receipt ledger (oldest first) so the save never grows forever.

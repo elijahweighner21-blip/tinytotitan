@@ -11,7 +11,10 @@ local Create = require(UI.Create)
 
 local Scroll = {}
 
-function Scroll.list(parent: Instance, props: { Size: UDim2?, Position: UDim2?, Gap: number?, Direction: Enum.FillDirection?, Name: string? }): ScrollingFrame
+function Scroll.list(
+	parent: Instance,
+	props: { Size: UDim2?, Position: UDim2?, Gap: number?, Direction: Enum.FillDirection?, Name: string? }
+): ScrollingFrame
 	local direction = props.Direction or Enum.FillDirection.Vertical
 	local horizontal = direction == Enum.FillDirection.Horizontal
 	return Create("ScrollingFrame", {
@@ -34,7 +37,11 @@ function Scroll.list(parent: Instance, props: { Size: UDim2?, Position: UDim2?, 
 	}) :: ScrollingFrame
 end
 
-function Scroll.grid(parent: Instance, cell: UDim2, props: { Size: UDim2?, Position: UDim2?, Gap: number?, Name: string? }): ScrollingFrame
+function Scroll.grid(
+	parent: Instance,
+	cell: UDim2,
+	props: { Size: UDim2?, Position: UDim2?, Gap: number?, Name: string? }
+): ScrollingFrame
 	return Create("ScrollingFrame", {
 		Name = props.Name or "Grid",
 		BackgroundTransparency = 1,

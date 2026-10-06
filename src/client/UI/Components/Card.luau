@@ -24,7 +24,15 @@ export type Card = {
 local Card = {}
 Card.__index = Card
 
-function Card.new(props: { Icon: string?, Title: string, Description: string?, Accent: Color3?, Size: UDim2?, LayoutOrder: number?, Parent: Instance? }): Card
+function Card.new(props: {
+	Icon: string?,
+	Title: string,
+	Description: string?,
+	Accent: Color3?,
+	Size: UDim2?,
+	LayoutOrder: number?,
+	Parent: Instance?,
+}): Card
 	local accent = props.Accent or Theme.Colors.Accent
 	local icon = Create.label(props.Icon or "", 30, Theme.Colors.Text, Theme.Fonts.Display, {
 		Size = UDim2.fromOffset(52, 52),
@@ -40,19 +48,27 @@ function Card.new(props: { Icon: string?, Title: string, Description: string?, A
 		TextWrapped = false,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 	})
-	local description = Create.label(props.Description or "", Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, {
-		Size = UDim2.new(1, -62, 0, 44),
-		Position = UDim2.fromOffset(62, 26),
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-	})
+	local description =
+		Create.label(props.Description or "", Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, {
+			Size = UDim2.new(1, -62, 0, 44),
+			Position = UDim2.fromOffset(62, 26),
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+		})
 	local footer = Create("Frame", {
 		Name = "Footer",
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 40),
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
-		[Create.Children] = { Create.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) },
+		[Create.Children] = {
+			Create.list(
+				Enum.FillDirection.Horizontal,
+				6,
+				Enum.HorizontalAlignment.Right,
+				Enum.VerticalAlignment.Center
+			),
+		},
 	})
 	local tag = Create.label("", Theme.TextSize.Tiny, Color3.fromRGB(20, 20, 20), Theme.Fonts.Title, {
 		Size = UDim2.fromOffset(0, 18),
@@ -73,9 +89,21 @@ function Card.new(props: { Icon: string?, Title: string, Description: string?, A
 		BackgroundTransparency = 0.05,
 		Size = props.Size or UDim2.fromOffset(260, 150),
 		LayoutOrder = props.LayoutOrder or 0,
-		[Create.Children] = { Create.corner(Theme.Radius), Create.stroke(accent, 0.75, 1.5), Create.padding(12), icon, title, description, footer, tag },
+		[Create.Children] = {
+			Create.corner(Theme.Radius),
+			Create.stroke(accent, 0.75, 1.5),
+			Create.padding(12),
+			icon,
+			title,
+			description,
+			footer,
+			tag,
+		},
 	}) :: Frame
-	local self = setmetatable({ Instance = frame, Icon = icon, Title = title, Description = description, Footer = footer, Tag = tag }, Card)
+	local self = setmetatable(
+		{ Instance = frame, Icon = icon, Title = title, Description = description, Footer = footer, Tag = tag },
+		Card
+	)
 	if props.Parent then
 		frame.Parent = props.Parent
 	end

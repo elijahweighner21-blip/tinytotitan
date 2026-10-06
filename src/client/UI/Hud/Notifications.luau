@@ -156,7 +156,16 @@ function Notifications.reward(amounts: { [string]: any })
 	for _, entry in REWARD_ORDER do
 		local n = rewardTotals[entry.Key]
 		if n and n > 0 then
-			table.insert(parts, string.format('<font color="%s">+%s%s%s</font>', hex(entry.Color), entry.Icon, Format.abbreviate(n), entry.Suffix))
+			table.insert(
+				parts,
+				string.format(
+					'<font color="%s">+%s%s%s</font>',
+					hex(entry.Color),
+					entry.Icon,
+					Format.abbreviate(n),
+					entry.Suffix
+				)
+			)
 		end
 	end
 	rewardLabel.Text = table.concat(parts, "   ")
@@ -170,7 +179,8 @@ function Notifications.reward(amounts: { [string]: any })
 			return
 		end
 		table.clear(rewardTotals)
-		local t = TweenService:Create(rewardLabel, Theme.Tween.Slow, { TextTransparency = 1, TextStrokeTransparency = 1 })
+		local t =
+			TweenService:Create(rewardLabel, Theme.Tween.Slow, { TextTransparency = 1, TextStrokeTransparency = 1 })
 		t:Play()
 	end)
 end
@@ -213,7 +223,14 @@ end
 
 function Notifications.card(icon: string, heading: string, title: string, body: string?, color: Color3?, sound: string?)
 	-- Cards wait while a menu is open would hide them; they still queue.
-	table.insert(cardQueue, { Icon = icon, Heading = heading, Title = title, Body = body or "", Color = color or Theme.Colors.Accent, Sound = sound })
+	table.insert(cardQueue, {
+		Icon = icon,
+		Heading = heading,
+		Title = title,
+		Body = body or "",
+		Color = color or Theme.Colors.Accent,
+		Sound = sound,
+	})
 	if #cardQueue > 6 then
 		table.remove(cardQueue, 1)
 	end
@@ -285,8 +302,20 @@ local function build()
 		Parent = cardFrame,
 		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 2) },
 	})
-	cardHeading = Create.label("", Theme.TextSize.Small, Theme.Colors.Accent, Theme.Fonts.Title, { LayoutOrder = 1, Parent = text })
-	cardTitle = Create.label("", Theme.TextSize.Title, Theme.Colors.Text, Theme.Fonts.Display, { LayoutOrder = 2, Parent = text })
+	cardHeading = Create.label(
+		"",
+		Theme.TextSize.Small,
+		Theme.Colors.Accent,
+		Theme.Fonts.Title,
+		{ LayoutOrder = 1, Parent = text }
+	)
+	cardTitle = Create.label(
+		"",
+		Theme.TextSize.Title,
+		Theme.Colors.Text,
+		Theme.Fonts.Display,
+		{ LayoutOrder = 2, Parent = text }
+	)
 	cardBody = Create.label("", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -304,7 +333,14 @@ function Notifications.mount()
 		end
 		if type(p.Text) == "string" then
 			if p.Kind == "Level" or p.Kind == "Ascension" then
-				Notifications.card(if p.Kind == "Level" then "⭐" else "∞", string.upper(p.Kind), p.Text, nil, KIND_COLORS[p.Kind], "LevelUp")
+				Notifications.card(
+					if p.Kind == "Level" then "⭐" else "∞",
+					string.upper(p.Kind),
+					p.Text,
+					nil,
+					KIND_COLORS[p.Kind],
+					"LevelUp"
+				)
 			else
 				Notifications.toast(p.Text, p.Kind)
 			end
@@ -323,11 +359,25 @@ function Notifications.mount()
 		if type(p.Lore) == "string" and p.Lore ~= "" then
 			body = p.Lore .. "\n" .. body
 		end
-		Notifications.card(if p.Hidden then "✨" else "📍", if p.Hidden then "SECRET DISCOVERED" else "DISCOVERED", tostring(p.Name), body, if p.Hidden then Theme.Colors.Gold else Theme.Colors.Accent, "Discovery")
+		Notifications.card(
+			if p.Hidden then "✨" else "📍",
+			if p.Hidden then "SECRET DISCOVERED" else "DISCOVERED",
+			tostring(p.Name),
+			body,
+			if p.Hidden then Theme.Colors.Gold else Theme.Colors.Accent,
+			"Discovery"
+		)
 	end)
 	Net.onSignal("Achievement", function(p)
 		if type(p) == "table" then
-			Notifications.card("🏆", "ACHIEVEMENT UNLOCKED", tostring(p.Name), tostring(p.Description or ""), Theme.Colors.Gold, "Achievement")
+			Notifications.card(
+				"🏆",
+				"ACHIEVEMENT UNLOCKED",
+				tostring(p.Name),
+				tostring(p.Description or ""),
+				Theme.Colors.Gold,
+				"Achievement"
+			)
 		end
 	end)
 	Net.onSignal("QuestUpdate", function(p)
@@ -347,7 +397,20 @@ function Notifications.mount()
 	Net.onSignal("LevelUp", function(p)
 		if type(p) == "table" then
 			local points = tonumber(p.SkillPoints) or 0
-			Notifications.card("⭐", "LEVEL UP", "Level " .. tostring(p.Level), if points > 0 then string.format("+%d Skill Point%s — spend them in the Skill Tree (K)", points, if points == 1 then "" else "s") else "", Theme.Colors.XP, "LevelUp")
+			Notifications.card(
+				"⭐",
+				"LEVEL UP",
+				"Level " .. tostring(p.Level),
+				if points > 0
+					then string.format(
+						"+%d Skill Point%s — spend them in the Skill Tree (K)",
+						points,
+						if points == 1 then "" else "s"
+					)
+					else "",
+				Theme.Colors.XP,
+				"LevelUp"
+			)
 		end
 	end)
 	Net.onSignal("WorldEvent", function(p)
@@ -356,7 +419,14 @@ function Notifications.mount()
 		end
 		if p.State == "Start" then
 			local color = if typeof(p.Color) == "Color3" then p.Color else Theme.Colors.Warning
-			Notifications.card(tostring(p.Icon or "🌐"), "WORLD EVENT", tostring(p.Name), tostring(p.Description or ""), color, "EventHorn")
+			Notifications.card(
+				tostring(p.Icon or "🌐"),
+				"WORLD EVENT",
+				tostring(p.Name),
+				tostring(p.Description or ""),
+				color,
+				"EventHorn"
+			)
 		elseif p.State == "End" then
 			Notifications.toast(tostring(p.Name) .. " has ended", "Info")
 		end
@@ -366,7 +436,14 @@ function Notifications.mount()
 			return
 		end
 		if p.Ok then
-			Notifications.card("🎉", "THANK YOU!", tostring(p.Name or "Purchase complete"), "Your items have been delivered.", Theme.Colors.Robux, "Purchase")
+			Notifications.card(
+				"🎉",
+				"THANK YOU!",
+				tostring(p.Name or "Purchase complete"),
+				"Your items have been delivered.",
+				Theme.Colors.Robux,
+				"Purchase"
+			)
 		elseif not p.Cancelled then
 			Notifications.toast("Purchase failed — you were not charged. Please try again.", "Error")
 		end

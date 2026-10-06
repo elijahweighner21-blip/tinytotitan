@@ -63,7 +63,11 @@ local function checkAdmin(player: Player): boolean
 		end)
 		if ok and type(groups) == "table" then
 			for _, entry in groups do
-				if type(entry) == "table" and entry.Id == group.GroupId and (tonumber(entry.Rank) or 0) >= group.MinRank then
+				if
+					type(entry) == "table"
+					and entry.Id == group.GroupId
+					and (tonumber(entry.Rank) or 0) >= group.MinRank
+				then
 					return true
 				end
 			end
@@ -204,7 +208,10 @@ commands.Debug = function(_, target, args)
 end
 
 commands.SetPass = function(_, target, args)
-	return { ok = EntitlementService:SetTestOwnership(target, tostring(args.Key), args.Value == true), err = if RunService:IsStudio() then nil else "Studio only" }
+	return {
+		ok = EntitlementService:SetTestOwnership(target, tostring(args.Key), args.Value == true),
+		err = if RunService:IsStudio() then nil else "Studio only",
+	}
 end
 
 commands.TestPurchase = function(_, target, args)
@@ -248,7 +255,11 @@ function AdminService:Init()
 				local n = 0
 				for k, x in v do
 					n += 1
-					if n > 8 or type(k) ~= "string" or (type(x) ~= "string" and type(x) ~= "number" and type(x) ~= "boolean") then
+					if
+						n > 8
+						or type(k) ~= "string"
+						or (type(x) ~= "string" and type(x) ~= "number" and type(x) ~= "boolean")
+					then
 						return false, "bad args"
 					end
 					if type(x) == "string" and #x > 64 then

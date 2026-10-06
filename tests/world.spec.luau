@@ -21,34 +21,48 @@ end
 describe("World placements", function()
 	it("every discovery has a region", function()
 		for _, d in DiscoveryConfig.List do
-			if not placed('Kit%.discovery%([%w_]+, "' .. d.Id .. '"') then error("missing discovery " .. d.Id) end
+			if not placed('Kit%.discovery%([%w_]+, "' .. d.Id .. '"') then
+				error("missing discovery " .. d.Id)
+			end
 		end
 	end)
 	it("every NPC has a spawn", function()
 		for _, n in NPCConfig.List do
-			if not placed('Kit%.npc%([%w_]+, "' .. n.Id .. '"') then error("missing npc " .. n.Id) end
+			if not placed('Kit%.npc%([%w_]+, "' .. n.Id .. '"') then
+				error("missing npc " .. n.Id)
+			end
 		end
 	end)
 	it("every boss has an arena", function()
 		for _, b in BossConfig.List do
-			if not placed('Kit%.bossArena%([%w_]+, "' .. b.Id .. '"') then error("missing arena " .. b.Id) end
+			if not placed('Kit%.bossArena%([%w_]+, "' .. b.Id .. '"') then
+				error("missing arena " .. b.Id)
+			end
 		end
 	end)
 	it("every zone has a fast travel station and spawn pad", function()
 		for _, z in ZoneConfig.Zones do
-			local ok = placed('Kit%.fastTravel%([%w_]+, ZONE') or placed('Kit%.fastTravel%([%w_]+, "' .. z.Id .. '"')
-			if not ok then error("missing station " .. z.Id) end
+			local ok = placed("Kit%.fastTravel%([%w_]+, ZONE") or placed('Kit%.fastTravel%([%w_]+, "' .. z.Id .. '"')
+			if not ok then
+				error("missing station " .. z.Id)
+			end
 		end
 	end)
 	it("collectible, interactable and enemy ids used by builders exist", function()
 		for typeId in string.gmatch(all, 'Kit%.collectible%([%w_]+, "([%w_]+)"') do
-			if not CollectibleConfig.get(typeId) then error("unknown collectible " .. typeId) end
+			if not CollectibleConfig.get(typeId) then
+				error("unknown collectible " .. typeId)
+			end
 		end
 		for typeId in string.gmatch(all, 'Kit%.interactable%([%w_]+, "([%w_]+)"') do
-			if not InteractableConfig.get(typeId) then error("unknown interactable " .. typeId) end
+			if not InteractableConfig.get(typeId) then
+				error("unknown interactable " .. typeId)
+			end
 		end
 		for typeId in string.gmatch(all, 'Kit%.enemySpawner%([%w_]+, "([%w_]+)"') do
-			if not EnemyConfig.get(typeId) then error("unknown enemy " .. typeId) end
+			if not EnemyConfig.get(typeId) then
+				error("unknown enemy " .. typeId)
+			end
 		end
 	end)
 	it("every enemy type is spawned somewhere", function()
@@ -64,11 +78,16 @@ describe("World placements", function()
 			local found = false
 			for _, child in childrenOf(regions) do
 				local src = sourceOf(child)
-				if string.find(src, 'local ZONE = "' .. z.Id .. '"', 1, true) and string.find(src, '"TitanShard"', 1, true) then
+				if
+					string.find(src, 'local ZONE = "' .. z.Id .. '"', 1, true)
+					and string.find(src, '"TitanShard"', 1, true)
+				then
 					found = true
 				end
 			end
-			if not found then error("zone without titan shards: " .. z.Id) end
+			if not found then
+				error("zone without titan shards: " .. z.Id)
+			end
 		end
 	end)
 end)

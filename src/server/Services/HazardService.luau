@@ -25,7 +25,13 @@ local connections: { [Instance]: RBXScriptConnection } = {}
 
 local COOLDOWN = 1
 
-function HazardService:DamageFromHazard(player: Player, hazardSize: number, baseDamage: number, name: string, position: Vector3?)
+function HazardService:DamageFromHazard(
+	player: Player,
+	hazardSize: number,
+	baseDamage: number,
+	name: string,
+	position: Vector3?
+)
 	local height = ScaleMath.height(ScaleService:GetScale(player))
 	local ratio = hazardSize / height
 	if ratio < 0.15 then

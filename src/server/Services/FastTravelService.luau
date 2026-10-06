@@ -54,7 +54,11 @@ local function unlock(player: Player, stationId: string)
 	data.FastTravel[stationId] = true
 	PlayerDataService:Changed(player, "FastTravel")
 	local zone = ZoneConfig.get(stationId)
-	Net.signal(player, "Notify", { Text = "Fast travel unlocked: " .. (if zone then zone.Name else stationId), Kind = "Success" })
+	Net.signal(
+		player,
+		"Notify",
+		{ Text = "Fast travel unlocked: " .. (if zone then zone.Name else stationId), Kind = "Success" }
+	)
 end
 
 local function register(part: Instance)
@@ -128,7 +132,10 @@ function FastTravelService:Start()
 				if root and data then
 					local reach = ScaleMath.height(ScaleService:GetScale(player))
 					for id, station in stations do
-						if not data.FastTravel[id] and (root.Position - station.Position).Magnitude <= station.Radius + reach then
+						if
+							not data.FastTravel[id]
+							and (root.Position - station.Position).Magnitude <= station.Radius + reach
+						then
 							unlock(player, id)
 							CharacterService:SetRespawnPoint(player, station.Position, id)
 						end

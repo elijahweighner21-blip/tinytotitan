@@ -64,7 +64,8 @@ local function index(part: Instance)
 		return
 	end
 	local order = tonumber(string.match(id, "_(%d+)$")) or 0
-	entries[id] = { Id = id, Type = typeId, Zone = zone, Position = part.Position, Size = part.Size.Magnitude, Order = order }
+	entries[id] =
+		{ Id = id, Type = typeId, Zone = zone, Position = part.Position, Size = part.Size.Magnitude, Order = order }
 	if def.Unique then
 		local t = totals[zone]
 		if not t then
@@ -126,7 +127,11 @@ function CollectibleService:CountOwned(player: Player, zone: string): number
 end
 
 -- Uncollected collectibles near a point (Echo Scan ability).
-function CollectibleService:Scan(player: Player, center: Vector3, radius: number): { { Id: string, P: Vector3, T: string } }
+function CollectibleService:Scan(
+	player: Player,
+	center: Vector3,
+	radius: number
+): { { Id: string, P: Vector3, T: string } }
 	local data = PlayerDataService:Get(player)
 	local out = {}
 	if not data then
@@ -184,7 +189,10 @@ local function collect(player: Player, id: string)
 	local derived = StatService:GetDerived(player)
 	local scale = ScaleService:GetScale(player)
 	local speed = root.AssemblyLinearVelocity.Magnitude
-	local allowed = derived.CollectRange + entry.Size + ScaleMath.height(scale) * 0.5 + speed * CollectibleConfig.PickupLatencyGrace
+	local allowed = derived.CollectRange
+		+ entry.Size
+		+ ScaleMath.height(scale) * 0.5
+		+ speed * CollectibleConfig.PickupLatencyGrace
 	if (root.Position - entry.Position).Magnitude > allowed then
 		return
 	end
@@ -265,25 +273,29 @@ function CollectibleService:Init()
 		collect(player, id)
 	end)
 
-	Net.onRequest("ClaimCollection", Guard.shape({ Zone = Guard.id(), Milestone = Guard.integer(1, 5) }), function(player, payload)
-		local data = PlayerDataService:Get(player)
-		local milestone = CollectibleConfig.CollectionMilestones[payload.Milestone]
-		local t = totals[payload.Zone]
-		if not data or not milestone or not t or t.Total == 0 then
-			return { ok = false, err = "Nothing to claim" }
+	Net.onRequest(
+		"ClaimCollection",
+		Guard.shape({ Zone = Guard.id(), Milestone = Guard.integer(1, 5) }),
+		function(player, payload)
+			local data = PlayerDataService:Get(player)
+			local milestone = CollectibleConfig.CollectionMilestones[payload.Milestone]
+			local t = totals[payload.Zone]
+			if not data or not milestone or not t or t.Total == 0 then
+				return { ok = false, err = "Nothing to claim" }
+			end
+			local key = payload.Zone .. ":" .. payload.Milestone
+			if data.CollectionClaims[key] then
+				return { ok = false, err = "Already claimed" }
+			end
+			if CollectibleService:CountOwned(player, payload.Zone) / t.Total < milestone.Fraction then
+				return { ok = false, err = "Collection not complete yet" }
+			end
+			data.CollectionClaims[key] = true
+			PlayerDataService:Changed(player, "CollectionClaims")
+			RewardService:Grant(player, milestone.Reward, { Source = "Collection", SourceId = key })
+			return { ok = true }
 		end
-		local key = payload.Zone .. ":" .. payload.Milestone
-		if data.CollectionClaims[key] then
-			return { ok = false, err = "Already claimed" }
-		end
-		if CollectibleService:CountOwned(player, payload.Zone) / t.Total < milestone.Fraction then
-			return { ok = false, err = "Collection not complete yet" }
-		end
-		data.CollectionClaims[key] = true
-		PlayerDataService:Changed(player, "CollectionClaims")
-		RewardService:Grant(player, milestone.Reward, { Source = "Collection", SourceId = key })
-		return { ok = true }
-	end)
+	)
 end
 
 function CollectibleService:Start()

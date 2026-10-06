@@ -87,7 +87,12 @@ end
 
 ------------------------------------------------------------------ receipts
 
-local function grantProduct(player: Player, product: MonetizationConfig.DevProduct, purchaseId: string, spent: number): boolean
+local function grantProduct(
+	player: Player,
+	product: MonetizationConfig.DevProduct,
+	purchaseId: string,
+	spent: number
+): boolean
 	local data = PlayerDataService:Get(player)
 	if not data then
 		return false
@@ -99,7 +104,11 @@ local function grantProduct(player: Player, product: MonetizationConfig.DevProdu
 		Log.warn("Monetization", "duplicate one-time purchase", product.Key, player.UserId, "- granting compensation")
 		contents = product.DuplicateCompensation or { TitanShards = 100 }
 	end
-	RewardService:Grant(player, contents, { Source = "Purchase", SourceId = product.Key, Multipliers = false, Jackpot = false })
+	RewardService:Grant(
+		player,
+		contents,
+		{ Source = "Purchase", SourceId = product.Key, Multipliers = false, Jackpot = false }
+	)
 	monetization.ProductCounts[product.Key] = count + 1
 	monetization.RobuxSpent += math.max(0, spent)
 	if product.Key == "StarterPack" then
@@ -111,7 +120,12 @@ local function grantProduct(player: Player, product: MonetizationConfig.DevProdu
 end
 
 -- Shared by the real ProcessReceipt and Studio test purchases.
-local function processFor(player: Player, product: MonetizationConfig.DevProduct, purchaseId: string, spent: number): Enum.ProductPurchaseDecision
+local function processFor(
+	player: Player,
+	product: MonetizationConfig.DevProduct,
+	purchaseId: string,
+	spent: number
+): Enum.ProductPurchaseDecision
 	local data = PlayerDataService:WaitForData(player, 20)
 	if not data then
 		return Enum.ProductPurchaseDecision.NotProcessedYet
@@ -139,7 +153,11 @@ local function processFor(player: Player, product: MonetizationConfig.DevProduct
 	end
 	AnalyticsService:Track(player, "PurchaseGranted", 1, product.Key)
 	GameEvents.fire("Purchase", player, product.Key)
-	Net.signal(player, "PurchaseResult", { Ok = true, Key = product.Key, Name = product.Name, Contents = product.Contents })
+	Net.signal(
+		player,
+		"PurchaseResult",
+		{ Ok = true, Key = product.Key, Name = product.Name, Contents = product.Contents }
+	)
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 
@@ -206,7 +224,12 @@ local function prompt(player: Player, kind: string, key: string): { [string]: an
 			return { ok = false, err = "You already own this", owned = true }
 		end
 		if pass.PassId == 0 then
-			return { ok = false, err = if RunService:IsStudio() then "Pass ID not configured (use admin TestPurchase in Studio)" else "Not available yet" }
+			return {
+				ok = false,
+				err = if RunService:IsStudio()
+					then "Pass ID not configured (use admin TestPurchase in Studio)"
+					else "Not available yet",
+			}
 		end
 		if not canPrompt(player, key) then
 			return { ok = false, err = "Please wait" }
@@ -222,7 +245,12 @@ local function prompt(player: Player, kind: string, key: string): { [string]: an
 		return { ok = false, err = if product.OneTime then "Already purchased" else "Not available right now" }
 	end
 	if product.ProductId == 0 then
-		return { ok = false, err = if RunService:IsStudio() then "Product ID not configured (use admin TestPurchase in Studio)" else "Not available yet" }
+		return {
+			ok = false,
+			err = if RunService:IsStudio()
+				then "Product ID not configured (use admin TestPurchase in Studio)"
+				else "Not available yet",
+		}
 	end
 	if not canPrompt(player, key) then
 		return { ok = false, err = "Please wait" }
@@ -294,7 +322,12 @@ function MonetizationService:GetCatalog(player: Player): { [string]: any }
 	table.sort(products, function(a, b)
 		return (a.Price :: number) < (b.Price :: number)
 	end)
-	return { Passes = passes, Products = products, Featured = MonetizationConfig.Featured, Studio = RunService:IsStudio() }
+	return {
+		Passes = passes,
+		Products = products,
+		Featured = MonetizationConfig.Featured,
+		Studio = RunService:IsStudio(),
+	}
 end
 
 function MonetizationService:Init()

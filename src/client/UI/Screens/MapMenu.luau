@@ -73,16 +73,30 @@ local function render(menu: MenuBase.Menu, _tab: string)
 			Parent = grid,
 			[Create.Children] = {
 				Create.corner(Theme.Radius),
-				Create.stroke(if isHere then Theme.Colors.Accent else zone.MapColor, if isHere then 0 else 0.6, if isHere then 3 else 1.5),
+				Create.stroke(
+					if isHere then Theme.Colors.Accent else zone.MapColor,
+					if isHere then 0 else 0.6,
+					if isHere then 3 else 1.5
+				),
 				Create.padding(12),
 				Create.list(Enum.FillDirection.Vertical, 4),
 			},
 		})
 		local title = (if locked then "🔒 " else "") .. zone.Name .. (if isHere then "   📍 YOU ARE HERE" else "")
-		Create.label(title, Theme.TextSize.Heading, if locked then Theme.Colors.TextFaint else Theme.Colors.Text, Theme.Fonts.Title, { LayoutOrder = 1, Parent = card })
+		Create.label(
+			title,
+			Theme.TextSize.Heading,
+			if locked then Theme.Colors.TextFaint else Theme.Colors.Text,
+			Theme.Fonts.Title,
+			{ LayoutOrder = 1, Parent = card }
+		)
 		local recommended = zone.RecommendedTiers
 		Create.label(
-			string.format("Best at: %s – %s", SizeConfig.getTier(recommended[1]).Name, SizeConfig.getTier(recommended[#recommended]).Name),
+			string.format(
+				"Best at: %s – %s",
+				SizeConfig.getTier(recommended[1]).Name,
+				SizeConfig.getTier(recommended[#recommended]).Name
+			),
 			Theme.TextSize.Small,
 			Theme.Colors.TextDim,
 			Theme.Fonts.Body,
@@ -95,7 +109,12 @@ local function render(menu: MenuBase.Menu, _tab: string)
 		})
 		local resource = zone.Resource and CurrencyConfig.Resources[zone.Resource]
 		Create.label(
-			string.format("📍 %d/%d discovered%s", found[zone.Id] or 0, discoveryTotals[zone.Id] or 0, if resource then "    " .. resource.Icon .. " " .. resource.Name else ""),
+			string.format(
+				"📍 %d/%d discovered%s",
+				found[zone.Id] or 0,
+				discoveryTotals[zone.Id] or 0,
+				if resource then "    " .. resource.Icon .. " " .. resource.Name else ""
+			),
 			Theme.TextSize.Small,
 			Theme.Colors.Accent,
 			Theme.Fonts.Title,
@@ -109,11 +128,17 @@ local function render(menu: MenuBase.Menu, _tab: string)
 			[Create.Children] = { Create.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Right) },
 		})
 		if locked then
-			Create.label("Requires " .. SizeConfig.getTier(zone.RequiredTier).Name, Theme.TextSize.Small, Theme.Colors.Danger, Theme.Fonts.Title, {
-				Size = UDim2.fromOffset(240, 34),
-				TextXAlignment = Enum.TextXAlignment.Right,
-				Parent = row,
-			})
+			Create.label(
+				"Requires " .. SizeConfig.getTier(zone.RequiredTier).Name,
+				Theme.TextSize.Small,
+				Theme.Colors.Danger,
+				Theme.Fonts.Title,
+				{
+					Size = UDim2.fromOffset(240, 34),
+					TextXAlignment = Enum.TextXAlignment.Right,
+					Parent = row,
+				}
+			)
 		elseif data.FastTravel[zone.Id] then
 			Button.new({
 				Text = if isHere then "Return to Station" else "Fast Travel",
@@ -129,11 +154,17 @@ local function render(menu: MenuBase.Menu, _tab: string)
 				end,
 			})
 		else
-			Create.label("Find this region's travel station to unlock", Theme.TextSize.Small, Theme.Colors.TextFaint, Theme.Fonts.Body, {
-				Size = UDim2.fromOffset(300, 34),
-				TextXAlignment = Enum.TextXAlignment.Right,
-				Parent = row,
-			})
+			Create.label(
+				"Find this region's travel station to unlock",
+				Theme.TextSize.Small,
+				Theme.Colors.TextFaint,
+				Theme.Fonts.Body,
+				{
+					Size = UDim2.fromOffset(300, 34),
+					TextXAlignment = Enum.TextXAlignment.Right,
+					Parent = row,
+				}
+			)
 		end
 	end
 end

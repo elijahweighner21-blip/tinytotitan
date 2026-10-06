@@ -178,7 +178,12 @@ function RewardService:Grant(player: Player, reward: Reward, context: Context): 
 
 	-- Jackpot: a chance to double the whole (base) reward. Gameplay only.
 	local base = 1
-	if enabled and context.Jackpot ~= false and stats.BonusRewardChance > 0 and rng:NextNumber() < stats.BonusRewardChance then
+	if
+		enabled
+		and context.Jackpot ~= false
+		and stats.BonusRewardChance > 0
+		and rng:NextNumber() < stats.BonusRewardChance
+	then
 		base = 2
 		granted.Jackpot = true
 	end
@@ -231,7 +236,12 @@ function RewardService:Grant(player: Player, reward: Reward, context: Context): 
 	if reward.Resources then
 		for resource, amount in reward.Resources do
 			local value = scaled("Resources", amount)
-			if value > 0 and enabled and stats.RareResourceChance > 0 and rng:NextNumber() < stats.RareResourceChance then
+			if
+				value > 0
+				and enabled
+				and stats.RareResourceChance > 0
+				and rng:NextNumber() < stats.RareResourceChance
+			then
 				value *= 2
 			end
 			value = math.floor(value)
@@ -291,7 +301,19 @@ function RewardService:Grant(player: Player, reward: Reward, context: Context): 
 	end
 	if Log.isDebug() and #granted.Breakdown > 0 then
 		for _, b in granted.Breakdown do
-			Log.debug("Reward", string.format("%s %s: %g -> %g (+%d%% ×%g) %s", context.Source, b.Currency, b.Base, b.Final, math.floor(b.Additive * 100), b.Multiplier, table.concat(b.Sources, ", ")))
+			Log.debug(
+				"Reward",
+				string.format(
+					"%s %s: %g -> %g (+%d%% ×%g) %s",
+					context.Source,
+					b.Currency,
+					b.Base,
+					b.Final,
+					math.floor(b.Additive * 100),
+					b.Multiplier,
+					table.concat(b.Sources, ", ")
+				)
+			)
 		end
 	end
 	RewardService.Granted:Fire(player, granted, context)

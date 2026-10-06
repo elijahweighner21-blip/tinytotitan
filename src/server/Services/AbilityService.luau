@@ -95,7 +95,10 @@ function AbilityService:CooldownRemaining(player: Player, abilityId: string): nu
 end
 
 local function reject(player: Player, abilityId: string, reason: string)
-	Net.energy(player, { E = EnergyService:Get(player), M = EnergyService:GetMax(player), Reject = abilityId, Why = reason })
+	Net.energy(
+		player,
+		{ E = EnergyService:Get(player), M = EnergyService:GetMax(player), Reject = abilityId, Why = reason }
+	)
 	if reason == "cooldown" then
 		local s = stateFor(player)
 		local now = os.clock()
@@ -200,7 +203,11 @@ end
 
 handlers.Scan = function(player, root)
 	local radius = heightOf(player) * 40 * (1 + StatService:Get(player, "SecretFinder"))
-	Net.signal(player, "ScanResult", { Items = CollectibleService:Scan(player, root.Position, radius), Radius = radius })
+	Net.signal(
+		player,
+		"ScanResult",
+		{ Items = CollectibleService:Scan(player, root.Position, radius), Radius = radius }
+	)
 	broadcast(player, "Scan", root.Position)
 end
 
@@ -219,15 +226,28 @@ handlers.ShrinkMode = function(player)
 		target = math.max(1, natural - 4)
 	end
 	ScaleService:ClearModifier(player, "Overgrowth")
-	ScaleService:SetModifier(player, "Shrink", { Scale = SizeConfig.getTier(target).Scale }, AbilityConfig.ShrinkDuration)
-	Net.signal(player, "Notify", { Text = "Shrunk to " .. SizeConfig.getTier(target).Name .. " for " .. AbilityConfig.ShrinkDuration .. "s", Kind = "Info" })
+	ScaleService:SetModifier(
+		player,
+		"Shrink",
+		{ Scale = SizeConfig.getTier(target).Scale },
+		AbilityConfig.ShrinkDuration
+	)
+	Net.signal(player, "Notify", {
+		Text = "Shrunk to " .. SizeConfig.getTier(target).Name .. " for " .. AbilityConfig.ShrinkDuration .. "s",
+		Kind = "Info",
+	})
 end
 
 handlers.Overgrowth = function(player, root)
 	if ScaleService:HasModifier(player, "Shrink") then
 		return
 	end
-	ScaleService:SetModifier(player, "Overgrowth", { Multiplier = AbilityConfig.OvergrowthScale }, AbilityConfig.OvergrowthDuration)
+	ScaleService:SetModifier(
+		player,
+		"Overgrowth",
+		{ Multiplier = AbilityConfig.OvergrowthScale },
+		AbilityConfig.OvergrowthDuration
+	)
 	broadcast(player, "Overgrowth", root.Position)
 end
 

@@ -214,7 +214,8 @@ function EnemyService:Spawn(enemyId: string, position: Vector3, options: SpawnOp
 	local model = CreatureBuilder.build(def.Id, def.Shape, def.Color, def.Scale)
 	local root = model.PrimaryPart :: BasePart
 	local y = groundY(position, H)
-	local start = Vector3.new(position.X, (y or position.Y) + H * (if def.Behavior == "Flyer" then 2.2 else 0.5), position.Z)
+	local start =
+		Vector3.new(position.X, (y or position.Y) + H * (if def.Behavior == "Flyer" then 2.2 else 0.5), position.Z)
 	model:PivotTo(CFrame.new(start))
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
@@ -338,8 +339,15 @@ local function attackResolve(enemy: Enemy)
 			local scale = playerScale(player)
 			local reach = pending.radius + ScaleMath.height(scale) * 0.4
 			local flat = Vector3.new(root.Position.X - pending.position.X, 0, root.Position.Z - pending.position.Z)
-			if flat.Magnitude <= reach and math.abs(root.Position.Y - pending.position.Y) <= reach + ScaleMath.height(scale) then
-				CombatService:DamagePlayer(player, CombatMath.enemyDamage(enemy.Def.Damage, enemy.Def.Scale, scale, 0), enemy.Def.Name)
+			if
+				flat.Magnitude <= reach
+				and math.abs(root.Position.Y - pending.position.Y) <= reach + ScaleMath.height(scale)
+			then
+				CombatService:DamagePlayer(
+					player,
+					CombatMath.enemyDamage(enemy.Def.Damage, enemy.Def.Scale, scale, 0),
+					enemy.Def.Name
+				)
 			end
 		end
 	end
@@ -468,7 +476,10 @@ local function nearbyPlayer(spawner: Spawner): boolean
 	local radius = spawner.Radius * EnemyConfig.ActivationRadiusMultiplier + H * 20
 	for _, player in Players:GetPlayers() do
 		local root = CharacterService:GetRoot(player)
-		if root and (root.Position - spawner.Position).Magnitude < radius + ScaleMath.height(playerScale(player)) * 2 then
+		if
+			root
+			and (root.Position - spawner.Position).Magnitude < radius + ScaleMath.height(playerScale(player)) * 2
+		then
 			return true
 		end
 	end
@@ -489,10 +500,11 @@ local function updateSpawner(spawner: Spawner, now: number)
 	if spawner.Active and #spawner.Alive < spawner.Count and now >= spawner.NextSpawn then
 		local a = math.random() * math.pi * 2
 		local r = math.random() * spawner.Radius
-		local enemy = EnemyService:Spawn(spawner.EnemyId, spawner.Position + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r), {
-			Spawner = spawner,
-			LeashRadius = spawner.Radius * EnemyConfig.LeashRadiusMultiplier + 20,
-		})
+		local enemy =
+			EnemyService:Spawn(spawner.EnemyId, spawner.Position + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r), {
+				Spawner = spawner,
+				LeashRadius = spawner.Radius * EnemyConfig.LeashRadiusMultiplier + 20,
+			})
 		if enemy then
 			table.insert(spawner.Alive, enemy)
 		end

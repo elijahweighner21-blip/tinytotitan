@@ -6,12 +6,22 @@
 	add extra feature unlocks and treats so levelling always feels meaningful.
 ]]
 
-export type Milestone = { Level: number, Text: string, Reward: { TitanShards: number?, Cosmetics: { string }?, Titles: { string }? }, Unlock: string? }
+export type Milestone = {
+	Level: number,
+	Text: string,
+	Reward: { TitanShards: number?, Cosmetics: { string }?, Titles: { string }? },
+	Unlock: string?,
+}
 
 local Milestones: { Milestone } = {
 	{ Level = 2, Text = "Skill Tree unlocked", Reward = { TitanShards = 1 }, Unlock = "SkillTree" },
 	{ Level = 3, Text = "Daily objectives unlocked", Reward = { TitanShards = 1 }, Unlock = "Daily" },
-	{ Level = 5, Text = "Cosmetics unlocked", Reward = { TitanShards = 3, Cosmetics = { "BasicTrail" } }, Unlock = "Cosmetics" },
+	{
+		Level = 5,
+		Text = "Cosmetics unlocked",
+		Reward = { TitanShards = 3, Cosmetics = { "BasicTrail" } },
+		Unlock = "Cosmetics",
+	},
 	{ Level = 8, Text = "Party system unlocked", Reward = { TitanShards = 3 }, Unlock = "Party" },
 	{ Level = 10, Text = "Free Soft Glow aura", Reward = { TitanShards = 5, Cosmetics = { "GlowAura" } } },
 	{ Level = 15, Text = "Mint name color", Reward = { TitanShards = 5, Cosmetics = { "MintName" } } },

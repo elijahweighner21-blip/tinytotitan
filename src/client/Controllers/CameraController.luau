@@ -70,6 +70,8 @@ local function updateZoom(dt: number)
 	player.CameraMaxZoomDistance = math.clamp(math.max(currentMax, currentMin + 1), 1, 1e5)
 end
 
+local motionRoll = 0
+
 local function onRender(dt: number)
 	local camera = workspace.CurrentCamera
 	if not camera then
@@ -91,6 +93,19 @@ local function onRender(dt: number)
 	end
 	fovBoost = MathUtil.damp(fovBoost, targetBoost, 6, dt)
 	camera.FieldOfView = baseFov + fovBoost
+	-- Motion effects: lean into wall runs and slides (comfort setting).
+	local targetRoll = 0
+	if SettingsController:Get("MotionEffects") ~= false then
+		if state == "WallRun" then
+			targetRoll = -MovementController:GetWallSide() * 0.12
+		elseif state == "Slide" then
+			targetRoll = 0.03
+		end
+	end
+	motionRoll = MathUtil.damp(motionRoll, targetRoll, 5, dt)
+	if math.abs(motionRoll) > 0.001 then
+		camera.CFrame = camera.CFrame * CFrame.Angles(0, 0, motionRoll)
+	end
 	-- Shake: applied after the default camera has positioned itself.
 	local intensity = SettingsController:Get("CameraShake") or 1
 	trauma = math.max(0, trauma - dt * 1.4)

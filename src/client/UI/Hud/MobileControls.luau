@@ -37,7 +37,15 @@ local abilityRow: Frame
 local abilityButtons: { [string]: { Button: TextButton, Sweep: Frame } } = {}
 local sprintButton: TextButton
 
-local function holdButton(parent: Instance, name: string, glyph: string, size: number, position: UDim2, action: string, color: Color3?): TextButton
+local function holdButton(
+	parent: Instance,
+	name: string,
+	glyph: string,
+	size: number,
+	position: UDim2,
+	action: string,
+	color: Color3?
+): TextButton
 	local button = Create("TextButton", {
 		Name = name,
 		Text = glyph,
@@ -95,7 +103,8 @@ local function rebuildAbilities()
 		local def = id and AbilityConfig.get(id)
 		if def and hasSkill(def.RequiresSkill) then
 			order += 1
-			local button = holdButton(abilityRow, def.Id, def.Icon or "?", 50, UDim2.fromOffset(0, 0), "Ability" .. slot)
+			local button =
+				holdButton(abilityRow, def.Id, def.Icon or "?", 50, UDim2.fromOffset(0, 0), "Ability" .. slot)
 			button.AnchorPoint = Vector2.zero
 			button.LayoutOrder = order
 			local sweep = Create("Frame", {
@@ -139,7 +148,8 @@ function MobileControls.mount()
 	holdButton(cluster, "Dash", "💨", 58, UDim2.fromOffset(200, 70), "Dash")
 	holdButton(cluster, "Crouch", "⤓", 58, UDim2.fromOffset(120, 110), "Crouch")
 	sprintButton = holdButton(cluster, "Sprint", "🏃", 50, UDim2.fromOffset(40, 120), "Sprint")
-	interactButton = holdButton(cluster, "Interact", "✋", 64, UDim2.fromOffset(110, 30), "Interact", Theme.Colors.Accent)
+	interactButton =
+		holdButton(cluster, "Interact", "✋", 64, UDim2.fromOffset(110, 30), "Interact", Theme.Colors.Accent)
 	interactButton.Visible = false
 	abilityRow = Create("Frame", {
 		Name = "Abilities",
@@ -177,7 +187,9 @@ function MobileControls.mount()
 		end
 		last = now
 		hideDefaultJump()
-		sprintButton.BackgroundColor3 = if MovementController:IsSprinting() then Theme.Colors.Energy else Theme.Colors.Panel
+		sprintButton.BackgroundColor3 = if MovementController:IsSprinting()
+			then Theme.Colors.Energy
+			else Theme.Colors.Panel
 		for id, entry in abilityButtons do
 			local f = MovementController:CooldownFraction(id)
 			entry.Sweep.Size = UDim2.fromScale(1, f)

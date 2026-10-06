@@ -57,7 +57,9 @@ describe("DataSchema", function()
 		end
 		local d = DataSchema.prepare({ Version = 3, Monetization = { Receipts = receipts } })
 		local count = 0
-		for _ in d.Monetization.Receipts do count += 1 end
+		for _ in d.Monetization.Receipts do
+			count += 1
+		end
 		expect(count).toBe(GameConfig.MaxProcessedReceipts)
 		expect(d.Monetization.Receipts["r1"]).toBe(nil)
 		expect(d.Monetization.Receipts["r" .. (GameConfig.MaxProcessedReceipts + 30)]).toBeTruthy()

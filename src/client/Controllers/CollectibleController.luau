@@ -119,7 +119,12 @@ local function flyToPlayer(e: Entry)
 	tween:Play()
 	tween.Completed:Once(function()
 		ghost:Destroy()
-		EffectsController:Burst(root.Position, e.Def.Color, MovementController:GetHeight() * 0.25, if e.Def.Unique then 24 else 8)
+		EffectsController:Burst(
+			root.Position,
+			e.Def.Color,
+			MovementController:GetHeight() * 0.25,
+			if e.Def.Unique then 24 else 8
+		)
 	end)
 end
 
@@ -242,7 +247,10 @@ local function showScan(payload: { [string]: any })
 					Create("Frame", {
 						BackgroundColor3 = color,
 						Size = UDim2.fromScale(1, 1),
-						[Create.Children] = { Create.corner(Theme.RadiusPill), Create.stroke(Color3.new(1, 1, 1), 0.2, 2) },
+						[Create.Children] = {
+							Create.corner(Theme.RadiusPill),
+							Create.stroke(Color3.new(1, 1, 1), 0.2, 2),
+						},
 					}),
 				},
 			})
@@ -252,7 +260,11 @@ local function showScan(payload: { [string]: any })
 					setVisible(e, true)
 				end
 			end
-			TweenService:Create(beam, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency = 0.8 }):Play()
+			TweenService:Create(
+				beam,
+				TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{ Transparency = 0.8 }
+			):Play()
 			task.delay(10, function()
 				beam:Destroy()
 			end)

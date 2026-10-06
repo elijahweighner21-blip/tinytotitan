@@ -82,7 +82,13 @@ end
 
 -- Finds a grabbable ledge in front: wall at chest height whose top surface is
 -- between minBodies and maxBodies above the feet, with room to stand on it.
-function Probe.ledge(root: BasePart, height: number, forward: Vector3, minBodies: number, maxBodies: number): (Vector3?, Vector3?)
+function Probe.ledge(
+	root: BasePart,
+	height: number,
+	forward: Vector3,
+	minBodies: number,
+	maxBodies: number
+): (Vector3?, Vector3?)
 	local wall = Probe.wallAhead(root, height, forward, 0.75)
 	if not wall then
 		return nil, nil
@@ -122,7 +128,10 @@ function Probe.vaultable(root: BasePart, height: number, forward: Vector3): numb
 	if high then
 		return nil -- too tall: it's a wall, not a vault
 	end
-	local top = Probe.cast(low.Position + dir * height * 0.15 + Vector3.new(0, height * 0.8, 0), Vector3.new(0, -height * 0.8, 0))
+	local top = Probe.cast(
+		low.Position + dir * height * 0.15 + Vector3.new(0, height * 0.8, 0),
+		Vector3.new(0, -height * 0.8, 0)
+	)
 	if not top then
 		return nil
 	end

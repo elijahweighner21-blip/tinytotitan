@@ -85,7 +85,8 @@ function PartyService:NearbyMembers(player: Player): { Player }
 		if m ~= player then
 			local other = m.Character and m.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			if other then
-				local scale = math.max((player:GetAttribute("Scale") :: number?) or 1, (m:GetAttribute("Scale") :: number?) or 1)
+				local scale =
+					math.max((player:GetAttribute("Scale") :: number?) or 1, (m:GetAttribute("Scale") :: number?) or 1)
 				local range = ScaleMath.height(scale) * RewardConfig.PartyRange * 10
 				if (other.Position - root.Position).Magnitude <= range then
 					table.insert(out, m)
@@ -104,7 +105,10 @@ end
 function PartyService:Init()
 	Net.onRequest(
 		"Party",
-		Guard.shape({ Op = Guard.oneOf({ "Invite", "Accept", "Decline", "Leave", "Kick" }), Target = Guard.optional(Guard.integer(1, 1e12)) }),
+		Guard.shape({
+			Op = Guard.oneOf({ "Invite", "Accept", "Decline", "Leave", "Kick" }),
+			Target = Guard.optional(Guard.integer(1, 1e12)),
+		}),
 		function(player, payload)
 			local op = payload.Op
 			local target = if payload.Target then Players:GetPlayerByUserId(payload.Target) else nil

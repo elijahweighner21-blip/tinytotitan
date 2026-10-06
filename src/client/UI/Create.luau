@@ -65,7 +65,12 @@ function Create.padding(all: number?, horizontal: number?): any
 	return create("UIPadding", { PaddingTop = p, PaddingBottom = p, PaddingLeft = h, PaddingRight = h })
 end
 
-function Create.list(direction: Enum.FillDirection?, gap: number?, align: Enum.HorizontalAlignment?, valign: Enum.VerticalAlignment?): any
+function Create.list(
+	direction: Enum.FillDirection?,
+	gap: number?,
+	align: Enum.HorizontalAlignment?,
+	valign: Enum.VerticalAlignment?
+): any
 	return create("UIListLayout", {
 		FillDirection = direction or Enum.FillDirection.Vertical,
 		Padding = UDim.new(0, gap or Theme.Gap),

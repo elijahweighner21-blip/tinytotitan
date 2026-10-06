@@ -52,18 +52,90 @@ MovementController.Energy = EnergyModel.new()
 local player = Players.LocalPlayer
 
 local ALLOWED: { [string]: { [string]: boolean } } = {
-	Idle = { Walk = true, Sprint = true, Jump = true, Fall = true, Slide = false, Charge = true, Dash = true, Frozen = true, Dead = true },
-	Walk = { Idle = true, Sprint = true, Jump = true, Fall = true, Charge = true, Dash = true, Frozen = true, Dead = true },
-	Sprint = { Idle = true, Walk = true, Jump = true, Fall = true, Slide = true, Dash = true, Frozen = true, Dead = true },
-	Jump = { Fall = true, Idle = true, Walk = true, Sprint = true, Dash = true, WallRun = true, LedgeHang = true, GroundPound = true, Glide = true, Jump = true, Frozen = true, Dead = true },
-	Fall = { Idle = true, Walk = true, Sprint = true, Jump = true, Dash = true, WallRun = true, LedgeHang = true, GroundPound = true, Glide = true, Frozen = true, Dead = true },
+	Idle = {
+		Walk = true,
+		Sprint = true,
+		Jump = true,
+		Fall = true,
+		Slide = false,
+		Charge = true,
+		Dash = true,
+		Frozen = true,
+		Dead = true,
+	},
+	Walk = {
+		Idle = true,
+		Sprint = true,
+		Jump = true,
+		Fall = true,
+		Charge = true,
+		Dash = true,
+		Frozen = true,
+		Dead = true,
+	},
+	Sprint = {
+		Idle = true,
+		Walk = true,
+		Jump = true,
+		Fall = true,
+		Slide = true,
+		Dash = true,
+		Frozen = true,
+		Dead = true,
+	},
+	Jump = {
+		Fall = true,
+		Idle = true,
+		Walk = true,
+		Sprint = true,
+		Dash = true,
+		WallRun = true,
+		LedgeHang = true,
+		GroundPound = true,
+		Glide = true,
+		Jump = true,
+		Frozen = true,
+		Dead = true,
+	},
+	Fall = {
+		Idle = true,
+		Walk = true,
+		Sprint = true,
+		Jump = true,
+		Dash = true,
+		WallRun = true,
+		LedgeHang = true,
+		GroundPound = true,
+		Glide = true,
+		Frozen = true,
+		Dead = true,
+	},
 	Slide = { Idle = true, Walk = true, Sprint = true, Jump = true, Fall = true, Frozen = true, Dead = true },
 	Charge = { Idle = true, Walk = true, Jump = true, Fall = true, Frozen = true, Dead = true },
-	Dash = { Idle = true, Walk = true, Sprint = true, Fall = true, Jump = true, WallRun = true, Frozen = true, Dead = true },
+	Dash = {
+		Idle = true,
+		Walk = true,
+		Sprint = true,
+		Fall = true,
+		Jump = true,
+		WallRun = true,
+		Frozen = true,
+		Dead = true,
+	},
 	WallRun = { Jump = true, Fall = true, Idle = true, Walk = true, Sprint = true, Frozen = true, Dead = true },
 	LedgeHang = { Jump = true, Fall = true, Frozen = true, Dead = true },
 	GroundPound = { Idle = true, Walk = true, Sprint = true, Frozen = true, Dead = true },
-	Glide = { Fall = true, Idle = true, Walk = true, Sprint = true, Jump = true, Dash = true, GroundPound = true, Frozen = true, Dead = true },
+	Glide = {
+		Fall = true,
+		Idle = true,
+		Walk = true,
+		Sprint = true,
+		Jump = true,
+		Dash = true,
+		GroundPound = true,
+		Frozen = true,
+		Dead = true,
+	},
 	Frozen = { Idle = true, Fall = true, Dead = true },
 	Dead = {},
 }
@@ -235,14 +307,21 @@ local function tryJump(c: Ctx): boolean
 			local mega = t >= 0.99 and hasSkill("MegaJump") and canUse("MegaJump")
 			local id = if mega then "MegaJump" else "ChargedLeap"
 			if useAbility(id) then
-				local mult = if mega then AbilityConfig.MegaJumpHeightMultiplier else 1 + (AbilityConfig.ChargedLeapHeightMultiplier - 1) * t
+				local mult = if mega
+					then AbilityConfig.MegaJumpHeightMultiplier
+					else 1 + (AbilityConfig.ChargedLeapHeightMultiplier - 1) * t
 				launch(c, flat(v) + Vector3.new(0, jumpVelocity(c, mult), 0), id)
 				return true
 			end
 		end
 		if c.State == "Slide" and hasSkill("LongJump") and useAbility("LongJump") then
 			local dir = if c.SlideDir.Magnitude > 0 then c.SlideDir else lookFlat(c)
-			launch(c, dir * c.Derived.SprintSpeed * AbilityConfig.LongJumpDistanceMultiplier + Vector3.new(0, jumpVelocity(c, 0.7), 0), "LongJump")
+			launch(
+				c,
+				dir * c.Derived.SprintSpeed * AbilityConfig.LongJumpDistanceMultiplier
+					+ Vector3.new(0, jumpVelocity(c, 0.7), 0),
+				"LongJump"
+			)
 			return true
 		end
 		launch(c, flat(v) + Vector3.new(0, jumpVelocity(c, 1), 0), "Jump")
@@ -371,7 +450,11 @@ local function stepPhysics(dt: number)
 
 	-- Ground bookkeeping, coyote time and landing.
 	if isGrounded then
-		if not c.WasGrounded and (c.State == "Jump" or c.State == "Fall" or c.State == "GroundPound" or c.State == "Glide" or c.State == "Dash") and c.ForceFrames <= 0 then
+		if
+			not c.WasGrounded
+			and (c.State == "Jump" or c.State == "Fall" or c.State == "GroundPound" or c.State == "Glide" or c.State == "Dash")
+			and c.ForceFrames <= 0
+		then
 			landed(c)
 		end
 		c.Coyote = AbilityConfig.CoyoteTime
@@ -434,7 +517,12 @@ local function stepPhysics(dt: number)
 		end
 	elseif state == "WallRun" then
 		local wall, side = Probe.sideWall(root, c.Height, 0.8)
-		if not wall or c.StateTime > AbilityConfig.WallRunDurationMax or isGrounded or MovementController.Energy.Value <= 0 then
+		if
+			not wall
+			or c.StateTime > AbilityConfig.WallRunDurationMax
+			or isGrounded
+			or MovementController.Energy.Value <= 0
+		then
 			setState(c, if isGrounded then "Walk" else "Fall")
 		else
 			c.WallNormal = wall.Normal
@@ -444,7 +532,11 @@ local function stepPhysics(dt: number)
 				tangent = -tangent
 			end
 			local rise = jumpVelocity(c, 1) * 0.35 * (1 - c.StateTime / AbilityConfig.WallRunDurationMax)
-			root.AssemblyLinearVelocity = tangent.Unit * derived.SprintSpeed * (1 + derived.ClimbSpeed / math.max(derived.WalkSpeed, 1) * 0.05) - wall.Normal * c.Height * 0.5 + Vector3.new(0, rise - c.Height * 0.4 * c.StateTime, 0)
+			root.AssemblyLinearVelocity = tangent.Unit
+					* derived.SprintSpeed
+					* (1 + derived.ClimbSpeed / math.max(derived.WalkSpeed, 1) * 0.05)
+				- wall.Normal * c.Height * 0.5
+				+ Vector3.new(0, rise - c.Height * 0.4 * c.StateTime, 0)
 			gravityScale = 0
 			MovementController.Energy:Drain(AbilityConfig.WallRunDrainPerSecond * derived.MovementEnergyMultiplier, dt)
 		end
@@ -472,7 +564,14 @@ local function stepPhysics(dt: number)
 		end
 		if not blocked then
 			-- Glide when holding jump while falling.
-			if jumpHeld and v.Y < 0 and c.StateTime > 0.15 and hasSkill("Glide") and MovementController.Energy.Value > 5 and useAbility("Glide") then
+			if
+				jumpHeld
+				and v.Y < 0
+				and c.StateTime > 0.15
+				and hasSkill("Glide")
+				and MovementController.Energy.Value > 5
+				and useAbility("Glide")
+			then
 				setState(c, "Glide")
 			-- Ledge grab when moving into a wall near its top.
 			elseif v.Y < jumpVelocity(c, 1) * 0.35 and dir.Magnitude > 0 then
@@ -481,7 +580,12 @@ local function stepPhysics(dt: number)
 					c.LedgeTop = top
 					c.WallNormal = normal
 					setState(c, "LedgeHang")
-				elseif c.Sprinting and hasSkill("WallRun") and now - c.LastWallRun > 0.5 and flat(v).Magnitude > derived.WalkSpeed * 0.8 then
+				elseif
+					c.Sprinting
+					and hasSkill("WallRun")
+					and now - c.LastWallRun > 0.5
+					and flat(v).Magnitude > derived.WalkSpeed * 0.8
+				then
 					local wall = Probe.sideWall(root, c.Height, 0.7)
 					if wall and useAbility("WallRun") then
 						setState(c, "WallRun")
@@ -535,7 +639,9 @@ local function stepSpeed(dt: number)
 	local derived = c.Derived
 	local energy = MovementController.Energy
 	local moving = c.Humanoid.MoveDirection.Magnitude > 0.05
-	local wantSprint = (if SettingsController:Get("SprintToggle") then sprintToggled else InputController:IsHeld("Sprint")) and moving
+	local wantSprint = (
+		if SettingsController:Get("SprintToggle") then sprintToggled else InputController:IsHeld("Sprint")
+	) and moving
 	local sprinting = wantSprint and c.State ~= "Charge"
 	if sprinting ~= c.Sprinting then
 		c.Sprinting = sprinting
@@ -544,7 +650,9 @@ local function stepSpeed(dt: number)
 	local target = derived.WalkSpeed
 	if c.Sprinting then
 		local exhausted = energy.Value < 3
-		target = if exhausted then derived.WalkSpeed + (derived.SprintSpeed - derived.WalkSpeed) * AbilityConfig.ExhaustedSprintFactor else derived.SprintSpeed
+		target = if exhausted
+			then derived.WalkSpeed + (derived.SprintSpeed - derived.WalkSpeed) * AbilityConfig.ExhaustedSprintFactor
+			else derived.SprintSpeed
 		energy:Drain(AbilityConfig.SprintDrainPerSecond * derived.MovementEnergyMultiplier, dt)
 	end
 	if c.State == "Charge" then
@@ -570,7 +678,11 @@ local function stepSpeed(dt: number)
 		if c.StepTimer <= 0 then
 			local stride = c.Height * (if c.Sprinting then 0.55 else 0.42)
 			c.StepTimer = stride / math.max(c.Humanoid.WalkSpeed, 0.1)
-			MovementController.Footstep:Fire(c.Root.Position - Vector3.new(0, c.Height * 0.5, 0), c.Derived.Scale, c.Humanoid.FloorMaterial)
+			MovementController.Footstep:Fire(
+				c.Root.Position - Vector3.new(0, c.Height * 0.5, 0),
+				c.Derived.Scale,
+				c.Humanoid.FloorMaterial
+			)
 		end
 	end
 end

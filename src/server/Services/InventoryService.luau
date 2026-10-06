@@ -181,41 +181,37 @@ function InventoryService:AddRelic(player: Player, relicId: string): boolean
 end
 
 function InventoryService:Init()
-	Net.onRequest(
-		"EquipCosmetic",
-		Guard.shape({ Id = Guard.id(), Equip = Guard.boolean() }),
-		function(player, payload)
-			local data = PlayerDataService:Get(player)
-			local def = CosmeticConfig.get(payload.Id)
-			if not data or not def then
-				return { ok = false, err = "Unknown cosmetic" }
-			end
-			if not data.Cosmetics.Owned[def.Id] then
-				return { ok = false, err = "You don't own that yet" }
-			end
-			if not entitled(player, def.Id) then
-				return { ok = false, err = "Requires its Game Pass" }
-			end
-			local list = data.Cosmetics.Equipped[def.Category] or {}
-			data.Cosmetics.Equipped[def.Category] = list
-			local index = table.find(list, def.Id)
-			if payload.Equip then
-				if not index then
-					local limit = slotsFor(player, def.Category)
-					if #list >= limit then
-						-- Replace the oldest equipped item in this category.
-						table.remove(list, 1)
-					end
-					table.insert(list, def.Id)
-				end
-			elseif index then
-				table.remove(list, index)
-			end
-			PlayerDataService:Changed(player, "Cosmetics")
-			publish(player)
-			return { ok = true }
+	Net.onRequest("EquipCosmetic", Guard.shape({ Id = Guard.id(), Equip = Guard.boolean() }), function(player, payload)
+		local data = PlayerDataService:Get(player)
+		local def = CosmeticConfig.get(payload.Id)
+		if not data or not def then
+			return { ok = false, err = "Unknown cosmetic" }
 		end
-	)
+		if not data.Cosmetics.Owned[def.Id] then
+			return { ok = false, err = "You don't own that yet" }
+		end
+		if not entitled(player, def.Id) then
+			return { ok = false, err = "Requires its Game Pass" }
+		end
+		local list = data.Cosmetics.Equipped[def.Category] or {}
+		data.Cosmetics.Equipped[def.Category] = list
+		local index = table.find(list, def.Id)
+		if payload.Equip then
+			if not index then
+				local limit = slotsFor(player, def.Category)
+				if #list >= limit then
+					-- Replace the oldest equipped item in this category.
+					table.remove(list, 1)
+				end
+				table.insert(list, def.Id)
+			end
+		elseif index then
+			table.remove(list, index)
+		end
+		PlayerDataService:Changed(player, "Cosmetics")
+		publish(player)
+		return { ok = true }
+	end)
 
 	Net.onRequest("EquipTitle", Guard.shape({ Id = Guard.string(48) }), function(player, payload)
 		local data = PlayerDataService:Get(player)

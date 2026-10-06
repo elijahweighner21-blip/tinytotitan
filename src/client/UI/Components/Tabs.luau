@@ -23,7 +23,10 @@ local Tabs = {}
 Tabs.__index = Tabs
 
 function Tabs.new(parent: Instance, defs: { TabDef }, accent: Color3?, onSelect: (id: string) -> ()): Tabs
-	local self = setmetatable({ Selected = "", Buttons = {}, _accent = accent or Theme.Colors.Accent, _onSelect = onSelect }, Tabs)
+	local self = setmetatable(
+		{ Selected = "", Buttons = {}, _accent = accent or Theme.Colors.Accent, _onSelect = onSelect },
+		Tabs
+	)
 	for i, def in defs do
 		local text = if def.Icon then def.Icon .. " " .. def.Text else def.Text
 		local button = Create("TextButton", {

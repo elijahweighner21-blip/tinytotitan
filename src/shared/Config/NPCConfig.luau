@@ -39,11 +39,20 @@ local List: { NPC } = {
 		Quests = { "FirstSteps", "OrbHunter", "CrumbClimber", "ShoeSummit", "QueenOfTheFloor" },
 		Lines = {
 			Tiny = { "Careful! Even I can see you're tiny.", "Stay close to the fibers. They're safer than they look." },
-			Similar = { "You're tiny! But so am I. Let's fix that.", "Growth Orbs! Collect them and you'll grow. Trust me, I'm a professor." },
-			Bigger = { "Goodness, you've grown! Mind where you step.", "My calculations said you'd grow. They did not say THIS much." },
+			Similar = {
+				"You're tiny! But so am I. Let's fix that.",
+				"Growth Orbs! Collect them and you'll grow. Trust me, I'm a professor.",
+			},
+			Bigger = {
+				"Goodness, you've grown! Mind where you step.",
+				"My calculations said you'd grow. They did not say THIS much.",
+			},
 			Titan = { "HOW ARE YOU THAT BIG?!", "I... I need to recalibrate my instruments. And my life." },
 		},
-		Remember = { "Wait... weren't you the little speck I found in the carpet?", "Look at you! I remember when a crumb was a mountain to you." },
+		Remember = {
+			"Wait... weren't you the little speck I found in the carpet?",
+			"Look at you! I remember when a crumb was a mountain to you.",
+		},
 	},
 	{
 		Id = "Merchant",

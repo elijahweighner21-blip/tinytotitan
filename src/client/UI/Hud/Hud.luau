@@ -120,7 +120,11 @@ local function countTo(key: string, label: TextLabel, value: number, prefix: str
 	holder.Changed:Connect(function(v)
 		label.Text = (prefix or "") .. Format.abbreviate(v)
 	end)
-	local tween = TweenService:Create(holder, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = value })
+	local tween = TweenService:Create(
+		holder,
+		TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Value = value }
+	)
 	tween.Completed:Once(function()
 		label.Text = (prefix or "") .. Format.abbreviate(value)
 		holder:Destroy()
@@ -282,13 +286,19 @@ local function buildBars(parent: Instance)
 		Visible = false,
 		Parent = parent,
 	})
-	healthBar = ProgressBar.new({ Parent = healthFrame, Color = Theme.Colors.Danger, Size = UDim2.fromScale(1, 1), TextSize = Theme.TextSize.Tiny })
+	healthBar = ProgressBar.new({
+		Parent = healthFrame,
+		Color = Theme.Colors.Danger,
+		Size = UDim2.fromScale(1, 1),
+		TextSize = Theme.TextSize.Tiny,
+	})
 end
 
 local function keyGlyph(slot: string): string
 	local device = InputController:GetDevice()
 	if device == "Gamepad" then
-		local map: { [string]: string } = { Ability1 = "LB", Ability2 = "◀", Ability3 = "LT", Ability4 = "▶", Ability5 = "", Ability6 = "" }
+		local map: { [string]: string } =
+			{ Ability1 = "LB", Ability2 = "◀", Ability3 = "LT", Ability4 = "▶", Ability5 = "", Ability6 = "" }
 		return map[slot] or ""
 	end
 	return string.sub(slot, 8)
@@ -355,7 +365,9 @@ local function buildDock(parent: Instance)
 		Position = UDim2.new(0, 12, 0.5, 20),
 		Size = UDim2.fromOffset(48, 600),
 		Parent = parent,
-		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 5, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center) },
+		[Create.Children] = {
+			Create.list(Enum.FillDirection.Vertical, 5, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center),
+		},
 	})
 	for i, entry in DOCK do
 		local button = Create("TextButton", {
@@ -372,16 +384,22 @@ local function buildDock(parent: Instance)
 			Parent = dock,
 			[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.stroke(nil, 0.88) },
 		}) :: TextButton
-		local tip = Create.label(entry.Label .. (if entry.Key ~= "" then "  [" .. entry.Key .. "]" else ""), Theme.TextSize.Small, Theme.Colors.Text, Theme.Fonts.Title, {
-			Position = UDim2.new(1, 8, 0.5, -10),
-			Size = UDim2.fromOffset(160, 20),
-			AutomaticSize = Enum.AutomaticSize.X,
-			BackgroundColor3 = Theme.Colors.Panel,
-			BackgroundTransparency = 0.1,
-			Visible = false,
-			Parent = button,
-			[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.padding(2, 8) },
-		})
+		local tip = Create.label(
+			entry.Label .. (if entry.Key ~= "" then "  [" .. entry.Key .. "]" else ""),
+			Theme.TextSize.Small,
+			Theme.Colors.Text,
+			Theme.Fonts.Title,
+			{
+				Position = UDim2.new(1, 8, 0.5, -10),
+				Size = UDim2.fromOffset(160, 20),
+				AutomaticSize = Enum.AutomaticSize.X,
+				BackgroundColor3 = Theme.Colors.Panel,
+				BackgroundTransparency = 0.1,
+				Visible = false,
+				Parent = button,
+				[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.padding(2, 8) },
+			}
+		)
 		button.MouseEnter:Connect(function()
 			tip.Visible = true
 		end)
@@ -520,7 +538,9 @@ local function refreshBoosts()
 					order += 1
 					local expires = tonumber(entry.Expires)
 					local left = if expires then expires - workspace:GetServerTimeNow() else nil
-					local text = "🌐 " .. entry.Label .. (if left and left > 0 then "  " .. Format.clock(left) else "")
+					local text = "🌐 "
+						.. entry.Label
+						.. (if left and left > 0 then "  " .. Format.clock(left) else "")
 					boostChip(order, Theme.Colors.Accent, text)
 				end
 			end
@@ -552,7 +572,13 @@ local function refreshHint()
 		return
 	end
 	local device = InputController:GetDevice()
-	hintText.Text = "💡 " .. (if device == "Touch" and step.MobileHint then step.MobileHint elseif device == "Gamepad" and step.GamepadHint then step.GamepadHint else step.Hint)
+	hintText.Text = "💡 "
+		.. (
+			if device == "Touch" and step.MobileHint
+				then step.MobileHint
+				elseif device == "Gamepad" and step.GamepadHint then step.GamepadHint
+				else step.Hint
+		)
 	hintFrame.Visible = true
 end
 
@@ -584,7 +610,9 @@ end
 
 local function step()
 	energyBar:Set(MovementController.Energy:Fraction(), true)
-	energyBar:SetText(string.format("%d / %d", math.floor(MovementController.Energy.Value), math.floor(MovementController.Energy.Max)))
+	energyBar:SetText(
+		string.format("%d / %d", math.floor(MovementController.Energy.Value), math.floor(MovementController.Energy.Max))
+	)
 	local charge = math.max(MovementController:GetCharge(), CombatController:GetCharge())
 	chargeBar.Instance.Visible = charge > 0.02
 	if charge > 0.02 then

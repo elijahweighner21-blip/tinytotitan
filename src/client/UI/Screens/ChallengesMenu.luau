@@ -74,10 +74,20 @@ local function render(menu: MenuBase.Menu, tab: string)
 				AutomaticSize = Enum.AutomaticSize.Y,
 				LayoutOrder = order,
 				Parent = list,
-				[Create.Children] = { Create.corner(Theme.Radius), Create.padding(12), Create.list(Enum.FillDirection.Vertical, 4) },
+				[Create.Children] = {
+					Create.corner(Theme.Radius),
+					Create.padding(12),
+					Create.list(Enum.FillDirection.Vertical, 4),
+				},
 			})
 			local medal = if record then record.Medal else 0
-			Create.label((if medal > 0 then MEDAL_ICONS[medal] .. "  " else "") .. def.Name .. "   ·   " .. def.Type, Theme.TextSize.Heading, Theme.Colors.Text, Theme.Fonts.Title, { LayoutOrder = 1, Parent = frame })
+			Create.label(
+				(if medal > 0 then MEDAL_ICONS[medal] .. "  " else "") .. def.Name .. "   ·   " .. def.Type,
+				Theme.TextSize.Heading,
+				Theme.Colors.Text,
+				Theme.Fonts.Title,
+				{ LayoutOrder = 1, Parent = frame }
+			)
 			Create.label(def.Description, Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, {
 				Size = UDim2.new(1, 0, 0, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
@@ -91,7 +101,13 @@ local function render(menu: MenuBase.Menu, tab: string)
 					table.insert(targets, MEDAL_ICONS[i] .. " " .. scoreText(def.Score, v))
 				end
 			end
-			Create.label(table.concat(targets, "    "), Theme.TextSize.Small, Theme.Colors.Gold, Theme.Fonts.Title, { LayoutOrder = 3, Parent = frame })
+			Create.label(
+				table.concat(targets, "    "),
+				Theme.TextSize.Small,
+				Theme.Colors.Gold,
+				Theme.Fonts.Title,
+				{ LayoutOrder = 3, Parent = frame }
+			)
 			local status = if record and record.Completions > 0
 				then string.format("Best: %s   ·   Runs: %d", scoreText(def.Score, record.Best), record.Completions)
 				else "Not attempted yet"
@@ -100,7 +116,13 @@ local function render(menu: MenuBase.Menu, tab: string)
 			elseif practice then
 				status ..= "   ·   Practice only at your size"
 			end
-			Create.label(status, Theme.TextSize.Small, if tooSmall then Theme.Colors.Danger else Theme.Colors.Accent, Theme.Fonts.Title, { LayoutOrder = 4, Parent = frame })
+			Create.label(
+				status,
+				Theme.TextSize.Small,
+				if tooSmall then Theme.Colors.Danger else Theme.Colors.Accent,
+				Theme.Fonts.Title,
+				{ LayoutOrder = 4, Parent = frame }
+			)
 			local row = Create("Frame", {
 				BackgroundTransparency = 1,
 				Size = UDim2.new(1, 0, 0, 32),
@@ -139,7 +161,13 @@ local function render(menu: MenuBase.Menu, tab: string)
 		end
 	end
 	if order == 0 then
-		Create.label("No challenges in this region.", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = list })
+		Create.label(
+			"No challenges in this region.",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = list }
+		)
 	end
 end
 

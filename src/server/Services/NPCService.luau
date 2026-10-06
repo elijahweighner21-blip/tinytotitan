@@ -168,7 +168,9 @@ function NPCService:Init()
 			return { ok = false }
 		end
 		-- Re-check proximity: dialogue choices are only valid face to face.
-		local reach = math.max(ScaleMath.height(ScaleService:GetScale(player)), ScaleMath.height(npc.Def.Scale)) * NPCConfig.TalkRangeMultiplier + 12
+		local reach = math.max(ScaleMath.height(ScaleService:GetScale(player)), ScaleMath.height(npc.Def.Scale))
+				* NPCConfig.TalkRangeMultiplier
+			+ 12
 		if (root.Position - npc.Position).Magnitude > reach then
 			return { ok = false, err = "Get closer to talk" }
 		end

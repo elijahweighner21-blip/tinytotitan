@@ -26,7 +26,17 @@ export type ProgressBar = {
 local ProgressBar = {}
 ProgressBar.__index = ProgressBar
 
-function ProgressBar.new(props: { Size: UDim2?, Color: Color3?, Background: Color3?, Text: string?, TextSize: number?, Parent: Instance?, LayoutOrder: number?, Position: UDim2?, AnchorPoint: Vector2? }): ProgressBar
+function ProgressBar.new(props: {
+	Size: UDim2?,
+	Color: Color3?,
+	Background: Color3?,
+	Text: string?,
+	TextSize: number?,
+	Parent: Instance?,
+	LayoutOrder: number?,
+	Position: UDim2?,
+	AnchorPoint: Vector2?,
+}): ProgressBar
 	local color = props.Color or Theme.Colors.Accent
 	local glow = Create("Frame", {
 		Name = "Glow",
@@ -47,12 +57,13 @@ function ProgressBar.new(props: { Size: UDim2?, Color: Color3?, Background: Colo
 			glow,
 		},
 	})
-	local label = Create.label(props.Text or "", props.TextSize or Theme.TextSize.Small, Theme.Colors.Text, Theme.Fonts.Title, {
-		Size = UDim2.fromScale(1, 1),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		ZIndex = 4,
-		TextStrokeTransparency = 0.6,
-	})
+	local label =
+		Create.label(props.Text or "", props.TextSize or Theme.TextSize.Small, Theme.Colors.Text, Theme.Fonts.Title, {
+			Size = UDim2.fromScale(1, 1),
+			TextXAlignment = Enum.TextXAlignment.Center,
+			ZIndex = 4,
+			TextStrokeTransparency = 0.6,
+		})
 	local frame = Create("Frame", {
 		Name = "ProgressBar",
 		BackgroundColor3 = props.Background or Theme.Colors.Background,

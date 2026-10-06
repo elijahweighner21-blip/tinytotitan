@@ -50,7 +50,9 @@ local function build(player: Player, character: Model)
 		Size = UDim2.fromOffset(220, 64),
 		ResetOnSpawn = false,
 		Parent = localPlayer:WaitForChild("PlayerGui"),
-		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Bottom) },
+		[Create.Children] = {
+			Create.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Bottom),
+		},
 	})) :: BillboardGui
 	local title = Create.label("", Theme.TextSize.Small, Theme.Colors.Gold, Theme.Fonts.Title, {
 		Size = UDim2.new(1, 0, 0, 16),

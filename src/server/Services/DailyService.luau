@@ -48,18 +48,28 @@ local function roll(player: Player)
 	local changed = false
 	if daily.Day ~= day then
 		daily.Day = day
-		daily.Objectives = DailyLogic.pick(DailyConfig.DailyPool, DailyConfig.DailyCount, DailyLogic.dailySeed(player.UserId, day), highest)
+		daily.Objectives = DailyLogic.pick(
+			DailyConfig.DailyPool,
+			DailyConfig.DailyCount,
+			DailyLogic.dailySeed(player.UserId, day),
+			highest
+		)
 		changed = true
 	end
 	if daily.Week ~= week then
 		daily.Week = week
-		daily.Weekly = DailyLogic.pick(DailyConfig.WeeklyPool, DailyConfig.WeeklyCount, DailyLogic.weeklySeed(player.UserId, week), highest)
+		daily.Weekly = DailyLogic.pick(
+			DailyConfig.WeeklyPool,
+			DailyConfig.WeeklyCount,
+			DailyLogic.weeklySeed(player.UserId, week),
+			highest
+		)
 		changed = true
 	end
 	if daily.LoginDay ~= day then
 		daily.Streak = DailyConfig.nextStreak(daily.Streak, daily.LoginDay, day)
-		daily.LoginDay = day
-		;(data.Stats :: any).Logins += 1
+		daily.LoginDay = day;
+		(data.Stats :: any).Logins += 1
 		changed = true
 	end
 	if changed then
@@ -148,7 +158,11 @@ function DailyService:Init()
 				end
 				daily.LoginClaimedDay = daily.LoginDay
 				PlayerDataService:Changed(player, "Daily")
-				RewardService:Grant(player, streakReward(player, daily.Streak), { Source = "LoginStreak", Multipliers = false })
+				RewardService:Grant(
+					player,
+					streakReward(player, daily.Streak),
+					{ Source = "LoginStreak", Multipliers = false }
+				)
 				return { ok = true, streak = daily.Streak }
 			end
 			local list: { DailyLogic.Slot } = if payload.Kind == "Daily" then daily.Objectives else daily.Weekly

@@ -44,7 +44,15 @@ describe("QuestLogic", function()
 		local active = QuestLogic.newProgress("AntProblem", ctx(), 0)
 		expect(QuestLogic.applyEvent("AntProblem", active, "EnemyDefeated", "Beetle")).toBeFalsy()
 		expect(QuestLogic.applyEvent("AntProblem", active, "EnemyDefeated", "Ant")).toBeTruthy()
-		expect(QuestLogic.applyEvent("LabWork", QuestLogic.newProgress("LabWork", ctx(), 0), "ResourceGathered", "DustCores", 0 / 0)).toBeFalsy()
+		expect(
+			QuestLogic.applyEvent(
+				"LabWork",
+				QuestLogic.newProgress("LabWork", ctx(), 0),
+				"ResourceGathered",
+				"DustCores",
+				0 / 0
+			)
+		).toBeFalsy()
 		expect(QuestLogic.applyEvent("AntProblem", active, "NotAnEvent", "Ant")).toBeFalsy()
 	end)
 	it("credits prior discoveries and current zone on accept", function()
@@ -206,7 +214,9 @@ describe("ReceiptLedger", function()
 		end
 		ReceiptLedger.prune(ledger, 4)
 		local n = 0
-		for _ in ledger do n += 1 end
+		for _ in ledger do
+			n += 1
+		end
 		expect(n).toBe(4)
 		expect(ledger.p1).toBe(nil)
 		expect(ledger.p10).toBe(10)

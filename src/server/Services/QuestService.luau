@@ -51,7 +51,11 @@ local function complete(player: Player, questId: string)
 		data.Quests.Tracked = def.NextQuest or ""
 	end
 	PlayerDataService:Changed(player, "Quests")
-	local granted = RewardService:Grant(player, def.Rewards, { Source = "Quest", SourceId = questId, Category = "Quest", Notify = false })
+	local granted = RewardService:Grant(
+		player,
+		def.Rewards,
+		{ Source = "Quest", SourceId = questId, Category = "Quest", Notify = false }
+	)
 	StatisticsService:Increment(player, "QuestsCompleted")
 	Net.signal(player, "QuestComplete", {
 		Id = questId,
@@ -161,7 +165,10 @@ function QuestService:StartQuest(player: Player, questId: string): (boolean, str
 end
 
 -- Quests offered by an NPC with their state for the dialogue UI.
-function QuestService:GetGiverQuests(player: Player, npcId: string): { { Id: string, Name: string, State: string, Reason: string? } }
+function QuestService:GetGiverQuests(
+	player: Player,
+	npcId: string
+): { { Id: string, Name: string, State: string, Reason: string? } }
 	local data = PlayerDataService:Get(player)
 	local out = {}
 	if not data then

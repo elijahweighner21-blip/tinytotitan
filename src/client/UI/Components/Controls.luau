@@ -26,7 +26,13 @@ local function row(label: string, layoutOrder: number, parent: Instance): (Frame
 		[Create.Children] = {
 			Create.corner(Theme.RadiusSmall),
 			Create.padding(6, 12),
-			Create.label(label, Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Body, { Size = UDim2.new(0.55, 0, 1, 0), TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd }),
+			Create.label(
+				label,
+				Theme.TextSize.Body,
+				Theme.Colors.Text,
+				Theme.Fonts.Body,
+				{ Size = UDim2.new(0.55, 0, 1, 0), TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd }
+			),
 		},
 	})
 	local right = Create("Frame", {
@@ -40,7 +46,13 @@ local function row(label: string, layoutOrder: number, parent: Instance): (Frame
 	return holder, right
 end
 
-function Controls.toggle(parent: Instance, label: string, value: boolean, layoutOrder: number, onChange: (boolean) -> ()): (boolean) -> ()
+function Controls.toggle(
+	parent: Instance,
+	label: string,
+	value: boolean,
+	layoutOrder: number,
+	onChange: (boolean) -> ()
+): (boolean) -> ()
 	local _, right = row(label, layoutOrder, parent)
 	local knob = Create("Frame", {
 		BackgroundColor3 = Color3.new(1, 1, 1),
@@ -62,8 +74,16 @@ function Controls.toggle(parent: Instance, label: string, value: boolean, layout
 	}) :: TextButton
 	local state = value
 	local function render()
-		TweenService:Create(track, Theme.Tween.Fast, { BackgroundColor3 = if state then Theme.Colors.Success else Theme.Colors.Locked }):Play()
-		TweenService:Create(knob, Theme.Tween.Fast, { Position = if state then UDim2.new(1, -25, 0.5, 0) else UDim2.new(0, 3, 0.5, 0) }):Play()
+		TweenService:Create(
+			track,
+			Theme.Tween.Fast,
+			{ BackgroundColor3 = if state then Theme.Colors.Success else Theme.Colors.Locked }
+		):Play()
+		TweenService:Create(
+			knob,
+			Theme.Tween.Fast,
+			{ Position = if state then UDim2.new(1, -25, 0.5, 0) else UDim2.new(0, 3, 0.5, 0) }
+		):Play()
 	end
 	track.Activated:Connect(function()
 		state = not state
@@ -78,7 +98,16 @@ function Controls.toggle(parent: Instance, label: string, value: boolean, layout
 	end
 end
 
-function Controls.slider(parent: Instance, label: string, value: number, min: number, max: number, step: number, layoutOrder: number, onChange: (number) -> ()): (number) -> ()
+function Controls.slider(
+	parent: Instance,
+	label: string,
+	value: number,
+	min: number,
+	max: number,
+	step: number,
+	layoutOrder: number,
+	onChange: (number) -> ()
+): (number) -> ()
 	local _, right = row(label, layoutOrder, parent)
 	local valueLabel = Create.label("", Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Mono, {
 		Size = UDim2.new(0, 44, 1, 0),
@@ -105,7 +134,9 @@ function Controls.slider(parent: Instance, label: string, value: number, min: nu
 	local function render()
 		local t = (current - min) / math.max(max - min, 1e-6)
 		fill.Size = UDim2.fromScale(math.clamp(t, 0, 1), 1)
-		valueLabel.Text = if max <= 1 then string.format("%d%%", math.floor(current * 100 + 0.5)) else tostring(math.floor(current * 100 + 0.5) / 100)
+		valueLabel.Text = if max <= 1
+			then string.format("%d%%", math.floor(current * 100 + 0.5))
+			else tostring(math.floor(current * 100 + 0.5) / 100)
 	end
 	local function setFromFraction(t: number)
 		local raw = min + (max - min) * math.clamp(t, 0, 1)
@@ -118,18 +149,30 @@ function Controls.slider(parent: Instance, label: string, value: number, min: nu
 	end
 	local dragging = false
 	bar.InputBegan:Connect(function(input: InputObject)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if
+			input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
 			dragging = true
 			setFromFraction((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X)
 		end
 	end)
 	UserInputService.InputChanged:Connect(function(input: InputObject)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		if
+			dragging
+			and (
+				input.UserInputType == Enum.UserInputType.MouseMovement
+				or input.UserInputType == Enum.UserInputType.Touch
+			)
+		then
 			setFromFraction((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X)
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if
+			input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
 			dragging = false
 		end
 	end)
@@ -151,7 +194,14 @@ function Controls.slider(parent: Instance, label: string, value: number, min: nu
 	end
 end
 
-function Controls.choice(parent: Instance, label: string, value: string, choices: { string }, layoutOrder: number, onChange: (string) -> ()): (string) -> ()
+function Controls.choice(
+	parent: Instance,
+	label: string,
+	value: string,
+	choices: { string },
+	layoutOrder: number,
+	onChange: (string) -> ()
+): (string) -> ()
 	local _, right = row(label, layoutOrder, parent)
 	local button = Create("TextButton", {
 		AutoButtonColor = false,

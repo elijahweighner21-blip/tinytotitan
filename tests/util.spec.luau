@@ -28,7 +28,9 @@ end)
 describe("RateLimiter", function()
 	it("allows bursts then refills over time", function()
 		local t = 0
-		local rl = RateLimiter.new(2, 3, function() return t end)
+		local rl = RateLimiter.new(2, 3, function()
+			return t
+		end)
 		expect(rl:Check("p")).toBeTruthy()
 		expect(rl:Check("p")).toBeTruthy()
 		expect(rl:Check("p")).toBeTruthy()

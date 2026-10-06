@@ -48,7 +48,9 @@ local function render(menu: MenuBase.Menu, tab: string)
 	local stats = DataController:GetStats() :: any
 	local discount = stats.UpgradeDiscount or 0
 	local tier = DataController:GetTier()
-	menu.Window:SetSubtitle(string.format("%s Growth Energy available", Common.costText("GrowthEnergy", data.Currencies.GrowthEnergy)))
+	menu.Window:SetSubtitle(
+		string.format("%s Growth Energy available", Common.costText("GrowthEnergy", data.Currencies.GrowthEnergy))
+	)
 	Scroll.clear(grid)
 	local list = {}
 	for _, def in UpgradeConfig.List do
@@ -72,19 +74,32 @@ local function render(menu: MenuBase.Menu, tab: string)
 			Size = UDim2.fromOffset(0, 0),
 		})
 		Create.label(
-			string.format("Lv %d/%d   %s%s", level, def.MaxLevel, effectText(def.Effect, level), if maxed then "" else "  →  " .. effectText(def.Effect, level + 1)),
+			string.format(
+				"Lv %d/%d   %s%s",
+				level,
+				def.MaxLevel,
+				effectText(def.Effect, level),
+				if maxed then "" else "  →  " .. effectText(def.Effect, level + 1)
+			),
 			Theme.TextSize.Small,
 			Theme.Colors.Accent,
 			Theme.Fonts.Title,
-			{ Position = UDim2.new(0, 0, 1, -38), Size = UDim2.new(1, -130, 0, 34), TextYAlignment = Enum.TextYAlignment.Center, Parent = card.Instance }
+			{
+				Position = UDim2.new(0, 0, 1, -38),
+				Size = UDim2.new(1, -130, 0, 34),
+				TextYAlignment = Enum.TextYAlignment.Center,
+				Parent = card.Instance,
+			}
 		)
 		if maxed then
 			card:SetTag("MAX", Theme.Colors.Gold)
-			Button.new({ Text = "Maxed", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer }):SetEnabled(false)
+			Button.new({ Text = "Maxed", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
+				:SetEnabled(false)
 		elseif locked then
 			card:SetDim(true)
 			card:SetTag("🔒 " .. SizeConfig.getTier(def.RequiredTier :: number).Name, Theme.Colors.Locked)
-			Button.new({ Text = "Locked", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer }):SetEnabled(false)
+			Button.new({ Text = "Locked", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
+				:SetEnabled(false)
 		else
 			local cost = Pricing.upgradeCost(def, level, discount)
 			local resource, amount = Pricing.resourceCost(def, level)

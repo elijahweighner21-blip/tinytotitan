@@ -135,7 +135,8 @@ local function buildTrail(root: BasePart, def: Types.Cosmetic, h: number, trove:
 	trail.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0.1) })
 	trail.Parent = root
 	if def.Style ~= "Ribbon" then
-		trail.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 1) })
+		trail.Transparency =
+			NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 1) })
 		trove:Add(emitter(bottom, def, h, {
 			Rate = 18,
 			Texture = if def.Style == "Leaves" then SMOKE else SPARKLE,
@@ -180,14 +181,24 @@ local function buildAura(root: BasePart, def: Types.Cosmetic, h: number, trove: 
 			Texture = SMOKE,
 			Rate = 10,
 			LightEmission = 0.2,
-			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, h * 0.25), NumberSequenceKeypoint.new(1, h * 0.4) }),
+			Size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, h * 0.25),
+				NumberSequenceKeypoint.new(1, h * 0.4),
+			}),
 			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 1) }),
 		}))
 	elseif style == "Snow" then
 		local att = trove:Add(Instance.new("Attachment"))
 		att.Position = Vector3.new(0, h * 0.8, 0)
 		att.Parent = root
-		trove:Add(emitter(att, def, h, { Rate = 20, Acceleration = Vector3.new(0, -h * 0.3, 0), Lifetime = NumberRange.new(1.5, 2) }))
+		trove:Add(
+			emitter(
+				att,
+				def,
+				h,
+				{ Rate = 20, Acceleration = Vector3.new(0, -h * 0.3, 0), Lifetime = NumberRange.new(1.5, 2) }
+			)
+		)
 	elseif style == "Orbit" then
 		local att = trove:Add(Instance.new("Attachment"))
 		att.Parent = root

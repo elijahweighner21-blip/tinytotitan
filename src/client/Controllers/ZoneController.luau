@@ -84,7 +84,14 @@ end
 function ZoneController:Init()
 	Net.onSignal("Gate", function(payload)
 		if type(payload) == "table" then
-			Bus.toast(string.format("%s needs %s size — keep growing! You were moved back to safety.", tostring(payload.Zone), tostring(payload.Requires)), "Warning")
+			Bus.toast(
+				string.format(
+					"%s needs %s size — keep growing! You were moved back to safety.",
+					tostring(payload.Zone),
+					tostring(payload.Requires)
+				),
+				"Warning"
+			)
 		end
 	end)
 	CollectionService:GetInstanceAddedSignal("Gate"):Connect(function(gate)

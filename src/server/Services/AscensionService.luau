@@ -61,7 +61,11 @@ local function ascend(player: Player): { [string]: any }
 		end
 	end)
 	GameEvents.fire("Ascended", player, summary.Count)
-	Net.signal(player, "Notify", { Kind = "Ascension", Text = string.format("ASCENDED! +%d Ascension Points", summary.Points) })
+	Net.signal(
+		player,
+		"Notify",
+		{ Kind = "Ascension", Text = string.format("ASCENDED! +%d Ascension Points", summary.Points) }
+	)
 	task.spawn(function()
 		PlayerDataService:ForceSave(player, "Ascension")
 		inProgress[player] = nil

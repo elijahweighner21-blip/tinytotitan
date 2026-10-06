@@ -89,16 +89,33 @@ end
 
 local function renderDetail(data: any)
 	for _, child in detail:GetChildren() do
-		if not child:IsA("UIListLayout") and not child:IsA("UIPadding") and not child:IsA("UICorner") and not child:IsA("UIStroke") then
+		if
+			not child:IsA("UIListLayout")
+			and not child:IsA("UIPadding")
+			and not child:IsA("UICorner")
+			and not child:IsA("UIStroke")
+		then
 			child:Destroy()
 		end
 	end
 	local def = selected and SkillConfig.get(selected)
 	if not def then
-		Create.label("Select a skill to see its details.", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = detail })
+		Create.label(
+			"Select a skill to see its details.",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = detail }
+		)
 		return
 	end
-	Create.label(def.Icon .. "  " .. def.Name, Theme.TextSize.Heading, Theme.Colors.Text, Theme.Fonts.Title, { LayoutOrder = 1, Parent = detail })
+	Create.label(
+		def.Icon .. "  " .. def.Name,
+		Theme.TextSize.Heading,
+		Theme.Colors.Text,
+		Theme.Fonts.Title,
+		{ LayoutOrder = 1, Parent = detail }
+	)
 	Create.label(def.Description, Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -107,10 +124,22 @@ local function renderDetail(data: any)
 	})
 	local owned = data.Skills[def.Id] ~= nil
 	local costs = costTable(def)
-	Create.label("Cost: " .. Common.costsText(costs), Theme.TextSize.Small, Theme.Colors.Gold, Theme.Fonts.Title, { LayoutOrder = 3, Parent = detail })
+	Create.label(
+		"Cost: " .. Common.costsText(costs),
+		Theme.TextSize.Small,
+		Theme.Colors.Gold,
+		Theme.Fonts.Title,
+		{ LayoutOrder = 3, Parent = detail }
+	)
 	local missing = unmet(def, data)
 	for i, text in missing do
-		Create.label("🔒 " .. text, Theme.TextSize.Small, Theme.Colors.Danger, Theme.Fonts.Body, { LayoutOrder = 3 + i, Parent = detail })
+		Create.label(
+			"🔒 " .. text,
+			Theme.TextSize.Small,
+			Theme.Colors.Danger,
+			Theme.Fonts.Body,
+			{ LayoutOrder = 3 + i, Parent = detail }
+		)
 	end
 	local button = Button.new({
 		Text = if owned then "Unlocked ✔" else "Unlock",
@@ -184,7 +213,11 @@ local function render(menu: MenuBase.Menu, tab: string)
 			Parent = canvas,
 			[Create.Children] = {
 				Create.corner(Theme.RadiusPill),
-				Create.stroke(if available then branch.Color else Color3.new(1, 1, 1), if available or selected == def.Id then 0 else 0.8, if selected == def.Id then 3 else 2),
+				Create.stroke(
+					if available then branch.Color else Color3.new(1, 1, 1),
+					if available or selected == def.Id then 0 else 0.8,
+					if selected == def.Id then 3 else 2
+				),
 				Create.label(def.Name, Theme.TextSize.Tiny, Theme.Colors.TextDim, Theme.Fonts.Title, {
 					AnchorPoint = Vector2.new(0.5, 0),
 					Position = UDim2.new(0.5, 0, 1, 2),
@@ -231,7 +264,11 @@ function SkillsMenu.mount()
 		Position = UDim2.fromScale(1, 0),
 		Size = UDim2.new(0.36, 0, 1, -50),
 		Parent = content,
-		[Create.Children] = { Create.corner(Theme.Radius), Create.padding(14), Create.list(Enum.FillDirection.Vertical, 8) },
+		[Create.Children] = {
+			Create.corner(Theme.Radius),
+			Create.padding(14),
+			Create.list(Enum.FillDirection.Vertical, 8),
+		},
 	})
 	Button.new({
 		Text = "Reset Skills (" .. SkillConfig.RespecCost .. " 🔷)",
@@ -244,7 +281,10 @@ function SkillsMenu.mount()
 		OnClick = function()
 			Dialog.confirm({
 				Title = "Reset all skills?",
-				Body = string.format("All Skill Points are refunded. Costs %d Titan Shards; shards and resources spent on skills are not refunded.", SkillConfig.RespecCost),
+				Body = string.format(
+					"All Skill Points are refunded. Costs %d Titan Shards; shards and resources spent on skills are not refunded.",
+					SkillConfig.RespecCost
+				),
 				Confirm = "Reset",
 				Danger = true,
 				Parent = UIManager.Menus,

@@ -55,13 +55,19 @@ function Button.new(opts: Options): Button
 	local text = opts.Text or ""
 	local icon = opts.Icon
 	local scale = Create("UIScale", { Scale = 1 })
-	local label = Create.label(if icon and text ~= "" then icon .. "  " .. text elseif icon then icon else text, opts.TextSize or Theme.TextSize.Body, style.Text, Theme.Fonts.Title, {
-		Size = UDim2.fromScale(1, 1),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextScaled = false,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		TextWrapped = false,
-	})
+	local label = Create.label(
+		if icon and text ~= "" then icon .. "  " .. text elseif icon then icon else text,
+		opts.TextSize or Theme.TextSize.Body,
+		style.Text,
+		Theme.Fonts.Title,
+		{
+			Size = UDim2.fromScale(1, 1),
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextScaled = false,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			TextWrapped = false,
+		}
+	)
 	local stroke = Create.stroke(Color3.new(1, 1, 1), style.Stroke, 1.5)
 	local instance = Create("TextButton", {
 		Name = opts.Name or ("Button_" .. text),
@@ -102,34 +108,52 @@ function Button.new(opts: Options): Button
 			Sound.play("Hover")
 		end
 	end
-	table.insert(self._connections, instance.MouseEnter:Connect(function()
-		hover(true)
-	end))
-	table.insert(self._connections, instance.MouseLeave:Connect(function()
-		hover(false)
-	end))
-	table.insert(self._connections, instance.SelectionGained:Connect(function()
-		hover(true)
-	end))
-	table.insert(self._connections, instance.SelectionLost:Connect(function()
-		hover(false)
-	end))
-	table.insert(self._connections, instance.MouseButton1Down:Connect(function()
-		if self._enabled then
-			TweenService:Create(scale, Theme.Tween.Fast, { Scale = 0.95 }):Play()
-		end
-	end))
-	table.insert(self._connections, instance.Activated:Connect(function()
-		if not self._enabled then
-			Sound.play("Error")
-			return
-		end
-		TweenService:Create(scale, Theme.Tween.Bounce, { Scale = 1 }):Play()
-		Sound.play("Click")
-		if self._onClick then
-			self._onClick()
-		end
-	end))
+	table.insert(
+		self._connections,
+		instance.MouseEnter:Connect(function()
+			hover(true)
+		end)
+	)
+	table.insert(
+		self._connections,
+		instance.MouseLeave:Connect(function()
+			hover(false)
+		end)
+	)
+	table.insert(
+		self._connections,
+		instance.SelectionGained:Connect(function()
+			hover(true)
+		end)
+	)
+	table.insert(
+		self._connections,
+		instance.SelectionLost:Connect(function()
+			hover(false)
+		end)
+	)
+	table.insert(
+		self._connections,
+		instance.MouseButton1Down:Connect(function()
+			if self._enabled then
+				TweenService:Create(scale, Theme.Tween.Fast, { Scale = 0.95 }):Play()
+			end
+		end)
+	)
+	table.insert(
+		self._connections,
+		instance.Activated:Connect(function()
+			if not self._enabled then
+				Sound.play("Error")
+				return
+			end
+			TweenService:Create(scale, Theme.Tween.Bounce, { Scale = 1 }):Play()
+			Sound.play("Click")
+			if self._onClick then
+				self._onClick()
+			end
+		end)
+	)
 	if opts.Parent then
 		instance.Parent = opts.Parent
 	end

@@ -29,8 +29,16 @@ local function grantUpTo(player: Player, level: number)
 		if milestone.Level <= level and not data.Achievements[key] then
 			data.Achievements[key] = os.time()
 			PlayerDataService:Changed(player, "Achievements")
-			RewardService:Grant(player, milestone.Reward :: any, { Source = "Level", SourceId = key, Notify = false, Multipliers = false })
-			Net.signal(player, "Notify", { Kind = "Level", Text = "Level " .. milestone.Level .. ": " .. milestone.Text })
+			RewardService:Grant(
+				player,
+				milestone.Reward :: any,
+				{ Source = "Level", SourceId = key, Notify = false, Multipliers = false }
+			)
+			Net.signal(
+				player,
+				"Notify",
+				{ Kind = "Level", Text = "Level " .. milestone.Level .. ": " .. milestone.Text }
+			)
 		end
 	end
 end

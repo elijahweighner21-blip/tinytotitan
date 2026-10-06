@@ -85,7 +85,8 @@ end
 
 local function insideArena(fight: Fight, position: Vector3, margin: number?): boolean
 	local flat = Vector3.new(position.X - fight.Center.X, 0, position.Z - fight.Center.Z)
-	return flat.Magnitude <= fight.Radius * (margin or 1) and math.abs(position.Y - fight.Center.Y) <= fight.Radius * 1.5 + fight.H * 2
+	return flat.Magnitude <= fight.Radius * (margin or 1)
+		and math.abs(position.Y - fight.Center.Y) <= fight.Radius * 1.5 + fight.H * 2
 end
 
 local function livingInside(fight: Fight): { Player }
@@ -140,7 +141,11 @@ local function damagePlayersIn(fight: Fight, test: (root: BasePart, player: Play
 	for player in fight.Participants do
 		local root = CharacterService:GetRoot(player)
 		if root and test(root, player) then
-			CombatService:DamagePlayer(player, CombatMath.enemyDamage(damage, fight.Def.Scale, scaleOf(player), 0), fight.Def.Name)
+			CombatService:DamagePlayer(
+				player,
+				CombatMath.enemyDamage(damage, fight.Def.Scale, scaleOf(player), 0),
+				fight.Def.Name
+			)
 		end
 	end
 end
@@ -465,7 +470,8 @@ local function rewardParticipants(fight: Fight)
 				if record.BestTime == 0 or duration < record.BestTime then
 					record.BestTime = math.floor(duration * 10) / 10
 				end
-				local factor = (if fresh then 1 else BossConfig.RepeatRewardFraction) * CombatMath.rewardFactor(scaleOf(player), def.Scale)
+				local factor = (if fresh then 1 else BossConfig.RepeatRewardFraction)
+					* CombatMath.rewardFactor(scaleOf(player), def.Scale)
 				if fresh then
 					record.LastRewardAt = now
 				end
@@ -497,7 +503,10 @@ end
 local function defeat(fight: Fight)
 	fight.State = "Defeated"
 	broadcast(fight, "Defeated")
-	Net.fx("BossDefeat", { P = if fight.Root then fight.Root.Position else fight.Center, S = fight.Def.Scale, Id = fight.Def.Id })
+	Net.fx(
+		"BossDefeat",
+		{ P = if fight.Root then fight.Root.Position else fight.Center, S = fight.Def.Scale, Id = fight.Def.Id }
+	)
 	clearMinions(fight)
 	table.clear(fight.Pending)
 	rewardParticipants(fight)

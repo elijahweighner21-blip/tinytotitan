@@ -77,7 +77,10 @@ end
 
 local function audit(player: Player, currency: string, before: number, delta: number, source: string)
 	if math.abs(delta) > UNUSUAL_FLOOR and math.abs(delta) > math.max(before, 1) * UNUSUAL_RATIO then
-		Log.warn("Economy", string.format("unusual %s %+g for %d (balance %g) from %s", currency, delta, player.UserId, before, source))
+		Log.warn(
+			"Economy",
+			string.format("unusual %s %+g for %d (balance %g) from %s", currency, delta, player.UserId, before, source)
+		)
 	end
 end
 
@@ -162,7 +165,9 @@ function CurrencyService:CanAfford(player: Player, costs: Costs): boolean
 			return false
 		end
 		local bucket, id = parseCost(key)
-		local have = if bucket == "Resources" then CurrencyService:GetResource(player, id) else CurrencyService:Get(player, id)
+		local have = if bucket == "Resources"
+			then CurrencyService:GetResource(player, id)
+			else CurrencyService:Get(player, id)
 		if have < amount then
 			return false
 		end

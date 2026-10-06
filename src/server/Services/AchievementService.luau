@@ -124,8 +124,16 @@ local function evaluate(player: Player)
 		if not data.Achievements[ach.Id] and conditionMet(player, data, ach) then
 			data.Achievements[ach.Id] = os.time()
 			PlayerDataService:Changed(player, "Achievements")
-			RewardService:Grant(player, ach.Rewards :: any, { Source = "Achievement", SourceId = ach.Id, Notify = false, Multipliers = false })
-			Net.signal(player, "Achievement", { Id = ach.Id, Name = ach.Name, Description = ach.Description, Rewards = ach.Rewards })
+			RewardService:Grant(
+				player,
+				ach.Rewards :: any,
+				{ Source = "Achievement", SourceId = ach.Id, Notify = false, Multipliers = false }
+			)
+			Net.signal(
+				player,
+				"Achievement",
+				{ Id = ach.Id, Name = ach.Name, Description = ach.Description, Rewards = ach.Rewards }
+			)
 			GameEvents.fire("Achievement", player, ach.Id)
 		end
 	end
@@ -159,7 +167,17 @@ function AchievementService:Start()
 	ProgressionService.LevelChanged:Connect(function(player)
 		AchievementService:Queue(player)
 	end)
-	for _, name in { "Discovered", "ChallengeCompleted", "BossDefeated", "QuestCompleted", "Ascended", "SkillUnlocked", "TitanMedal" } do
+	for _, name in
+		{
+			"Discovered",
+			"ChallengeCompleted",
+			"BossDefeated",
+			"QuestCompleted",
+			"Ascended",
+			"SkillUnlocked",
+			"TitanMedal",
+		}
+	do
 		GameEvents.on(name, function(player)
 			AchievementService:Queue(player)
 		end)

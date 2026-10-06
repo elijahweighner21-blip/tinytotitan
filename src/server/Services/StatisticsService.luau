@@ -67,8 +67,8 @@ function StatisticsService:Start()
 	PlayerDataService:AddBeforeSave(function(player, data)
 		local mark = sessionMark[player]
 		if mark then
-			local now = os.clock()
-			;(data.Stats :: any).Playtime += now - mark
+			local now = os.clock();
+			(data.Stats :: any).Playtime += now - mark
 			sessionMark[player] = now
 		end
 	end)

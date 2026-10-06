@@ -276,7 +276,14 @@ function WorldMarkerController:Init()
 			return
 		end
 		if payload.State == "Marker" and typeof(payload.Position) == "Vector3" then
-			place("Event_" .. tostring(payload.Id), payload.Position, "World Event", Theme.Colors.Warning, "★", os.clock() + 120)
+			place(
+				"Event_" .. tostring(payload.Id),
+				payload.Position,
+				"World Event",
+				Theme.Colors.Warning,
+				"★",
+				os.clock() + 120
+			)
 		elseif payload.State == "End" then
 			remove("Event_" .. tostring(payload.Id))
 		elseif payload.State == "Picked" then

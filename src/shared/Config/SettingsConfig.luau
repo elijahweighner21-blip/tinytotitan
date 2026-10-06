@@ -22,14 +22,29 @@ local Settings: { SettingDef } = {
 	{ Key = "MusicVolume", Label = "Music", Kind = "Slider", Section = "Audio", Min = 0, Max = 1, Step = 0.05 },
 	{ Key = "SfxVolume", Label = "Sound Effects", Kind = "Slider", Section = "Audio", Min = 0, Max = 1, Step = 0.05 },
 	{ Key = "AmbientVolume", Label = "Ambience", Kind = "Slider", Section = "Audio", Min = 0, Max = 1, Step = 0.05 },
-	{ Key = "PerformancePreset", Label = "Graphics Preset", Kind = "Choice", Section = "Graphics", Choices = { "Auto", "Low", "Medium", "High" }, Hint = "Auto adapts to your frame rate." },
+	{
+		Key = "PerformancePreset",
+		Label = "Graphics Preset",
+		Kind = "Choice",
+		Section = "Graphics",
+		Choices = { "Auto", "Low", "Medium", "High" },
+		Hint = "Auto adapts to your frame rate.",
+	},
 	{ Key = "Particles", Label = "Particles", Kind = "Slider", Section = "Graphics", Min = 0, Max = 1, Step = 0.1 },
 	{ Key = "HideOtherEffects", Label = "Hide Other Players' Effects", Kind = "Toggle", Section = "Graphics" },
 	{ Key = "CameraShake", Label = "Camera Shake", Kind = "Slider", Section = "Comfort", Min = 0, Max = 1, Step = 0.1 },
 	{ Key = "MotionEffects", Label = "Motion Effects (speed lines, tilt)", Kind = "Toggle", Section = "Comfort" },
 	{ Key = "ScreenFlashes", Label = "Screen Flashes", Kind = "Toggle", Section = "Comfort" },
 	{ Key = "FovEffects", Label = "Speed FOV Changes", Kind = "Toggle", Section = "Comfort" },
-	{ Key = "FieldOfView", Label = "Field of View", Kind = "Slider", Section = "Comfort", Min = 60, Max = 100, Step = 1 },
+	{
+		Key = "FieldOfView",
+		Label = "Field of View",
+		Kind = "Slider",
+		Section = "Comfort",
+		Min = 60,
+		Max = 100,
+		Step = 1,
+	},
 	{ Key = "UIScale", Label = "UI Scale", Kind = "Slider", Section = "Interface", Min = 0.7, Max = 1.3, Step = 0.05 },
 	{ Key = "DamageNumbers", Label = "Damage Numbers", Kind = "Toggle", Section = "Interface" },
 	{ Key = "ShowTitles", Label = "Show Titles Above Players", Kind = "Toggle", Section = "Interface" },
@@ -47,9 +62,33 @@ export type Preset = {
 }
 
 local Presets: { [string]: Preset } = {
-	Low = { Particles = 0.3, Shadows = false, Trails = false, EnvironmentDetail = false, OtherPlayerEffects = 3, MaxParticlesPerEmit = 8, PostEffects = false },
-	Medium = { Particles = 0.65, Shadows = true, Trails = true, EnvironmentDetail = true, OtherPlayerEffects = 8, MaxParticlesPerEmit = 20, PostEffects = true },
-	High = { Particles = 1, Shadows = true, Trails = true, EnvironmentDetail = true, OtherPlayerEffects = 12, MaxParticlesPerEmit = 40, PostEffects = true },
+	Low = {
+		Particles = 0.3,
+		Shadows = false,
+		Trails = false,
+		EnvironmentDetail = false,
+		OtherPlayerEffects = 3,
+		MaxParticlesPerEmit = 8,
+		PostEffects = false,
+	},
+	Medium = {
+		Particles = 0.65,
+		Shadows = true,
+		Trails = true,
+		EnvironmentDetail = true,
+		OtherPlayerEffects = 8,
+		MaxParticlesPerEmit = 20,
+		PostEffects = true,
+	},
+	High = {
+		Particles = 1,
+		Shadows = true,
+		Trails = true,
+		EnvironmentDetail = true,
+		OtherPlayerEffects = 12,
+		MaxParticlesPerEmit = 40,
+		PostEffects = true,
+	},
 }
 
 local SettingsConfig = {

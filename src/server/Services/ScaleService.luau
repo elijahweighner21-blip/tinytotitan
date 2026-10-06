@@ -239,16 +239,26 @@ function ScaleService:PlaySequence(player: Player, duration: number?)
 		ScaleService.GrewIntoGeometry:Fire(player)
 	end
 	if s.Pending then
-		s.Pending = false
+		s.Pending = false;
 		-- (cast: Refresh and PlaySequence are mutually recursive)
 		(ScaleService :: any):Refresh(player)
 	end
 end
 
 -- Temporary size modifiers (Shrink Mode, Overgrowth).
-function ScaleService:SetModifier(player: Player, id: string, modifier: { Scale: number?, Multiplier: number?, Fixed: number? }, duration: number)
+function ScaleService:SetModifier(
+	player: Player,
+	id: string,
+	modifier: { Scale: number?, Multiplier: number?, Fixed: number? },
+	duration: number
+)
 	local s = getState(player)
-	s.Modifiers[id] = { Scale = modifier.Scale, Multiplier = modifier.Multiplier, Fixed = modifier.Fixed, Expires = os.clock() + duration }
+	s.Modifiers[id] = {
+		Scale = modifier.Scale,
+		Multiplier = modifier.Multiplier,
+		Fixed = modifier.Fixed,
+		Expires = os.clock() + duration,
+	}
 	player:SetAttribute(id, true)
 	task.spawn(function()
 		ScaleService:PlaySequence(player, 0.9)

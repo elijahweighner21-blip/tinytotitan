@@ -126,7 +126,11 @@ local function finish(player: Player, score: number)
 		local speedRatio = math.max(1, derived.SprintSpeed / math.max(baseSprint, 0.01))
 		local minimum = def.MinPlausibleTime / speedRatio * 0.8
 		if score < minimum then
-			AntiExploitService:Flag(player, string.format("impossible %s time %.2f (min %.2f)", def.Id, score, minimum), 6)
+			AntiExploitService:Flag(
+				player,
+				string.format("impossible %s time %.2f (min %.2f)", def.Id, score, minimum),
+				6
+			)
 			signal(player, { State = "Failed", Id = def.Id, Reason = "Run invalidated" })
 			returnToPad(player, run)
 			return
@@ -141,7 +145,11 @@ local function finish(player: Player, score: number)
 	local previousMedal = record.Medal
 	local newBest = false
 	if run.Ranked then
-		if record.Best == 0 or (def.LowerIsBetter and score < record.Best) or (not def.LowerIsBetter and score > record.Best) then
+		if
+			record.Best == 0
+			or (def.LowerIsBetter and score < record.Best)
+			or (not def.LowerIsBetter and score > record.Best)
+		then
 			record.Best = math.floor(score * 100) / 100
 			newBest = true
 		end
@@ -158,9 +166,17 @@ local function finish(player: Player, score: number)
 		if medal <= previousMedal then
 			reward = RewardService:Scale(reward, ChallengeConfig.RepeatRewardFraction)
 		end
-		granted = RewardService:Grant(player, reward, { Source = "Challenge", SourceId = def.Id, Category = "Challenge", Notify = false })
+		granted = RewardService:Grant(
+			player,
+			reward,
+			{ Source = "Challenge", SourceId = def.Id, Category = "Challenge", Notify = false }
+		)
 	elseif not run.Ranked then
-		granted = RewardService:Grant(player, RewardService:Scale(def.Rewards.Bronze, 0.1), { Source = "Challenge", SourceId = def.Id, Category = "Challenge", Notify = false })
+		granted = RewardService:Grant(
+			player,
+			RewardService:Scale(def.Rewards.Bronze, 0.1),
+			{ Source = "Challenge", SourceId = def.Id, Category = "Challenge", Notify = false }
+		)
 	end
 	StatisticsService:Increment(player, "ChallengesCompleted")
 	GameEvents.fire("ChallengeCompleted", player, def.Id, medal)
@@ -321,7 +337,11 @@ local function monitor(player: Player, run: Run, now: number)
 			run.Next += 1
 			signal(player, { State = "Checkpoint", Id = def.Id, Index = run.Next - 1, Total = #course.Checkpoints })
 		end
-		if run.Next > #course.Checkpoints and course.Finish and (pos - course.Finish).Magnitude <= course.FinishRadius + run.PlayerBody then
+		if
+			run.Next > #course.Checkpoints
+			and course.Finish
+			and (pos - course.Finish).Magnitude <= course.FinishRadius + run.PlayerBody
+		then
 			finish(player, elapsed)
 		end
 	elseif kind == "Arena" then
@@ -339,7 +359,10 @@ local function monitor(player: Player, run: Run, now: number)
 				if not run.Targets[i] and (pos - target).Magnitude <= reach then
 					run.Targets[i] = true
 					run.Found += 1
-					signal(player, { State = "Target", Id = def.Id, Index = i, Count = run.Found, Total = #course.Targets })
+					signal(
+						player,
+						{ State = "Target", Id = def.Id, Index = i, Count = run.Found, Total = #course.Targets }
+					)
 				end
 			end
 			if run.Found >= #course.Targets then
@@ -393,7 +416,10 @@ function ChallengeService:Start()
 			if not run.Targets[i] and CombatMath.inArc(origin, facing, target, range + run.Course.Body * 0.6, arc) then
 				run.Targets[i] = true
 				run.Found += 1
-				signal(player, { State = "Target", Id = run.Def.Id, Index = i, Count = run.Found, Total = #run.Course.Targets })
+				signal(
+					player,
+					{ State = "Target", Id = run.Def.Id, Index = i, Count = run.Found, Total = #run.Course.Targets }
+				)
 			end
 		end
 		if run.Found >= #run.Course.Targets then

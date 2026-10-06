@@ -71,26 +71,71 @@ local function buildVipLounge(root: Instance)
 	-- A human-scale hangout (players are temporarily sized to Human here).
 	local m = Kit.model(root, "VipLounge")
 	local c = WorldBuilder.VipLounge
-	Kit.block(m, "Floor", c - Vector3.new(0, 2, 0), Vector3.new(900, 4, 900), Color3.fromRGB(30, 25, 40), Enum.Material.Marble)
-	for i, offset in { Vector3.new(450, 0, 0), Vector3.new(-450, 0, 0), Vector3.new(0, 0, 450), Vector3.new(0, 0, -450) } do
+	Kit.block(
+		m,
+		"Floor",
+		c - Vector3.new(0, 2, 0),
+		Vector3.new(900, 4, 900),
+		Color3.fromRGB(30, 25, 40),
+		Enum.Material.Marble
+	)
+	for i, offset in
+		{ Vector3.new(450, 0, 0), Vector3.new(-450, 0, 0), Vector3.new(0, 0, 450), Vector3.new(0, 0, -450) }
+	do
 		local size = if offset.X ~= 0 then Vector3.new(6, 220, 900) else Vector3.new(900, 220, 6)
-		local wall = Kit.block(m, "Wall" .. i, c + offset + Vector3.new(0, 110, 0), size, Color3.fromRGB(50, 40, 70), Enum.Material.SmoothPlastic)
+		local wall = Kit.block(
+			m,
+			"Wall" .. i,
+			c + offset + Vector3.new(0, 110, 0),
+			size,
+			Color3.fromRGB(50, 40, 70),
+			Enum.Material.SmoothPlastic
+		)
 		local _ = wall
 	end
-	Kit.block(m, "Ceiling", c + Vector3.new(0, 222, 0), Vector3.new(900, 4, 900), Color3.fromRGB(40, 30, 55), Enum.Material.SmoothPlastic)
-	local dance = Kit.block(m, "DanceFloor", c + Vector3.new(0, 0.1, 150), Vector3.new(300, 0.4, 300), Color3.fromRGB(255, 200, 60), Enum.Material.Neon)
+	Kit.block(
+		m,
+		"Ceiling",
+		c + Vector3.new(0, 222, 0),
+		Vector3.new(900, 4, 900),
+		Color3.fromRGB(40, 30, 55),
+		Enum.Material.SmoothPlastic
+	)
+	local dance = Kit.block(
+		m,
+		"DanceFloor",
+		c + Vector3.new(0, 0.1, 150),
+		Vector3.new(300, 0.4, 300),
+		Color3.fromRGB(255, 200, 60),
+		Enum.Material.Neon
+	)
 	Kit.tag(dance, "Disco")
 	Kit.light(dance, Color3.fromRGB(255, 210, 120), 60, 1.5)
 	for _, x in { -300, 300 } do
-		local lamp = Kit.ball(m, "GoldLamp", c + Vector3.new(x, 200, -300), 30, Color3.fromRGB(255, 220, 120), Enum.Material.Neon)
+		local lamp = Kit.ball(
+			m,
+			"GoldLamp",
+			c + Vector3.new(x, 200, -300),
+			30,
+			Color3.fromRGB(255, 220, 120),
+			Enum.Material.Neon
+		)
 		Kit.light(lamp, Color3.fromRGB(255, 220, 140), 60, 1.2)
 	end
 	Kit.station(m, "Cosmetics", "VIP Wardrobe", c + Vector3.new(-250, 0, -250), 16, Color3.fromRGB(255, 215, 0))
 	Kit.station(m, "Shop", "VIP Boutique", c + Vector3.new(250, 0, -250), 16, Color3.fromRGB(255, 215, 0))
-	local exit = Kit.station(m, "LeaveLounge", "Exit Lounge", c + Vector3.new(0, 0, -380), 16, Color3.fromRGB(200, 200, 255))
+	local exit =
+		Kit.station(m, "LeaveLounge", "Exit Lounge", c + Vector3.new(0, 0, -380), 16, Color3.fromRGB(200, 200, 255))
 	local _ = exit
 	for i = 0, 5 do
-		Kit.block(m, "Couch", c + Vector3.new(-350 + i * 140, 15, 380), Vector3.new(110, 30, 50), Color3.fromRGB(120, 40, 80), Enum.Material.Fabric)
+		Kit.block(
+			m,
+			"Couch",
+			c + Vector3.new(-350 + i * 140, 15, 380),
+			Vector3.new(110, 30, 50),
+			Color3.fromRGB(120, 40, 80),
+			Enum.Material.Fabric
+		)
 	end
 end
 
@@ -175,7 +220,17 @@ function WorldBuilder.build()
 	root.Name = "World"
 	setupLighting()
 
-	local order = { "House", "FloorWorld", "Bedroom", "Kitchen", "Backyard", "Neighborhood", "Downtown", "TitanCity", "TitanWilderness" }
+	local order = {
+		"House",
+		"FloorWorld",
+		"Bedroom",
+		"Kitchen",
+		"Backyard",
+		"Neighborhood",
+		"Downtown",
+		"TitanCity",
+		"TitanWilderness",
+	}
 	for _, name in order do
 		local module = Regions:FindFirstChild(name)
 		if module and module:IsA("ModuleScript") then

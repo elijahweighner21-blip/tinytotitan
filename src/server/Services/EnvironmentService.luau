@@ -56,7 +56,8 @@ local function driveLoop(lane: { Z: number, From: number, To: number, Speed: num
 	local duration = length / lane.Speed
 	task.wait(offset)
 	while car.Parent do
-		local startCF = CFrame.lookAt(Vector3.new(lane.From, 31, lane.Z), Vector3.new(lane.From + dir, 31, lane.Z)) * CFrame.Angles(0, math.rad(90), 0)
+		local startCF = CFrame.lookAt(Vector3.new(lane.From, 31, lane.Z), Vector3.new(lane.From + dir, 31, lane.Z))
+			* CFrame.Angles(0, math.rad(90), 0)
 		local endCF = startCF + Vector3.new(lane.To - lane.From, 0, 0)
 		body.CFrame = startCF
 		cabin.CFrame = startCF * CFrame.new(10, 50, 0)
@@ -71,7 +72,12 @@ local function driveLoop(lane: { Z: number, From: number, To: number, Speed: num
 end
 
 function EnvironmentService:Start()
-	local colors = { Color3.fromRGB(200, 50, 50), Color3.fromRGB(50, 90, 200), Color3.fromRGB(240, 240, 240), Color3.fromRGB(240, 190, 40) }
+	local colors = {
+		Color3.fromRGB(200, 50, 50),
+		Color3.fromRGB(50, 90, 200),
+		Color3.fromRGB(240, 240, 240),
+		Color3.fromRGB(240, 190, 40),
+	}
 	for i, lane in LANES do
 		for j = 1, 2 do
 			task.spawn(function()

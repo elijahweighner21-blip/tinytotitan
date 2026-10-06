@@ -77,7 +77,17 @@ local function thresholdsText(r: Run): string
 	for i, name in ChallengeConfig.Medals do
 		local v = r.Thresholds[name]
 		if v then
-			table.insert(parts, MEDAL_ICONS[i] .. " " .. (if r.ScoreKind == "Time" then Format.raceTime(v) elseif r.ScoreKind == "Distance" then string.format("%.1f", v) else tostring(v)))
+			table.insert(
+				parts,
+				MEDAL_ICONS[i]
+					.. " "
+					.. (
+						if r.ScoreKind == "Time"
+							then Format.raceTime(v)
+							elseif r.ScoreKind == "Distance" then string.format("%.1f", v)
+							else tostring(v)
+					)
+			)
 		end
 	end
 	return table.concat(parts, "   ")
@@ -90,7 +100,9 @@ local function showCountdown(seconds: number)
 		countdown.TextTransparency = 0
 		countdown.Size = UDim2.fromOffset(300, 160)
 		AudioController:Play("Click", { Pitch = 0.8 })
-		TweenService:Create(countdown, TweenInfo.new(0.9), { TextTransparency = 0.6, Size = UDim2.fromOffset(220, 110) }):Play()
+		TweenService
+			:Create(countdown, TweenInfo.new(0.9), { TextTransparency = 0.6, Size = UDim2.fromOffset(220, 110) })
+			:Play()
 		task.wait(1)
 		if not run then
 			countdown.Visible = false

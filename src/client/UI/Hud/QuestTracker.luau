@@ -46,13 +46,21 @@ local function refresh()
 	for i, objective in def.Objectives do
 		local progress = math.min(active.Progress[i] or 0, objective.Count)
 		local done = progress >= objective.Count
-		local count = if objective.Count > 1 then string.format("  %s/%s", Format.abbreviate(progress), Format.abbreviate(objective.Count)) else ""
-		Create.label((if done then "✔ " else "• ") .. objective.Text .. count, Theme.TextSize.Small, if done then Theme.Colors.Success else Theme.Colors.TextDim, Theme.Fonts.Body, {
-			Size = UDim2.new(1, 0, 0, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
-			LayoutOrder = i,
-			Parent = list,
-		})
+		local count = if objective.Count > 1
+			then string.format("  %s/%s", Format.abbreviate(progress), Format.abbreviate(objective.Count))
+			else ""
+		Create.label(
+			(if done then "✔ " else "• ") .. objective.Text .. count,
+			Theme.TextSize.Small,
+			if done then Theme.Colors.Success else Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{
+				Size = UDim2.new(1, 0, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				LayoutOrder = i,
+				Parent = list,
+			}
+		)
 	end
 end
 

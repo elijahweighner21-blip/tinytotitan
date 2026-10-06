@@ -66,7 +66,8 @@ local function option(text: string, style: string, order: number, onClick: () ->
 		LayoutOrder = order,
 		Parent = options,
 		OnClick = onClick,
-	}).Instance.AutomaticSize = Enum.AutomaticSize.X
+	}).Instance.AutomaticSize =
+		Enum.AutomaticSize.X
 end
 
 local function show(p: { [string]: any })
@@ -137,8 +138,20 @@ function DialogueBox.mount()
 			Create.list(Enum.FillDirection.Vertical, 6),
 		},
 	}) :: any
-	nameLabel = Create.label("", Theme.TextSize.Heading, Theme.Colors.Accent, Theme.Fonts.Display, { LayoutOrder = 1, Parent = frame })
-	roleLabel = Create.label("", Theme.TextSize.Small, Theme.Colors.TextDim, Theme.Fonts.Body, { LayoutOrder = 2, Parent = frame })
+	nameLabel = Create.label(
+		"",
+		Theme.TextSize.Heading,
+		Theme.Colors.Accent,
+		Theme.Fonts.Display,
+		{ LayoutOrder = 1, Parent = frame }
+	)
+	roleLabel = Create.label(
+		"",
+		Theme.TextSize.Small,
+		Theme.Colors.TextDim,
+		Theme.Fonts.Body,
+		{ LayoutOrder = 2, Parent = frame }
+	)
 	lineLabel = Create.label("", Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Body, {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -151,9 +164,12 @@ function DialogueBox.mount()
 		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 4,
 		Parent = frame,
-		[Create.Children] = { Create.list(Enum.FillDirection.Horizontal, 8), Create("UIPadding", { PaddingTop = UDim.new(0, 6) }) },
-	})
-	;(frame :: any).Activated:Connect(function()
+		[Create.Children] = {
+			Create.list(Enum.FillDirection.Horizontal, 8),
+			Create("UIPadding", { PaddingTop = UDim.new(0, 6) }),
+		},
+	});
+	(frame :: any).Activated:Connect(function()
 		typing += 1
 		lineLabel.MaxVisibleGraphemes = -1
 	end)

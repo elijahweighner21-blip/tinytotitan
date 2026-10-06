@@ -48,7 +48,13 @@ local function render(menu: MenuBase.Menu, _tab: string)
 	loading = false
 	Scroll.clear(rows)
 	if not result.ok then
-		Create.label(tostring(result.err or "Leaderboards are unavailable right now."), Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = rows })
+		Create.label(
+			tostring(result.err or "Leaderboards are unavailable right now."),
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = rows }
+		)
 		return
 	end
 	menu.Window:SetSubtitle(tostring(result.Name or board))
@@ -85,27 +91,56 @@ local function render(menu: MenuBase.Menu, _tab: string)
 	end
 	local list = if type(result.Rows) == "table" then result.Rows else {}
 	if #list == 0 then
-		Create.label("No entries yet — be the first!", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, { Size = UDim2.new(1, 0, 0, 40), Parent = rows })
+		Create.label(
+			"No entries yet — be the first!",
+			Theme.TextSize.Body,
+			Theme.Colors.TextDim,
+			Theme.Fonts.Body,
+			{ Size = UDim2.new(1, 0, 0, 40), Parent = rows }
+		)
 	end
 	for i, row in list do
 		local me = row.UserId == player.UserId
-		local medal = if row.Rank == 1 then "🥇" elseif row.Rank == 2 then "🥈" elseif row.Rank == 3 then "🥉" else "#" .. tostring(row.Rank)
+		local medal = if row.Rank == 1
+			then "🥇"
+			elseif row.Rank == 2 then "🥈"
+			elseif row.Rank == 3 then "🥉"
+			else "#" .. tostring(row.Rank)
 		local frame = Create("Frame", {
-			BackgroundColor3 = if me then Theme.Colors.Accent:Lerp(Theme.Colors.PanelLight, 0.7) else Theme.Colors.PanelLight,
+			BackgroundColor3 = if me
+				then Theme.Colors.Accent:Lerp(Theme.Colors.PanelLight, 0.7)
+				else Theme.Colors.PanelLight,
 			Size = UDim2.new(1, -8, 0, 36),
 			LayoutOrder = i,
 			Parent = rows,
 			[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.padding(4, 12) },
 		})
-		Create.label(medal, Theme.TextSize.Body, Theme.Colors.Gold, Theme.Fonts.Display, { Size = UDim2.new(0, 50, 1, 0), Parent = frame })
-		Create.label(tostring(row.Name), Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Title, { Position = UDim2.fromOffset(56, 0), Size = UDim2.new(0.6, -56, 1, 0), TextTruncate = Enum.TextTruncate.AtEnd, Parent = frame })
-		Create.label(valueText(board, result.Ascending == true, tonumber(row.Value) or 0), Theme.TextSize.Body, Theme.Colors.Accent, Theme.Fonts.Mono, {
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.fromScale(1, 0),
-			Size = UDim2.new(0.4, 0, 1, 0),
-			TextXAlignment = Enum.TextXAlignment.Right,
+		Create.label(
+			medal,
+			Theme.TextSize.Body,
+			Theme.Colors.Gold,
+			Theme.Fonts.Display,
+			{ Size = UDim2.new(0, 50, 1, 0), Parent = frame }
+		)
+		Create.label(tostring(row.Name), Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Title, {
+			Position = UDim2.fromOffset(56, 0),
+			Size = UDim2.new(0.6, -56, 1, 0),
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			Parent = frame,
 		})
+		Create.label(
+			valueText(board, result.Ascending == true, tonumber(row.Value) or 0),
+			Theme.TextSize.Body,
+			Theme.Colors.Accent,
+			Theme.Fonts.Mono,
+			{
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.fromScale(1, 0),
+				Size = UDim2.new(0.4, 0, 1, 0),
+				TextXAlignment = Enum.TextXAlignment.Right,
+				Parent = frame,
+			}
+		)
 	end
 end
 
@@ -118,7 +153,10 @@ function LeaderboardsMenu.mount()
 		Render = render,
 	})
 	picker = Scroll.list(menu.Content, { Size = UDim2.new(0.3, 0, 1, 0), Gap = 4, Name = "Boards" })
-	rows = Scroll.list(menu.Content, { Size = UDim2.new(0.68, 0, 1, 0), Position = UDim2.fromScale(0.32, 0), Gap = 4, Name = "Rows" })
+	rows = Scroll.list(
+		menu.Content,
+		{ Size = UDim2.new(0.68, 0, 1, 0), Position = UDim2.fromScale(0.32, 0), Gap = 4, Name = "Rows" }
+	)
 	Bus.OpenMenu:Connect(function(name, context)
 		if name == "Leaderboards" and type(context) == "table" and type(context.Board) == "string" then
 			board = context.Board

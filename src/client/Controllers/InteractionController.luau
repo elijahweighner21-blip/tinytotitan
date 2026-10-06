@@ -194,7 +194,10 @@ local function buildTarget(kind: string, instance: Instance): Target?
 			Position = position,
 			Size = size,
 			Verb = "Start",
-			Label = def.Name .. (if record and record.Medal and record.Medal > 0 then "  " .. string.rep("★", record.Medal) else ""),
+			Label = def.Name
+				.. (
+					if record and record.Medal and record.Medal > 0 then "  " .. string.rep("★", record.Medal) else ""
+				),
 			Enabled = true,
 			Run = function()
 				local result = Net.request("StartChallenge", { Id = def.Id })
@@ -339,7 +342,9 @@ local function showPrompt(target: Target?)
 	nameLabel.Text = target.Label
 	verbLabel.TextColor3 = if target.Enabled then Theme.Colors.Text else Theme.Colors.Danger
 	keyFrame.Visible = target.Enabled
-	billboard.Adornee = if target.Instance:IsA("BasePart") or target.Instance:IsA("Model") then target.Instance :: any else nil
+	billboard.Adornee = if target.Instance:IsA("BasePart") or target.Instance:IsA("Model")
+		then target.Instance :: any
+		else nil
 	local h = DataController:GetDerived().Height
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, math.max(target.Size * 0.4, h * 0.6), 0)
 	billboard.Enabled = true
@@ -383,7 +388,11 @@ local function buildPrompt()
 		BackgroundTransparency = 0.15,
 		Size = UDim2.fromScale(1, 1),
 		Parent = billboard,
-		[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.stroke(Theme.Colors.Accent, 0.5), Create.padding(6, 8) },
+		[Create.Children] = {
+			Create.corner(Theme.RadiusSmall),
+			Create.stroke(Theme.Colors.Accent, 0.5),
+			Create.padding(6, 8),
+		},
 	})
 	keyFrame = Create("Frame", {
 		Name = "Key",
@@ -466,7 +475,13 @@ function InteractionController:Start()
 		lastScan = now
 		local target = scan()
 		local previous = current
-		if target and previous and target.Instance == previous.Instance and target.Verb == previous.Verb and target.Label == previous.Label then
+		if
+			target
+			and previous
+			and target.Instance == previous.Instance
+			and target.Verb == previous.Verb
+			and target.Label == previous.Label
+		then
 			current = target
 			return
 		end

@@ -145,8 +145,13 @@ function EffectsController:Spiral(position: Vector3, color: Color3, height: numb
 				end
 				local t = step / steps
 				local a = a0 + t * math.pi * 2
-				local goal = position + Vector3.new(math.cos(a) * r * (1 - t * 0.6), height * t, math.sin(a) * r * (1 - t * 0.6))
-				TweenService:Create(orb, TweenInfo.new(duration / steps, Enum.EasingStyle.Linear), { Position = goal, Transparency = t * 0.8 }):Play()
+				local goal = position
+					+ Vector3.new(math.cos(a) * r * (1 - t * 0.6), height * t, math.sin(a) * r * (1 - t * 0.6))
+				TweenService:Create(
+					orb,
+					TweenInfo.new(duration / steps, Enum.EasingStyle.Linear),
+					{ Position = goal, Transparency = t * 0.8 }
+				):Play()
 				task.wait(duration / steps)
 			end
 			orb:Destroy()
@@ -189,9 +194,17 @@ function EffectsController:FloatText(position: Vector3, text: string, color: Col
 	attachment.Parent = workspace.Terrain
 	gui.Adornee = attachment
 	gui.Parent = folder
-	local rise = TweenService:Create(attachment, TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { WorldPosition = position + Vector3.new(0, size * 2, 0) })
+	local rise = TweenService:Create(
+		attachment,
+		TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ WorldPosition = position + Vector3.new(0, size * 2, 0) }
+	)
 	rise:Play()
-	TweenService:Create(label, TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+	TweenService:Create(
+		label,
+		TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ TextTransparency = 1, TextStrokeTransparency = 1 }
+	):Play()
 	task.delay(0.95, function()
 		attachment:Destroy()
 		gui.Parent = nil
@@ -252,12 +265,17 @@ function EffectsController:Telegraph(payload: { [string]: any })
 		fill.Size = Vector3.new(thickness * 1.5, 0.1, 0.1)
 		fill.CFrame = outline.CFrame
 		table.insert(parts, fill)
-		TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Size = Vector3.new(thickness * 1.5, radius * 2, radius * 2) }):Play()
+		TweenService:Create(
+			fill,
+			TweenInfo.new(duration, Enum.EasingStyle.Linear),
+			{ Size = Vector3.new(thickness * 1.5, radius * 2, radius * 2) }
+		):Play()
 		if kind == "Cone" and typeof(payload.D) == "Vector3" then
-			local dir = (payload.D :: Vector3)
+			local dir = payload.D :: Vector3
 			local arrow = flatPart(Color3.fromRGB(255, 200, 60), 0.3)
 			arrow.Size = Vector3.new(radius * 0.15, thickness * 2, radius)
-			arrow.CFrame = CFrame.lookAt(position + dir * radius * 0.5, position + dir * radius) + Vector3.new(0, thickness * 2, 0)
+			arrow.CFrame = CFrame.lookAt(position + dir * radius * 0.5, position + dir * radius)
+				+ Vector3.new(0, thickness * 2, 0)
 			table.insert(parts, arrow)
 		end
 	elseif kind == "Lane" and typeof(payload.D) == "Vector3" then
@@ -265,7 +283,8 @@ function EffectsController:Telegraph(payload: { [string]: any })
 		local length = (payload.L :: number?) or radius * 6
 		local lane = flatPart(warn, 0.5)
 		lane.Size = Vector3.new(radius * 2, thickness, length)
-		lane.CFrame = CFrame.lookAt(position + dir * length * 0.5, position + dir * length) - Vector3.new(0, position.Y - position.Y, 0)
+		lane.CFrame = CFrame.lookAt(position + dir * length * 0.5, position + dir * length)
+			- Vector3.new(0, position.Y - position.Y, 0)
 		table.insert(parts, lane)
 	end
 	AudioController:Play("Telegraph", { Position = position })
@@ -339,7 +358,12 @@ function EffectsController:Init()
 	Net.onFx("Hit", function(p)
 		if typeof(p.P) == "Vector3" and SettingsController:Get("DamageNumbers") then
 			local h = MovementController:GetHeight()
-			EffectsController:FloatText(p.P, tostring(p.A) .. (if p.C then "!" else ""), if p.C then Color3.fromRGB(255, 220, 80) else Color3.fromRGB(255, 255, 255), h * (if p.C then 0.6 else 0.45))
+			EffectsController:FloatText(
+				p.P,
+				tostring(p.A) .. (if p.C then "!" else ""),
+				if p.C then Color3.fromRGB(255, 220, 80) else Color3.fromRGB(255, 255, 255),
+				h * (if p.C then 0.6 else 0.45)
+			)
 			EffectsController:Burst(p.P, Color3.fromRGB(255, 240, 200), h * 0.2, 6)
 			AudioController:Play(if p.C then "HeavyHit" else "Hit", { Position = p.P })
 		end
@@ -348,7 +372,13 @@ function EffectsController:Init()
 	Net.onFx("EnemyDeath", function(p)
 		if typeof(p.P) == "Vector3" and shouldRender(p, p.P) then
 			local h = ScaleMath.height((p.S :: number?) or 1)
-			EffectsController:Burst(p.P, if typeof(p.C) == "Color3" then p.C else Color3.new(1, 1, 1), h * 0.5, 16, true)
+			EffectsController:Burst(
+				p.P,
+				if typeof(p.C) == "Color3" then p.C else Color3.new(1, 1, 1),
+				h * 0.5,
+				16,
+				true
+			)
 			AudioController:Play("EnemyDeath", { Position = p.P })
 		end
 	end)
@@ -391,7 +421,13 @@ function EffectsController:Init()
 	end)
 	Net.onFx("ObjectBreak", function(p)
 		if typeof(p.P) == "Vector3" then
-			EffectsController:Burst(p.P, if typeof(p.C) == "Color3" then p.C else Color3.new(1, 1, 1), ((p.S :: number?) or 2) * 0.25, 18, true)
+			EffectsController:Burst(
+				p.P,
+				if typeof(p.C) == "Color3" then p.C else Color3.new(1, 1, 1),
+				((p.S :: number?) or 2) * 0.25,
+				18,
+				true
+			)
 			AudioController:Play("Break", { Position = p.P })
 		end
 	end)
@@ -425,7 +461,9 @@ function EffectsController:Init()
 			rock.Shape = Enum.PartType.Ball
 			rock.Size = Vector3.new(h, h, h)
 			rock.Position = p.P + Vector3.new(h * 30, h * 120, 0)
-			TweenService:Create(rock, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = p.P }):Play()
+			TweenService
+				:Create(rock, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = p.P })
+				:Play()
 			Debris:AddItem(rock, t + 0.1)
 		end
 	end)

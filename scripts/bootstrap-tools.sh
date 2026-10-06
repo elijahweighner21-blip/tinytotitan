@@ -19,6 +19,10 @@ if [ ! -x luau-lsp ]; then
 	fetch lsp.zip https://github.com/JohnnyMorganz/luau-lsp/releases/download/1.70.1/luau-lsp-linux-x86_64.zip
 	unzip -oq lsp.zip && rm lsp.zip && chmod +x luau-lsp
 fi
+if [ ! -x stylua ]; then
+	fetch stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/download/v2.0.2/stylua-linux-x86_64.zip
+	unzip -oq stylua.zip && rm stylua.zip && chmod +x stylua
+fi
 if [ ! -f globalTypes.d.luau ]; then
 	fetch globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
 fi

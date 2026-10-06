@@ -80,7 +80,10 @@ function BossBar.mount()
 		BackgroundColor3 = Theme.Colors.Danger,
 		Size = UDim2.fromScale(1, 1),
 		Parent = back,
-		[Create.Children] = { Create.corner(Theme.RadiusPill), Create.gradient(Color3.fromRGB(255, 140, 140), Color3.fromRGB(200, 40, 60)) },
+		[Create.Children] = {
+			Create.corner(Theme.RadiusPill),
+			Create.gradient(Color3.fromRGB(255, 140, 140), Color3.fromRGB(200, 40, 60)),
+		},
 	})
 	hpLabel = Create.label("", Theme.TextSize.Tiny, Theme.Colors.Text, Theme.Fonts.Title, {
 		Size = UDim2.fromScale(1, 1),
@@ -103,13 +106,18 @@ function BossBar.mount()
 			frame.Visible = true
 			AudioController:SetBossMusic(true)
 		end
-		nameLabel.Text = tostring(p.Name) .. (if type(p.Title) == "string" and p.Title ~= "" then "  ·  " .. p.Title else "")
+		nameLabel.Text = tostring(p.Name)
+			.. (if type(p.Title) == "string" and p.Title ~= "" then "  ·  " .. p.Title else "")
 		phaseLabel.Text = if type(p.Phase) == "string" and p.Phase ~= "" then string.upper(p.Phase) else ""
 		local max = math.max(tonumber(p.Max) or 1, 1)
 		local hp = math.clamp(tonumber(p.Health) or 0, 0, max)
 		local fraction = hp / max
 		fill.Size = UDim2.fromScale(fraction, 1)
-		TweenService:Create(trail, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 0.35), { Size = UDim2.fromScale(fraction, 1) }):Play()
+		TweenService:Create(
+			trail,
+			TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 0.35),
+			{ Size = UDim2.fromScale(fraction, 1) }
+		):Play()
 		hpLabel.Text = string.format("%s / %s", Format.abbreviate(hp), Format.abbreviate(max))
 	end)
 	RunService.Heartbeat:Connect(function()

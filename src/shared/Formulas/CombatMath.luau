@@ -49,7 +49,12 @@ function CombatMath.playerDamage(
 end
 
 -- Enemy -> player damage in player-health points (players always have 100 HP).
-function CombatMath.enemyDamage(baseDamage: number, enemyScale: number, playerScale: number, defenseBonus: number): number
+function CombatMath.enemyDamage(
+	baseDamage: number,
+	enemyScale: number,
+	playerScale: number,
+	defenseBonus: number
+): number
 	local dmg = baseDamage * CombatMath.sizeAdvantage(enemyScale, playerScale) / (1 + math.max(0, defenseBonus))
 	return math.clamp(dmg, 0, CombatMath.PLAYER_MAX_HEALTH * 0.6)
 end

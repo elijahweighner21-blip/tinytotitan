@@ -22,23 +22,108 @@ export type QuestData = {
 -- Event name -> objective type it can advance, and how to read the event.
 -- Each entry returns (target, amount) from the event arguments.
 QuestLogic.EventMap = {
-	Collected = { Type = "Collect", Read = function(typeId: any) return typeId, 1 end },
-	Discovered = { Type = "Discover", Read = function(id: any) return id, 1 end },
-	EnemyDefeated = { Type = "DefeatEnemy", Read = function(id: any) return id, 1 end },
-	BossDefeated = { Type = "DefeatBoss", Read = function(id: any) return id, 1 end },
-	ChallengeCompleted = { Type = "CompleteChallenge", Read = function(id: any) return id, 1 end },
-	TalkedTo = { Type = "TalkTo", Read = function(id: any) return id, 1 end },
-	UpgradeBought = { Type = "BuyUpgrade", Read = function(id: any) return id, 1 end },
-	SkillUnlocked = { Type = "UnlockSkill", Read = function(id: any) return id, 1 end },
-	AbilityUsed = { Type = "UseAbility", Read = function(id: any) return id, 1 end },
-	ObjectBroken = { Type = "BreakObject", Read = function(id: any) return id, 1 end },
-	ObjectMoved = { Type = "MoveObject", Read = function(verb: any) return verb, 1 end },
-	ZoneEntered = { Type = "EnterZone", Read = function(id: any) return id, 1 end },
-	ResourceGathered = { Type = "GatherResource", Read = function(resource: any, amount: any) return resource, amount end },
-	MassEarned = { Type = "EarnMass", Read = function(amount: any) return nil, amount end },
-	EventJoined = { Type = "JoinEvent", Read = function(id: any) return id, 1 end },
-	FastTraveled = { Type = "FastTravel", Read = function() return nil, 1 end },
-	Ascended = { Type = "Ascend", Read = function() return nil, 1 end },
+	Collected = {
+		Type = "Collect",
+		Read = function(typeId: any)
+			return typeId, 1
+		end,
+	},
+	Discovered = {
+		Type = "Discover",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	EnemyDefeated = {
+		Type = "DefeatEnemy",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	BossDefeated = {
+		Type = "DefeatBoss",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	ChallengeCompleted = {
+		Type = "CompleteChallenge",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	TalkedTo = {
+		Type = "TalkTo",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	UpgradeBought = {
+		Type = "BuyUpgrade",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	SkillUnlocked = {
+		Type = "UnlockSkill",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	AbilityUsed = {
+		Type = "UseAbility",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	ObjectBroken = {
+		Type = "BreakObject",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	ObjectMoved = {
+		Type = "MoveObject",
+		Read = function(verb: any)
+			return verb, 1
+		end,
+	},
+	ZoneEntered = {
+		Type = "EnterZone",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	ResourceGathered = {
+		Type = "GatherResource",
+		Read = function(resource: any, amount: any)
+			return resource, amount
+		end,
+	},
+	MassEarned = {
+		Type = "EarnMass",
+		Read = function(amount: any)
+			return nil, amount
+		end,
+	},
+	EventJoined = {
+		Type = "JoinEvent",
+		Read = function(id: any)
+			return id, 1
+		end,
+	},
+	FastTraveled = {
+		Type = "FastTravel",
+		Read = function()
+			return nil, 1
+		end,
+	},
+	Ascended = {
+		Type = "Ascend",
+		Read = function()
+			return nil, 1
+		end,
+	},
 } :: { [string]: { Type: string, Read: (...any) -> (string?, number) } }
 
 -- Objectives whose progress reflects current STATE rather than counted events.
@@ -66,7 +151,7 @@ function QuestLogic.isAvailable(questId: string, quests: QuestData, ctx: Context
 	for _, pre in prereqs do
 		if not quests.Completed[pre] then
 			local preDef = QuestConfig.get(pre)
-			return false, "Complete \"" .. (if preDef then preDef.Name else pre) .. "\" first"
+			return false, 'Complete "' .. (if preDef then preDef.Name else pre) .. '" first'
 		end
 	end
 	if def.RequiredTier and ctx.Tier < def.RequiredTier then
@@ -98,7 +183,12 @@ function QuestLogic.newProgress(questId: string, ctx: Context, now: number): Act
 				value = if ctx.Tier >= objective.Count then objective.Count else 0
 			elseif objective.Type == "ReachLevel" then
 				value = if ctx.Level >= objective.Count then objective.Count else 0
-			elseif objective.Type == "Discover" and objective.Target and objective.Target ~= "Any" and ctx.Discoveries[objective.Target] then
+			elseif
+				objective.Type == "Discover"
+				and objective.Target
+				and objective.Target ~= "Any"
+				and ctx.Discoveries[objective.Target]
+			then
 				value = objective.Count
 			elseif objective.Type == "EnterZone" and ctx.Zone == objective.Target then
 				value = objective.Count

@@ -105,7 +105,15 @@ local function rollCrit(player: Player): boolean
 end
 
 -- Applies `kind` damage to every valid target in an arc / radius.
-local function hitTargets(player: Player, origin: Vector3, facing: Vector3, range: number, arc: number, kind: string, multiplier: number): number
+local function hitTargets(
+	player: Player,
+	origin: Vector3,
+	facing: Vector3,
+	range: number,
+	arc: number,
+	kind: string,
+	multiplier: number
+): number
 	local scale = ScaleService:GetScale(player)
 	local bonus = powerBonus(player)
 	local bossBonus = StatService:Get(player, "BossDamage")
@@ -133,7 +141,13 @@ local function hitTargets(player: Player, origin: Vector3, facing: Vector3, rang
 end
 
 -- Area damage for abilities (stomp, shockwave, ground pound...).
-function CombatService:AreaDamage(player: Player, center: Vector3, radius: number, kind: string, multiplier: number?): number
+function CombatService:AreaDamage(
+	player: Player,
+	center: Vector3,
+	radius: number,
+	kind: string,
+	multiplier: number?
+): number
 	local hits = hitTargets(player, center, Vector3.new(0, 0, -1), radius, 360, kind, multiplier or 1)
 	CombatService.AttackPerformed:Fire(player, center, Vector3.new(0, 0, -1), radius, 360, kind, powerBonus(player))
 	return hits
