@@ -1,0 +1,5 @@
+# Toolchain used to build and verify the project (https://github.com/rojo-rbx/rokit)
+[tools]
+rojo = "rojo-rbx/rojo@7.4.4"
+luau-lsp = "JohnnyMorganz/luau-lsp@1.70.1"
+stylua = "JohnnyMorganz/StyLua@2.0.2"

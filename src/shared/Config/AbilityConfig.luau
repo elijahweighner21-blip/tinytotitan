@@ -1,0 +1,89 @@
+--!strict
+--[[
+	AbilityConfig
+	Every active ability shares one framework (AbilityService on the server,
+	AbilityController/MovementController on the client): cooldown, energy cost,
+	skill requirement and whether the server executes the gameplay effect.
+
+	ServerExecuted = false  -> movement ability: the client moves immediately
+	                           for responsiveness, the server validates and
+	                           charges energy/cooldown (rejections are corrected).
+	ServerExecuted = true   -> gameplay effect (damage, area effects, scale)
+	                           happens on the server only.
+]]
+
+local Types = require(script.Parent.Parent.Types)
+
+type Ability = Types.Ability
+
+local List: { Ability } = {
+	-- Movement ----------------------------------------------------------------
+	{ Id = "DoubleJump", Name = "Double Jump", Description = "Jump again in mid-air.", Kind = "Movement", Cooldown = 0.25, EnergyCost = 10, RequiresSkill = "DoubleJump", ServerExecuted = false, Key = "Jump", Icon = "⏫" },
+	{ Id = "AirDash", Name = "Air Dash", Description = "Burst forward in any direction.", Kind = "Movement", Cooldown = 0.9, EnergyCost = 20, RequiresSkill = "AirDash", ServerExecuted = false, Key = "Dash", Icon = "💨" },
+	{ Id = "GroundDash", Name = "Dash", Description = "Quick burst along the ground.", Kind = "Movement", Cooldown = 0.7, EnergyCost = 14, RequiresSkill = "AirDash", ServerExecuted = false, Key = "Dash", Icon = "➡️" },
+	{ Id = "WallJump", Name = "Wall Jump", Description = "Kick off walls.", Kind = "Movement", Cooldown = 0.2, EnergyCost = 8, RequiresSkill = "WallJump", ServerExecuted = false, Key = "Jump", Icon = "🧱" },
+	{ Id = "WallRun", Name = "Wall Run", Description = "Run along walls while sprinting.", Kind = "Movement", Cooldown = 0.5, EnergyCost = 6, RequiresSkill = "WallRun", ServerExecuted = false, Icon = "🏃" },
+	{ Id = "Slide", Name = "Slide", Description = "Slide under obstacles while sprinting.", Kind = "Movement", Cooldown = 0.6, EnergyCost = 6, RequiresSkill = "Slide", ServerExecuted = false, Key = "Crouch", Icon = "🛝" },
+	{ Id = "LongJump", Name = "Long Jump", Description = "Jump out of a slide to fly far.", Kind = "Movement", Cooldown = 0.8, EnergyCost = 12, RequiresSkill = "LongJump", ServerExecuted = false, Icon = "🦗" },
+	{ Id = "Vault", Name = "Vault", Description = "Hop over low obstacles automatically.", Kind = "Movement", Cooldown = 0.4, EnergyCost = 0, RequiresSkill = "Vault", ServerExecuted = false, Icon = "🤸" },
+	{ Id = "Mantle", Name = "Ledge Grab", Description = "Grab ledges and climb up.", Kind = "Movement", Cooldown = 0.3, EnergyCost = 4, RequiresSkill = nil, ServerExecuted = false, Icon = "🧗" },
+	{ Id = "GroundPound", Name = "Ground Pound", Description = "Slam down from the air, damaging nearby enemies.", Kind = "Movement", Cooldown = 1.5, EnergyCost = 15, RequiresSkill = "GroundPound", ServerExecuted = true, Key = "Crouch", Icon = "⬇️" },
+	{ Id = "Glide", Name = "Glide", Description = "Hold jump in the air to glide.", Kind = "Movement", Cooldown = 0.5, EnergyCost = 4, RequiresSkill = "Glide", ServerExecuted = false, Key = "Jump", Icon = "🪁" },
+	{ Id = "ChargedLeap", Name = "Charged Leap", Description = "Hold crouch to charge a huge jump.", Kind = "Movement", Cooldown = 2.5, EnergyCost = 25, RequiresSkill = "ChargedLeap", ServerExecuted = false, Key = "Crouch", Icon = "🚀" },
+	-- Combat ----------------------------------------------------------------------
+	{ Id = "LightAttack", Name = "Strike", Description = "Quick attack.", Kind = "Combat", Cooldown = 0.35, EnergyCost = 0, RequiresSkill = nil, ServerExecuted = true, Key = "Attack", Icon = "👊" },
+	{ Id = "HeavyAttack", Name = "Heavy Strike", Description = "Slow, powerful attack.", Kind = "Combat", Cooldown = 0.9, EnergyCost = 8, RequiresSkill = "HeavyStrike", ServerExecuted = true, Key = "HeavyAttack", Icon = "🥊" },
+	{ Id = "DashAttack", Name = "Dash Strike", Description = "Attack while dashing.", Kind = "Combat", Cooldown = 1.2, EnergyCost = 10, RequiresSkill = "DashStrike", ServerExecuted = true, Icon = "⚔️" },
+	{ Id = "ChargedAttack", Name = "Charged Strike", Description = "Hold attack to unleash a massive blow.", Kind = "Combat", Cooldown = 2.5, EnergyCost = 18, RequiresSkill = "ChargedStrike", ServerExecuted = true, Icon = "💥" },
+	-- Utility ------------------------------------------------------------------
+	{ Id = "Scan", Name = "Echo Scan", Description = "Reveal nearby collectibles and secrets.", Kind = "Utility", Cooldown = 20, EnergyCost = 20, RequiresSkill = "EchoScan", ServerExecuted = true, Key = "Ability1", Icon = "📡" },
+	{ Id = "ShrinkMode", Name = "Shrink Mode", Description = "Temporarily return to a smaller size to explore old places.", Kind = "Utility", Cooldown = 45, EnergyCost = 0, RequiresSkill = "ShrinkMode", ServerExecuted = true, Key = "Ability2", Icon = "🔻" },
+	-- Titan ---------------------------------------------------------------------
+	{ Id = "TitanStomp", Name = "Titan Stomp", Description = "Stomp the ground, damaging and staggering everything nearby.", Kind = "Titan", Cooldown = 8, EnergyCost = 30, RequiresSkill = "TitanStomp", ServerExecuted = true, Key = "Ability3", Icon = "🦶" },
+	{ Id = "Shockwave", Name = "Shockwave", Description = "Send an expanding ring of force outward.", Kind = "Titan", Cooldown = 14, EnergyCost = 40, RequiresSkill = "Shockwave", ServerExecuted = true, Key = "Ability4", Icon = "🌊" },
+	{ Id = "MegaJump", Name = "Mega Jump", Description = "Leap several times your height.", Kind = "Titan", Cooldown = 10, EnergyCost = 35, RequiresSkill = "MegaJump", ServerExecuted = false, Icon = "🌋" },
+	{ Id = "EarthquakeLanding", Name = "Earthquake Landing", Description = "Big landings shake the ground and hurt enemies.", Kind = "Titan", Cooldown = 3, EnergyCost = 0, RequiresSkill = "EarthquakeLanding", ServerExecuted = true, Icon = "🌐" },
+	{ Id = "TitanRoar", Name = "Titan Roar", Description = "A roar that stuns enemies and boosts nearby allies.", Kind = "Titan", Cooldown = 40, EnergyCost = 50, RequiresSkill = "TitanRoar", ServerExecuted = true, Key = "Ability5", Icon = "📣" },
+	{ Id = "Overgrowth", Name = "Overgrowth", Description = "Temporarily grow 30% larger and stronger.", Kind = "Titan", Cooldown = 90, EnergyCost = 60, RequiresSkill = "Overgrowth", ServerExecuted = true, Key = "Ability6", Icon = "🌳" },
+}
+
+local byId: { [string]: Ability } = {}
+for _, def in List do
+	assert(byId[def.Id] == nil, "duplicate ability " .. def.Id)
+	byId[def.Id] = def
+end
+
+local AbilityConfig = {
+	List = List,
+	-- Energy model ------------------------------------------------------------
+	BaseMaxEnergy = 100,
+	BaseRegenPerSecond = 22,
+	RegenDelay = 0.7, -- seconds after spending before regen resumes
+	SprintDrainPerSecond = 9,
+	WallRunDrainPerSecond = 14,
+	ClimbDrainPerSecond = 8,
+	GlideDrainPerSecond = 5,
+	-- Sprinting never fully locks the player: below this energy they keep
+	-- sprinting at a reduced bonus instead of stopping dead.
+	ExhaustedSprintFactor = 0.45,
+	-- Movement tuning (fractions of scale-derived values) ----------------------
+	DashDistanceBodies = 4.2,
+	DashDuration = 0.18,
+	WallRunDurationMax = 1.6,
+	GlideFallSpeedBodies = 1.2,
+	ChargedLeapMaxCharge = 1.2,
+	ChargedLeapHeightMultiplier = 3.0,
+	MegaJumpHeightMultiplier = 4.0,
+	LongJumpDistanceMultiplier = 1.9,
+	CoyoteTime = 0.12,
+	JumpBufferTime = 0.14,
+	ShrinkDuration = 120,
+	OvergrowthDuration = 25,
+	OvergrowthScale = 1.3,
+}
+
+function AbilityConfig.get(id: string): Ability?
+	return byId[id]
+end
+
+return AbilityConfig

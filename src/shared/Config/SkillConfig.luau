@@ -1,0 +1,100 @@
+--!strict
+--[[
+	SkillConfig
+	The skill tree. Position is a grid coordinate inside the branch column
+	(x = lane, y = depth) used by the Skill Tree UI to draw nodes and links.
+	Skills either grant an ability or add stat bonuses (same stat names as
+	upgrades). Requirements can reference size tier, level, achievements and
+	boss victories.
+]]
+
+local Types = require(script.Parent.Parent.Types)
+
+type Skill = Types.Skill
+
+local Branches = {
+	{ Id = "Mobility", Name = "Mobility", Color = Color3.fromRGB(80, 200, 255), Icon = "🏃" },
+	{ Id = "Power", Name = "Power", Color = Color3.fromRGB(255, 110, 90), Icon = "👊" },
+	{ Id = "Growth", Name = "Growth", Color = Color3.fromRGB(110, 230, 120), Icon = "🌱" },
+	{ Id = "Exploration", Name = "Exploration", Color = Color3.fromRGB(190, 140, 255), Icon = "🧭" },
+	{ Id = "Titan", Name = "Titan", Color = Color3.fromRGB(255, 200, 60), Icon = "👑" },
+}
+
+local function S(def: Skill): Skill
+	return def
+end
+
+local List: { Skill } = {
+	-- Mobility --------------------------------------------------------------
+	S({ Id = "DoubleJump", Branch = "Mobility", Name = "Double Jump", Description = "Jump a second time in mid-air.", Icon = "⏫", Position = Vector2.new(1, 0), Prerequisites = {}, Cost = { SkillPoints = 1 }, Requirements = { Tier = 2 }, Grants = { Ability = "DoubleJump" } }),
+	S({ Id = "Slide", Branch = "Mobility", Name = "Ground Slide", Description = "Press crouch while sprinting to slide.", Icon = "🛝", Position = Vector2.new(0, 0), Prerequisites = {}, Cost = { SkillPoints = 1 }, Requirements = { Tier = 2 }, Grants = { Ability = "Slide" } }),
+	S({ Id = "WallJump", Branch = "Mobility", Name = "Wall Jump", Description = "Jump off walls while airborne.", Icon = "🧱", Position = Vector2.new(2, 1), Prerequisites = { "DoubleJump" }, Cost = { SkillPoints = 1 }, Requirements = { Tier = 3 }, Grants = { Ability = "WallJump" } }),
+	S({ Id = "Vault", Branch = "Mobility", Name = "Vault", Description = "Automatically hop over low obstacles while sprinting.", Icon = "🤸", Position = Vector2.new(0, 1), Prerequisites = { "Slide" }, Cost = { SkillPoints = 1 }, Requirements = { Tier = 3 }, Grants = { Ability = "Vault" } }),
+	S({ Id = "AirDash", Branch = "Mobility", Name = "Air Dash", Description = "Dash in any direction, even mid-air.", Icon = "💨", Position = Vector2.new(1, 1), Prerequisites = { "DoubleJump" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Ability = "AirDash" } }),
+	S({ Id = "GroundPound", Branch = "Mobility", Name = "Ground Pound", Description = "Crouch in mid-air to slam down.", Icon = "⬇️", Position = Vector2.new(1, 2), Prerequisites = { "AirDash" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Ability = "GroundPound" } }),
+	S({ Id = "LongJump", Branch = "Mobility", Name = "Long Jump", Description = "Jump out of a slide to cover huge distances.", Icon = "🦗", Position = Vector2.new(0, 2), Prerequisites = { "Vault" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Ability = "LongJump" } }),
+	S({ Id = "WallRun", Branch = "Mobility", Name = "Wall Run", Description = "Sprint along walls.", Icon = "🏃", Position = Vector2.new(2, 2), Prerequisites = { "WallJump" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 5 }, Grants = { Ability = "WallRun" } }),
+	S({ Id = "ChargedLeap", Branch = "Mobility", Name = "Charged Leap", Description = "Hold crouch on the ground, release jump to launch.", Icon = "🚀", Position = Vector2.new(0, 3), Prerequisites = { "LongJump" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 6 } , Grants = { Ability = "ChargedLeap" } }),
+	S({ Id = "Glide", Branch = "Mobility", Name = "Glide", Description = "Hold jump while falling to glide.", Icon = "🪁", Position = Vector2.new(1, 3), Prerequisites = { "GroundPound" }, Cost = { SkillPoints = 3, Resources = { NatureEssence = 15 } }, Requirements = { Tier = 7 }, Grants = { Ability = "Glide" } }),
+	S({ Id = "Fleetfoot", Branch = "Mobility", Name = "Fleetfoot", Description = "+10% walk and sprint speed.", Icon = "⚡", Position = Vector2.new(2, 3), Prerequisites = { "WallRun" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 6 }, Grants = { Stats = { WalkSpeed = 0.10, SprintSpeed = 0.10 } } }),
+	S({ Id = "Featherweight", Branch = "Mobility", Name = "Featherweight", Description = "-15% energy cost for movement abilities.", Icon = "🪶", Position = Vector2.new(1, 4), Prerequisites = { "Glide" }, Cost = { SkillPoints = 4 }, Requirements = { Tier = 8 }, Grants = { Stats = { MovementEnergyDiscount = 0.15 } } }),
+	-- Power -----------------------------------------------------------------------
+	S({ Id = "HeavyStrike", Branch = "Power", Name = "Heavy Strike", Description = "Unlocks a slow, powerful attack.", Icon = "🥊", Position = Vector2.new(1, 0), Prerequisites = {}, Cost = { SkillPoints = 1 }, Requirements = { Tier = 2 }, Grants = { Ability = "HeavyAttack" } }),
+	S({ Id = "Brawler", Branch = "Power", Name = "Brawler", Description = "+15% attack damage.", Icon = "💪", Position = Vector2.new(0, 1), Prerequisites = { "HeavyStrike" }, Cost = { SkillPoints = 1 }, Requirements = { Level = 4 }, Grants = { Stats = { AttackPower = 0.15 } } }),
+	S({ Id = "IronBody", Branch = "Power", Name = "Iron Body", Description = "Take 20% less damage.", Icon = "🛡️", Position = Vector2.new(2, 1), Prerequisites = { "HeavyStrike" }, Cost = { SkillPoints = 2 }, Requirements = { Level = 6 }, Grants = { Stats = { Defense = 0.20 } } }),
+	S({ Id = "DashStrike", Branch = "Power", Name = "Dash Strike", Description = "Attack while dashing to hit everything in your path.", Icon = "⚔️", Position = Vector2.new(1, 2), Prerequisites = { "Brawler" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Ability = "DashAttack" } }),
+	S({ Id = "Crusher", Branch = "Power", Name = "Crusher", Description = "+25% object breaking power.", Icon = "🔨", Position = Vector2.new(0, 2), Prerequisites = { "Brawler" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 5 }, Grants = { Stats = { BreakPower = 0.25 } } }),
+	S({ Id = "ChargedStrike", Branch = "Power", Name = "Charged Strike", Description = "Hold attack to charge a devastating blow.", Icon = "💥", Position = Vector2.new(1, 3), Prerequisites = { "DashStrike" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 6 }, Grants = { Ability = "ChargedAttack" } }),
+	S({ Id = "Juggernaut", Branch = "Power", Name = "Juggernaut", Description = "+20% damage, +10% defense. Requires defeating THE QUEEN.", Icon = "🦾", Position = Vector2.new(2, 3), Prerequisites = { "IronBody" }, Cost = { SkillPoints = 3 }, Requirements = { Boss = "Queen" }, Grants = { Stats = { AttackPower = 0.20, Defense = 0.10 } } }),
+	S({ Id = "BossBreaker", Branch = "Power", Name = "Boss Breaker", Description = "+25% damage to bosses. Requires defeating VACUUM-01.", Icon = "🎯", Position = Vector2.new(1, 4), Prerequisites = { "ChargedStrike" }, Cost = { SkillPoints = 4 }, Requirements = { Boss = "Vacuum" }, Grants = { Stats = { BossDamage = 0.25 } } }),
+	-- Growth -----------------------------------------------------------------------
+	S({ Id = "Absorb", Branch = "Growth", Name = "Absorb", Description = "+10% Mass from all sources.", Icon = "🟢", Position = Vector2.new(1, 0), Prerequisites = {}, Cost = { SkillPoints = 1 }, Requirements = { Tier = 2 }, Grants = { Stats = { MassGain = 0.10 } } }),
+	S({ Id = "Magnetism", Branch = "Growth", Name = "Magnetism", Description = "+25% pickup radius.", Icon = "🧲", Position = Vector2.new(0, 1), Prerequisites = { "Absorb" }, Cost = { SkillPoints = 1 }, Requirements = { Tier = 3 }, Grants = { Stats = { DetectionRadius = 0.25 } } }),
+	S({ Id = "Efficiency", Branch = "Growth", Name = "Efficiency", Description = "+10% Growth Energy from all sources.", Icon = "🔋", Position = Vector2.new(2, 1), Prerequisites = { "Absorb" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 3 }, Grants = { Stats = { GrowthEnergyGain = 0.10 } } }),
+	S({ Id = "Momentum", Branch = "Growth", Name = "Momentum", Description = "+15% challenge rewards.", Icon = "📈", Position = Vector2.new(1, 2), Prerequisites = { "Absorb" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Stats = { ChallengeRewards = 0.15 } } }),
+	S({ Id = "Scholar", Branch = "Growth", Name = "Scholar", Description = "+15% XP from all sources.", Icon = "🎓", Position = Vector2.new(0, 2), Prerequisites = { "Magnetism" }, Cost = { SkillPoints = 2 }, Requirements = { Level = 10 }, Grants = { Stats = { XPGain = 0.15 } } }),
+	S({ Id = "ShrinkMode", Branch = "Growth", Name = "Shrink Mode", Description = "Temporarily shrink to explore places you have outgrown.", Icon = "🔻", Position = Vector2.new(1, 3), Prerequisites = { "Momentum" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 9 }, Grants = { Ability = "ShrinkMode" } }),
+	S({ Id = "DeepGrowth", Branch = "Growth", Name = "Deep Growth", Description = "+20% Mass from all sources.", Icon = "🌿", Position = Vector2.new(2, 3), Prerequisites = { "Efficiency" }, Cost = { SkillPoints = 4, Resources = { SugarCrystals = 30 } }, Requirements = { Tier = 7 }, Grants = { Stats = { MassGain = 0.20 } } }),
+	-- Exploration --------------------------------------------------------------------
+	S({ Id = "EchoScan", Branch = "Exploration", Name = "Echo Scan", Description = "Ability: reveal nearby collectibles.", Icon = "📡", Position = Vector2.new(1, 0), Prerequisites = {}, Cost = { SkillPoints = 1 }, Requirements = { Tier = 3 }, Grants = { Ability = "Scan" } }),
+	S({ Id = "Pathfinder", Branch = "Exploration", Name = "Pathfinder", Description = "+25% discovery rewards.", Icon = "🗺️", Position = Vector2.new(0, 1), Prerequisites = { "EchoScan" }, Cost = { SkillPoints = 1 }, Requirements = { Tier = 3 }, Grants = { Stats = { MapReveal = 0.25 } } }),
+	S({ Id = "TreasureHunter", Branch = "Exploration", Name = "Treasure Hunter", Description = "+10% rare drop chance.", Icon = "💰", Position = Vector2.new(2, 1), Prerequisites = { "EchoScan" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 4 }, Grants = { Stats = { Luck = 0.10 } } }),
+	S({ Id = "SixthSense", Branch = "Exploration", Name = "Sixth Sense", Description = "Hidden collectibles shimmer from 30% farther.", Icon = "👁️", Position = Vector2.new(1, 2), Prerequisites = { "Pathfinder" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 5 }, Grants = { Stats = { SecretFinder = 0.30 } } }),
+	S({ Id = "ExpressTravel", Branch = "Exploration", Name = "Express Travel", Description = "Fast travel cooldown reduced by 50%.", Icon = "🚉", Position = Vector2.new(0, 3), Prerequisites = { "SixthSense" }, Cost = { SkillPoints = 2 }, Requirements = { Tier = 8 }, Grants = { Stats = { TravelCooldownReduction = 0.5 } } }),
+	S({ Id = "Lucky", Branch = "Exploration", Name = "Lucky Star", Description = "+10% golden orb chance.", Icon = "⭐", Position = Vector2.new(2, 3), Prerequisites = { "TreasureHunter" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 6 }, Grants = { Stats = { GoldenOrbChance = 0.10 } } }),
+	-- Titan --------------------------------------------------------------------------
+	S({ Id = "TitanStomp", Branch = "Titan", Name = "Titan Stomp", Description = "Stomp to damage and stagger everything nearby.", Icon = "🦶", Position = Vector2.new(1, 0), Prerequisites = {}, Cost = { SkillPoints = 3 }, Requirements = { Tier = 11 }, Grants = { Ability = "TitanStomp" } }),
+	S({ Id = "MegaJump", Branch = "Titan", Name = "Mega Jump", Description = "Leap several times your own height.", Icon = "🌋", Position = Vector2.new(0, 1), Prerequisites = { "TitanStomp" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 11 }, Grants = { Ability = "MegaJump" } }),
+	S({ Id = "ObjectThrow", Branch = "Titan", Name = "Titan Grip", Description = "+100% carry and throw strength.", Icon = "🤾", Position = Vector2.new(2, 1), Prerequisites = { "TitanStomp" }, Cost = { SkillPoints = 3 }, Requirements = { Tier = 11 }, Grants = { Stats = { CarryCapacity = 1.0, ImpactForce = 0.5 } } }),
+	S({ Id = "Shockwave", Branch = "Titan", Name = "Shockwave", Description = "Send an expanding ring of force outward.", Icon = "🌊", Position = Vector2.new(1, 2), Prerequisites = { "TitanStomp" }, Cost = { SkillPoints = 4, TitanShards = 25 }, Requirements = { Tier = 12 }, Grants = { Ability = "Shockwave" } }),
+	S({ Id = "EarthquakeLanding", Branch = "Titan", Name = "Earthquake Landing", Description = "High landings shake the ground and damage enemies.", Icon = "🌐", Position = Vector2.new(0, 3), Prerequisites = { "MegaJump" }, Cost = { SkillPoints = 4 }, Requirements = { Tier = 12 }, Grants = { Ability = "EarthquakeLanding" } }),
+	S({ Id = "Overgrowth", Branch = "Titan", Name = "Overgrowth", Description = "Temporarily grow 30% larger.", Icon = "🌳", Position = Vector2.new(2, 3), Prerequisites = { "Shockwave" }, Cost = { SkillPoints = 5, TitanShards = 50, Resources = { TitanCells = 20 } }, Requirements = { Tier = 12 }, Grants = { Ability = "Overgrowth" } }),
+	S({ Id = "TitanRoar", Branch = "Titan", Name = "Titan Roar", Description = "Stun enemies and boost allies. Requires defeating GUARDIAN MK-IV.", Icon = "📣", Position = Vector2.new(1, 4), Prerequisites = { "Shockwave" }, Cost = { SkillPoints = 5, TitanShards = 75 }, Requirements = { Tier = 13, Boss = "Guardian" }, Grants = { Ability = "TitanRoar" } }),
+}
+
+local byId: { [string]: Skill } = {}
+local abilityToSkill: { [string]: string } = {}
+for _, def in List do
+	assert(byId[def.Id] == nil, "duplicate skill " .. def.Id)
+	byId[def.Id] = def
+	if def.Grants.Ability then
+		abilityToSkill[def.Grants.Ability] = def.Id
+	end
+end
+
+local SkillConfig = {
+	Branches = Branches,
+	List = List,
+	-- Respec cost in Titan Shards (refunds skill points, not shards/resources).
+	RespecCost = 50,
+}
+
+function SkillConfig.get(id: string): Skill?
+	return byId[id]
+end
+
+function SkillConfig.skillForAbility(abilityId: string): string?
+	return abilityToSkill[abilityId]
+end
+
+return SkillConfig
