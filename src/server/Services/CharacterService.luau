@@ -185,7 +185,7 @@ local function onCharacterAdded(player: Player, character: Model)
 		CharacterService.Died:Fire(player)
 		task.delay(GameConfig.RespawnTime, function()
 			if player.Parent and player.Character == character then
-				player:LoadCharacter()
+				player:LoadCharacterAsync()
 			end
 		end)
 	end)
@@ -218,7 +218,7 @@ function CharacterService:Start()
 	end
 	PlayerDataService.Loaded:Connect(function(player)
 		if not player.Character then
-			player:LoadCharacter()
+			player:LoadCharacterAsync()
 		end
 	end)
 	Players.PlayerRemoving:Connect(function(player)

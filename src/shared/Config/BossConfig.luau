@@ -11,7 +11,7 @@
 	  Summon     spawns minions (EnemyConfig ids)
 	  Rain       many small telegraphed circles across the arena
 
-	Radii/ranges are in BOSS body lengths. Damage is "at equal size" and is
+	Radii/ranges (including ArenaRadius) are in BOSS body lengths. Damage is "at equal size" and is
 	scaled by size advantage like normal enemies. Health scales with the
 	number of participants.
 ]]
@@ -32,7 +32,7 @@ local List: { Boss } = {
 		RequiredTier = 3,
 		Color = Color3.fromRGB(120, 40, 30),
 		Shape = "Insect",
-		ArenaRadius = 7,
+		ArenaRadius = 5,
 		ContactDamage = 10,
 		Speed = 1.6,
 		RewardCooldown = 600,
@@ -66,7 +66,7 @@ local List: { Boss } = {
 		RequiredTier = 5,
 		Color = Color3.fromRGB(60, 60, 70),
 		Shape = "Vacuum",
-		ArenaRadius = 3.2,
+		ArenaRadius = 2.4,
 		ContactDamage = 14,
 		Speed = 1.2,
 		RewardCooldown = 600,
@@ -100,7 +100,7 @@ local List: { Boss } = {
 		RequiredTier = 8,
 		Color = Color3.fromRGB(200, 40, 40),
 		Shape = "Mower",
-		ArenaRadius = 4,
+		ArenaRadius = 3.5,
 		ContactDamage = 18,
 		Speed = 1.5,
 		RewardCooldown = 600,
@@ -129,7 +129,7 @@ local List: { Boss } = {
 		RequiredTier = 11,
 		Color = Color3.fromRGB(80, 160, 255),
 		Shape = "Mech",
-		ArenaRadius = 3,
+		ArenaRadius = 2,
 		ContactDamage = 20,
 		Speed = 1.1,
 		RewardCooldown = 600,
@@ -162,7 +162,7 @@ local List: { Boss } = {
 		RequiredTier = 14,
 		Color = Color3.fromRGB(170, 120, 255),
 		Shape = "Colossus",
-		ArenaRadius = 2.5,
+		ArenaRadius = 1.5,
 		ContactDamage = 24,
 		Speed = 0.9,
 		RewardCooldown = 900,

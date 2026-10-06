@@ -250,6 +250,8 @@ __env.warn = function(...) if __env.__showWarnings then print("WARN", ...) end e
 __env.tick = os.clock
 __env.DateTime = { now = function() return { UnixTimestamp = os.time(), UnixTimestampMillis = os.time() * 1000 } end }
 
+__env.sourceOf = function(node) return rawget(node, "__source") end
+__env.childrenOf = function(node) local out = {} for _, c in rawget(node, "__children") do table.insert(out, c) end return out end
 -- Convenience roots for specs.
 __env.Shared = rootNode.ReplicatedStorage and rootNode.ReplicatedStorage.Shared
 __env.setClock = function(t) fakeClock = t end

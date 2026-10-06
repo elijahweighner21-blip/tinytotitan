@@ -3,11 +3,15 @@
 	ChallengeConfig
 	Repeatable challenges with Bronze / Silver / Gold / Titan medals.
 
-	Courses are generated procedurally (server/World/CourseBuilder) from the
-	`Course` parameters below, expressed in BODY LENGTHS of the intended tier.
-	Because the same parameters drive both the geometry and the medal times,
-	every course is guaranteed to be feasible and medal times stay consistent
-	if a course is re-tuned.
+	Each challenge has a START PAD in the world (`Anchor`) and a course built in
+	its own "training simulation" pocket (server/World/CourseBuilder) far from
+	the playable map, so courses never collide with furniture or arenas.
+
+	Course geometry is expressed relative to the intended tier's REAL movement
+	capabilities: `Gap` is a fraction of the max running-jump distance and
+	`Rise` a fraction of max jump height. The same numbers drive the medal
+	times, so every course is feasible and its medals stay consistent if
+	movement is re-tuned.
 
 	Medal eligibility (and leaderboards) only apply while the player's tier is
 	within [RequiredTier, MaxTier] — a titan sprinting through an ant course
@@ -23,10 +27,10 @@ type Reward = Types.Reward
 
 export type Course = {
 	Kind: string, -- Sprint | Tower | Stones | Arena | Runway | Escape
-	Segments: number,
-	Spacing: number, -- body lengths between platforms
-	Rise: number, -- body lengths gained per segment
-	Width: number, -- platform size in body lengths
+	Segments: number, -- platforms (or tokens/targets for arena kinds)
+	Gap: number, -- fraction of the max running-jump distance between platforms
+	Rise: number, -- fraction of max jump height gained per segment
+	Width: number, -- platform / arena size in body lengths
 	Targets: number?,
 	Seed: number,
 }
@@ -62,15 +66,27 @@ local function medalRewards(zone: string, weight: number): { Bronze: Reward, Sil
 	}
 end
 
--- Ideal completion time for a course at the intended tier, used to derive
--- medal thresholds: path length / sprint speed plus time spent climbing.
-local function idealTime(tier: number, course: Course): number
+-- Physical numbers for the intended tier (no upgrades).
+local function physics(tier: number)
 	local scale = SizeConfig.getTier(tier).Scale
 	local body = ScaleMath.height(scale)
-	local horizontal = course.Segments * course.Spacing * body
 	local sprint = ScaleMath.walkSpeed(scale) * ScaleMath.sprintMultiplier(scale)
-	local climb = course.Segments * course.Rise * 0.6 * ScaleMath.airTime(scale)
-	return horizontal / sprint + climb
+	local airtime = ScaleMath.airTime(scale)
+	local jumpDistance = sprint * airtime
+	return body, sprint, airtime, jumpDistance, ScaleMath.jumpHeight(scale)
+end
+
+-- Ideal completion time for a course at the intended tier.
+local function idealTime(tier: number, course: Course): number
+	local body, sprint, airtime, jumpDistance = physics(tier)
+	if course.Kind == "Tower" or course.Kind == "Escape" then
+		return course.Segments * airtime * 1.05 + 1
+	elseif course.Kind == "Arena" then
+		local count = course.Targets or course.Segments
+		return count * (course.Width * body * 0.35 / sprint + 0.6) + 1
+	end
+	local perSegment = (course.Gap * jumpDistance + course.Width * body) / sprint
+	return course.Segments * math.max(perSegment, airtime * 0.9) + 1
 end
 
 local function timed(def: {
@@ -149,50 +165,50 @@ end
 local List: { ChallengeDef } = {
 	-- Floor World -----------------------------------------------------------
 	timed({ Id = "CrumbSprint", Name = "Crumb Sprint", Type = "TimeTrial", Zone = "FloorWorld", Description = "Race across the crumbs from start to finish.", RequiredTier = 2, Weight = 2,
-		Course = { Kind = "Sprint", Segments = 10, Spacing = 3.2, Rise = 0.15, Width = 2.2, Seed = 11 }, Anchor = Vector3.new(120, 0, 285) }),
+		Course = { Kind = "Sprint", Segments = 12, Gap = 0.55, Rise = 0.15, Width = 2.2, Seed = 11 }, Anchor = Vector3.new(215, 0, 290) }),
 	timed({ Id = "FiberClimb", Name = "Fiber Climb", Type = "Climb", Zone = "FloorWorld", Description = "Climb a tower of thread spools and buttons.", RequiredTier = 3, Weight = 2.5,
-		Course = { Kind = "Tower", Segments = 12, Spacing = 1.6, Rise = 0.6, Width = 1.8, Seed = 12 }, Anchor = Vector3.new(280, 0, 270) }),
+		Course = { Kind = "Tower", Segments = 12, Gap = 0.35, Rise = 0.55, Width = 1.8, Seed = 12 }, Anchor = Vector3.new(290, 0, 40) }),
 	scored({ Id = "CoinRush", Name = "Coin Rush", Type = "ResourceRush", Zone = "FloorWorld", Description = "Grab as many spinning tokens as you can in 45 seconds.", RequiredTier = 2, Weight = 2,
-		Course = { Kind = "Arena", Segments = 24, Spacing = 2, Rise = 0, Width = 22, Seed = 13 }, Anchor = Vector3.new(240, 0, 180),
+		Course = { Kind = "Arena", Segments = 24, Gap = 0, Rise = 0, Width = 22, Seed = 13 }, Anchor = Vector3.new(60, 0, 45),
 		TimeLimit = 45, Thresholds = { Bronze = 8, Silver = 13, Gold = 18, Titan = 22 }, Score = "Count" }),
 	-- Bedroom -------------------------------------------------------------------
 	timed({ Id = "DeskDash", Name = "Desk Dash", Type = "TimeTrial", Zone = "Bedroom", Description = "An obstacle course of pencils, erasers and sticky notes.", RequiredTier = 4, Weight = 2.5,
-		Course = { Kind = "Sprint", Segments = 14, Spacing = 3.4, Rise = 0.25, Width = 2, Seed = 21 }, Anchor = Vector3.new(-250, 0, 60) }),
+		Course = { Kind = "Sprint", Segments = 14, Gap = 0.6, Rise = 0.2, Width = 2, Seed = 21 }, Anchor = Vector3.new(-230, 0, -60) }),
 	timed({ Id = "BookshelfAscent", Name = "Bookshelf Ascent", Type = "Climb", Zone = "Bedroom", Description = "Climb book spines to the top shelf.", RequiredTier = 5, Weight = 3,
-		Course = { Kind = "Tower", Segments = 14, Spacing = 1.5, Rise = 0.65, Width = 1.6, Seed = 22 }, Anchor = Vector3.new(-90, 0, 20) }),
+		Course = { Kind = "Tower", Segments = 14, Gap = 0.35, Rise = 0.6, Width = 1.6, Seed = 22 }, Anchor = Vector3.new(-150, 0, -60) }),
 	timed({ Id = "LavaRug", Name = "The Floor Is Lava", Type = "FloorIsLava", Zone = "Bedroom", Description = "Cross the rug on stepping stones. Touch the floor and you're out.", RequiredTier = 4, Weight = 3,
-		Course = { Kind = "Stones", Segments = 16, Spacing = 2.6, Rise = 0.1, Width = 1.4, Seed = 23 }, Anchor = Vector3.new(-150, 0, 260) }),
+		Course = { Kind = "Stones", Segments = 16, Gap = 0.5, Rise = 0.05, Width = 1.4, Seed = 23 }, Anchor = Vector3.new(-70, 0, -60) }),
 	-- Kitchen -------------------------------------------------------------------
 	timed({ Id = "CounterRun", Name = "Counter Run", Type = "TimeTrial", Zone = "Kitchen", Description = "Sprint the full length of the counters.", RequiredTier = 6, Weight = 2.5,
-		Course = { Kind = "Sprint", Segments = 14, Spacing = 3.5, Rise = 0.2, Width = 2, Seed = 31 }, Anchor = Vector3.new(40, 0, -270) }),
+		Course = { Kind = "Sprint", Segments = 14, Gap = 0.6, Rise = 0.2, Width = 2, Seed = 31 }, Anchor = Vector3.new(255, 0, -60) }),
 	scored({ Id = "SpoonLeap", Name = "Spoon Leap", Type = "DistanceJump", Zone = "Kitchen", Description = "Launch off the spoon and land as far as you can.", RequiredTier = 6, Weight = 2,
-		Course = { Kind = "Runway", Segments = 1, Spacing = 30, Rise = 0, Width = 4, Seed = 32 }, Anchor = Vector3.new(250, 0, -120),
-		TimeLimit = 30, Thresholds = { Bronze = 3, Silver = 4.5, Gold = 6, Titan = 8 }, Score = "Distance" }),
+		Course = { Kind = "Runway", Segments = 1, Gap = 0, Rise = 0, Width = 4, Seed = 32 }, Anchor = Vector3.new(255, 0, -105),
+		TimeLimit = 30, Thresholds = { Bronze = 2, Silver = 3, Gold = 4.5, Titan = 6 }, Score = "Distance" }),
 	timed({ Id = "CupSmash", Name = "Cup Smash", Type = "TargetBreak", Zone = "Kitchen", Description = "Smash all 10 paper cups as fast as possible.", RequiredTier = 6, Weight = 2.5,
-		Course = { Kind = "Arena", Segments = 10, Spacing = 3, Rise = 0.3, Width = 20, Targets = 10, Seed = 33 }, Anchor = Vector3.new(120, 0, -60) }),
+		Course = { Kind = "Arena", Segments = 10, Gap = 0, Rise = 0.3, Width = 12, Targets = 10, Seed = 33 }, Anchor = Vector3.new(255, 0, -240) }),
 	-- Backyard ------------------------------------------------------------------
 	timed({ Id = "GnomeHunt", Name = "Gnome Hunt", Type = "HiddenObject", Zone = "Backyard", Description = "Find all 6 tiny gnomes hidden in the garden.", RequiredTier = 7, Weight = 3,
-		Course = { Kind = "Arena", Segments = 6, Spacing = 8, Rise = 0, Width = 40, Targets = 6, Seed = 41 }, Anchor = Vector3.new(-200, 0, -700) }),
+		Course = { Kind = "Arena", Segments = 6, Gap = 0, Rise = 0, Width = 16, Targets = 6, Seed = 41 }, Anchor = Vector3.new(-200, 0, -700) }),
 	timed({ Id = "FenceRun", Name = "Fence Run", Type = "TimeTrial", Zone = "Backyard", Description = "Run along the fence posts without falling.", RequiredTier = 8, Weight = 3,
-		Course = { Kind = "Sprint", Segments = 16, Spacing = 3.2, Rise = 0.2, Width = 1.6, Seed = 42 }, Anchor = Vector3.new(500, 0, -1000) }),
+		Course = { Kind = "Sprint", Segments = 16, Gap = 0.6, Rise = 0.2, Width = 1.6, Seed = 42 }, Anchor = Vector3.new(500, 0, -1000) }),
 	-- Neighborhood ----------------------------------------------------------------
 	timed({ Id = "RooftopRush", Name = "Rooftop Rush", Type = "TimeTrial", Zone = "Neighborhood", Description = "Leap across the neighborhood rooftops.", RequiredTier = 9, Weight = 3,
-		Course = { Kind = "Sprint", Segments = 14, Spacing = 3.6, Rise = 0.3, Width = 2.2, Seed = 51 }, Anchor = Vector3.new(-1200, 0, -2000) }),
+		Course = { Kind = "Sprint", Segments = 14, Gap = 0.65, Rise = 0.3, Width = 2.2, Seed = 51 }, Anchor = Vector3.new(-1200, 0, -2000) }),
 	timed({ Id = "DrainEscape", Name = "Drain Escape", Type = "Escape", Zone = "Neighborhood", Description = "The water is rising. Climb out of the drain!", RequiredTier = 9, Weight = 3.5,
-		Course = { Kind = "Escape", Segments = 14, Spacing = 1.4, Rise = 0.7, Width = 1.6, Seed = 52 }, Anchor = Vector3.new(1600, 0, -2400) }),
+		Course = { Kind = "Escape", Segments = 14, Gap = 0.3, Rise = 0.6, Width = 1.6, Seed = 52 }, Anchor = Vector3.new(1600, 0, -2400) }),
 	-- Downtown ------------------------------------------------------------------
 	timed({ Id = "SkyscraperClimb", Name = "Skyscraper Climb", Type = "Climb", Zone = "Downtown", Description = "Scale the side of a skyscraper, ledge by ledge.", RequiredTier = 10, Weight = 3.5,
-		Course = { Kind = "Tower", Segments = 18, Spacing = 1.5, Rise = 0.7, Width = 1.8, Seed = 61 }, Anchor = Vector3.new(-1500, 0, 4200) }),
+		Course = { Kind = "Tower", Segments = 18, Gap = 0.35, Rise = 0.65, Width = 1.8, Seed = 61 }, Anchor = Vector3.new(-1500, 0, 4200) }),
 	timed({ Id = "TowerTargets", Name = "Tower Targets", Type = "TargetBreak", Zone = "Downtown", Description = "Break 12 drone beacons across the rooftops.", RequiredTier = 11, Weight = 3,
-		Course = { Kind = "Arena", Segments = 12, Spacing = 4, Rise = 0.5, Width = 24, Targets = 12, Seed = 62 }, Anchor = Vector3.new(1800, 0, 6600) }),
+		Course = { Kind = "Arena", Segments = 12, Gap = 0, Rise = 0.5, Width = 12, Targets = 12, Seed = 62 }, Anchor = Vector3.new(1800, 0, 6600) }),
 	-- Titan City / Wilderness -------------------------------------------------------
 	timed({ Id = "TitanGauntlet", Name = "Titan Gauntlet", Type = "TimeTrial", Zone = "TitanCity", Description = "The Titans' own obstacle course.", RequiredTier = 12, Weight = 3.5,
-		Course = { Kind = "Sprint", Segments = 16, Spacing = 3.4, Rise = 0.3, Width = 2, Seed = 71 }, Anchor = Vector3.new(6200, 0, 6000) }),
+		Course = { Kind = "Sprint", Segments = 16, Gap = 0.6, Rise = 0.3, Width = 2, Seed = 71 }, Anchor = Vector3.new(6200, 0, 6000) }),
 	scored({ Id = "TitanLongJump", Name = "Titan Long Jump", Type = "DistanceJump", Zone = "TitanCity", Description = "How far can a Titan fly?", RequiredTier = 12, Weight = 2.5,
-		Course = { Kind = "Runway", Segments = 1, Spacing = 30, Rise = 0, Width = 4, Seed = 72 }, Anchor = Vector3.new(9800, 0, -1500),
-		TimeLimit = 30, Thresholds = { Bronze = 3, Silver = 4.5, Gold = 6, Titan = 8 }, Score = "Distance" }),
+		Course = { Kind = "Runway", Segments = 1, Gap = 0, Rise = 0, Width = 4, Seed = 72 }, Anchor = Vector3.new(9800, 0, -1500),
+		TimeLimit = 30, Thresholds = { Bronze = 2, Silver = 3, Gold = 4.5, Titan = 6 }, Score = "Distance" }),
 	timed({ Id = "PeakAscent", Name = "Peak Ascent", Type = "Climb", Zone = "TitanWilderness", Description = "Race up the floating stones beside Sky Falls.", RequiredTier = 13, Weight = 4,
-		Course = { Kind = "Tower", Segments = 16, Spacing = 1.6, Rise = 0.7, Width = 1.8, Seed = 81 }, Anchor = Vector3.new(-9000, 0, -2500) }),
+		Course = { Kind = "Tower", Segments = 16, Gap = 0.35, Rise = 0.65, Width = 1.8, Seed = 81 }, Anchor = Vector3.new(-9000, 0, -2500) }),
 }
 
 local byId: { [string]: ChallengeDef } = {}
@@ -216,6 +232,7 @@ local ChallengeConfig = {
 	LeaveRadiusMultiplier = 1.6,
 	CountdownSeconds = 3,
 	idealTime = idealTime,
+	physics = physics,
 }
 
 function ChallengeConfig.get(id: string): ChallengeDef?
