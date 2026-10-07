@@ -16,6 +16,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const luau = path.join(root, ".tools", "luau");
 // `--script <file>` runs a standalone Luau script (e.g. the economy simulator)
 // against the same virtual tree instead of the specs.
+const playIndex = process.argv.indexOf("--play");
+if (playIndex >= 0) {
+	runPlay(process.argv[playIndex + 1]);
+	process.exit(0);
+}
 const scriptIndex = process.argv.indexOf("--script");
 const scriptFile = scriptIndex >= 0 ? process.argv[scriptIndex + 1] : null;
 const filter = scriptFile ? "\u0000" : (process.argv[2] ?? "");
@@ -88,4 +93,56 @@ try {
 	process.stdout.write(err.stdout ?? "");
 	process.stderr.write(err.stderr ?? "");
 	process.exit(1);
+}
+
+// `--play <scenario>`: boots the real game inside the headless Roblox engine
+// emulator (tools/play/*.luau) and runs a scenario script against it.
+function runPlay(scenario) {
+	const engineDir = path.join(root, "tools", "play");
+	const engine = fs
+		.readdirSync(engineDir)
+		.filter((f) => /^\d\d_.*\.luau$/.test(f))
+		.sort()
+		.map((f) => `do\n${fs.readFileSync(path.join(engineDir, f), "utf8")}\nend\n`)
+		.join("\n");
+	const playMounts = [
+		[["ReplicatedStorage", "Shared"], "src/shared"],
+		[["ServerScriptService", "Server"], "src/server"],
+		[["StarterPlayer", "StarterPlayerScripts", "Client"], "src/client"],
+	];
+	const entries = [];
+	for (const [base, dir] of playMounts) {
+		const walk = (abs, vp) => {
+			for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+				const full = path.join(abs, entry.name);
+				if (entry.isDirectory()) walk(full, [...vp, entry.name]);
+				else if (/\.luau$/.test(entry.name)) {
+					const kind = entry.name.endsWith(".server.luau") ? "server" : entry.name.endsWith(".client.luau") ? "client" : "module";
+					const name = entry.name.replace(/(\.server|\.client)?\.luau$/, "");
+					entries.push({ vp: name === "init" ? vp : [...vp, name], kind, file: path.relative(root, full), source: fs.readFileSync(full, "utf8") });
+				}
+			}
+		};
+		walk(path.join(root, dir), base);
+	}
+	entries.sort((a, b) => a.vp.length - b.vp.length);
+	let bundle = engine + "\nlocal E = __E\n";
+	for (const e of entries) {
+		const vp = "{" + e.vp.map((x) => JSON.stringify(x)).join(",") + "}";
+		bundle += `E.mount(${vp}, ${JSON.stringify(e.kind)}, ${longString(e.source)}, ${JSON.stringify(e.file)})\n`;
+	}
+	bundle += `do\n${fs.readFileSync(path.resolve(root, scenario), "utf8")}\nend\n`;
+	const outFile = path.join(root, "build", "play-bundle.luau");
+	fs.mkdirSync(path.dirname(outFile), { recursive: true });
+	fs.writeFileSync(outFile, bundle);
+	let output = "";
+	let failed = false;
+	try {
+		output = execFileSync(luau, [outFile], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 1 << 28 });
+	} catch (err) {
+		output = (err.stdout ?? "") + (err.stderr ?? "");
+		failed = true;
+	}
+	process.stdout.write(output);
+	if (failed || output.includes("@@FAIL@@")) process.exit(1);
 }

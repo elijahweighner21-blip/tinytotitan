@@ -588,7 +588,8 @@ function CreatureBuilder.build(name: string, shape: string, color: Color3, scale
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 	local root = Instance.new("Part")
 	root.Name = "Root"
-	root.Size = Vector3.new(H * 0.8, H, H * 0.8)
+	-- Roblox caps each part dimension at 2048 studs (the Colossus is taller).
+	root.Size = Vector3.new(math.min(H * 0.8, 2048), math.min(H, 2048), math.min(H * 0.8, 2048))
 	root.Transparency = 1
 	root.CanCollide = false
 	root.CanTouch = false

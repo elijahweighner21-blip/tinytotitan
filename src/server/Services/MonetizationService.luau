@@ -120,6 +120,9 @@ local function grantProduct(
 end
 
 -- Shared by the real ProcessReceipt and Studio test purchases.
+-- Receipts granted in memory whose save failed (confirmed only once saved).
+local unsavedReceipts: { [string]: boolean } = {}
+
 local function processFor(
 	player: Player,
 	product: MonetizationConfig.DevProduct,
@@ -131,6 +134,14 @@ local function processFor(
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 	if ReceiptLedger.has(data.Monetization.Receipts, purchaseId) then
+		-- Already granted. If the save that should have persisted it failed,
+		-- only confirm to Roblox once the grant is safely on disk.
+		if unsavedReceipts[purchaseId] then
+			if not PlayerDataService:ForceSave(player, "ReceiptRetry") then
+				return Enum.ProductPurchaseDecision.NotProcessedYet
+			end
+			unsavedReceipts[purchaseId] = nil
+		end
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 	if inFlight[purchaseId] then
@@ -146,8 +157,9 @@ local function processFor(
 	local saved = PlayerDataService:ForceSave(player, "Receipt:" .. product.Key)
 	inFlight[purchaseId] = nil
 	if not saved then
-		-- Reward + ledger stay in memory and will be saved with the next save;
-		-- Roblox will retry this receipt and step 2 returns PurchaseGranted.
+		-- Reward + ledger stay in memory (never granted twice); Roblox retries
+		-- the receipt and it is confirmed only after a successful save.
+		unsavedReceipts[purchaseId] = true
 		Log.warn("Monetization", "receipt save deferred", purchaseId)
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end

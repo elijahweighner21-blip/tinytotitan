@@ -413,7 +413,9 @@ function Kit.station(
 ): Model
 	local m = Kit.model(parent, "Station_" .. menu)
 	local h = ScaleMath.height(scale)
-	local base = Kit.pillar(m, "Base", position, h * 0.25, h * 1.4, Color3.fromRGB(40, 45, 60), Enum.Material.Metal)
+	-- A knee-high pedestal about one body-height across: easy to walk up to,
+	-- never big enough to swallow a spawn point.
+	local base = Kit.pillar(m, "Base", position, h * 0.15, h * 0.9, Color3.fromRGB(40, 45, 60), Enum.Material.Metal)
 	local core = Kit.ball(
 		m,
 		"Core",
@@ -440,7 +442,7 @@ function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, sca
 		"FastTravel_" .. zoneId,
 		position,
 		h * 0.08,
-		h * 2.4,
+		h * 1.6,
 		Color3.fromRGB(60, 200, 255),
 		Enum.Material.Neon
 	)
@@ -451,7 +453,7 @@ function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, sca
 		"FastTravelRing_" .. zoneId,
 		position + Vector3.new(0, h * 1.6, 0),
 		h * 0.06,
-		h * 2.2,
+		h * 1.5,
 		Color3.fromRGB(150, 230, 255),
 		Enum.Material.Neon
 	)

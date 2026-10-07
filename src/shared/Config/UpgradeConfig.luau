@@ -13,8 +13,8 @@ local Types = require(script.Parent.Parent.Types)
 type Upgrade = Types.Upgrade
 
 local Categories = {
-	{ Id = "Movement", Name = "Movement", Icon = "🏃", Color = Color3.fromRGB(90, 200, 255) },
 	{ Id = "Growth", Name = "Growth", Icon = "🌱", Color = Color3.fromRGB(120, 230, 120) },
+	{ Id = "Movement", Name = "Movement", Icon = "🏃", Color = Color3.fromRGB(90, 200, 255) },
 	{ Id = "Energy", Name = "Energy", Icon = "⚡", Color = Color3.fromRGB(255, 220, 80) },
 	{ Id = "Strength", Name = "Strength", Icon = "💪", Color = Color3.fromRGB(255, 120, 90) },
 	{ Id = "Luck", Name = "Luck", Icon = "🍀", Color = Color3.fromRGB(150, 255, 170) },
@@ -120,11 +120,12 @@ local List: { Upgrade } = {
 		Description = "+5% Mass from every source per level.",
 		Icon = "🟢",
 		MaxLevel = 40,
-		BaseCost = 60,
+		BaseCost = 40,
 		CostGrowth = 1.2,
 		Currency = "GrowthEnergy",
 		Effect = { Stat = "MassGain", PerLevel = 0.05, Mode = "Add" },
-		RequiredTier = 2,
+		-- Available from the first minute: the tutorial's "buy an upgrade"
+		-- step should teach the core loop (more Mass -> grow faster).
 		ResourceCost = { Resource = "SugarCrystals", Every = 10, Amount = 10 },
 		Order = 1,
 	}),
