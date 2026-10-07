@@ -14,12 +14,15 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local TitanWilderness = {}
 
 local ZONE = "TitanWilderness"
 
--- Stepped mountain: stacked slabs shrinking upward (each step < a jump).
+-- Terraced mountain: each terrace is a cluster of overlapping round lobes
+-- (organic silhouette, still a staircase of steps < a jump), rock at the
+-- base, slate higher up, snow on top.
 local function mountain(
 	parent: Instance,
 	name: string,
@@ -31,21 +34,147 @@ local function mountain(
 	snow: boolean
 )
 	local model = Kit.model(parent, name, true)
+	local rng = Random.new(math.floor(base.X + base.Z))
 	local steps = math.max(1, math.floor(height / stepHeight))
 	for i = 0, steps - 1 do
 		local t = i / steps
 		local r = radius * (1 - t * 0.85)
 		local y = i * stepHeight
-		local tone = if snow and t > 0.75 then Kit.Colors.Snow else color:Lerp(Color3.fromRGB(90, 85, 80), t * 0.4)
-		Kit.part(model, {
-			Name = "Step",
-			Size = Vector3.new(math.min(r * 2, 2048), stepHeight, math.min(r * 2, 2048)),
-			CFrame = CFrame.new(base + Vector3.new(0, y + stepHeight / 2, 0)) * CFrame.Angles(0, i * 0.35, 0),
-			Color = tone,
-			Material = if snow and t > 0.75 then Enum.Material.Snow else Enum.Material.Rock,
-		})
+		local snowy = snow and t > 0.72
+		local tone = if snowy
+			then Kit.Colors.Snow
+			elseif t > 0.45 then color:Lerp(Color3.fromRGB(150, 145, 150), (t - 0.45) * 1.2)
+			else color:Lerp(Color3.fromRGB(96, 104, 84), 0.5 - t)
+		local material = if snowy
+			then Enum.Material.Snow
+			elseif t > 0.45 then Enum.Material.Slate
+			else Enum.Material.Rock
+		local lobes = if r > 1400 then 5 elseif r > 600 then 3 else 1
+		local lobeR = math.min(if lobes == 1 then r else r * 0.62, 1024)
+		local spread = if lobes == 1 then 0 else math.max(0, r - lobeR)
+		for l = 1, lobes do
+			local a = (l / lobes) * math.pi * 2 + i * 0.7
+			local offset = Vector3.new(math.cos(a) * spread, 0, math.sin(a) * spread)
+			local jitter = rng:NextNumber(0.9, 1.05)
+			Kit.part(model, {
+				Name = "Step",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(stepHeight, math.min(lobeR * 2 * jitter, 2048), math.min(lobeR * 2 * jitter, 2048)),
+				CFrame = CFrame.new(base + offset + Vector3.new(0, y + stepHeight / 2, 0))
+					* CFrame.Angles(0, 0, math.rad(90)),
+				Color = tone,
+				Material = material,
+			})
+		end
 	end
 	return base + Vector3.new(0, steps * stepHeight, 0)
+end
+
+-- Scenery outside the playable area: tall layered peaks that frame the sky.
+local function backdropRange(parent: Instance)
+	local model = Kit.model(parent, "DistantRange", true)
+	local rng = Random.new(808)
+	local peaks = {
+		{ -17500, -4000 },
+		{ -17000, 0 },
+		{ -18000, 3500 },
+		{ -17200, 7500 },
+		{ -12000, 11500 },
+		{ -7000, 12000 },
+		{ -11000, -9500 },
+		{ -5500, -9800 },
+	}
+	for _, p in peaks do
+		local base = Vector3.new(p[1], 0, p[2])
+		local h = rng:NextNumber(9000, 14000)
+		local r = rng:NextNumber(2600, 3600)
+		local layers = 7
+		for i = 0, layers - 1 do
+			local t = i / layers
+			local w = math.min(r * 2 * (1 - t * 0.82), 2048)
+			for _, off in { -1, 1 } do
+				Kit.part(model, {
+					Name = "Peak",
+					Size = Vector3.new(w, h / layers, w),
+					CFrame = CFrame.new(base + Vector3.new(off * r * 0.35 * (1 - t), (i + 0.5) * h / layers, 0))
+						* CFrame.Angles(0, rng:NextNumber(0, 6) + off, 0),
+					Color = if t > 0.6
+						then Kit.Colors.Snow
+						else Color3.fromRGB(120, 126, 150):Lerp(Color3.fromRGB(160, 160, 180), t),
+					Material = if t > 0.6 then Enum.Material.Snow else Enum.Material.Rock,
+					CanCollide = false,
+					CastShadow = false,
+				})
+			end
+		end
+	end
+end
+
+-- Rolling hills, forests and boulders on the highlands, kept clear of the
+-- spawn, the arena and every point of interest.
+local function landscape(parent: Instance, avoid: { { any } }, paths: { { Vector3 } })
+	local model = Kit.model(parent, "Landscape", true)
+	local rng = Random.new(1717)
+	local function clear(p: Vector3, r: number): boolean
+		local flat = Vector3.new(p.X, 0, p.Z)
+		for _, a in avoid do
+			if (flat - a[1]).Magnitude < a[2] + r then
+				return false
+			end
+		end
+		-- Keep a 500-stud corridor along orb trails.
+		for _, seg in paths do
+			local a, b = seg[1], seg[2]
+			local ab = b - a
+			local t = math.clamp((flat - a):Dot(ab) / ab:Dot(ab), 0, 1)
+			if (flat - (a + ab * t)).Magnitude < 500 + r then
+				return false
+			end
+		end
+		return p.X < -2900 and p.X > -13800 and p.Z > -5800 and p.Z < 8000
+	end
+	local hills = 0
+	for _ = 1, 120 do
+		if hills >= 26 then
+			break
+		end
+		local p = Vector3.new(rng:NextNumber(-13800, -3000), 0, rng:NextNumber(-5800, 8000))
+		local d = rng:NextNumber(1200, 2048)
+		if clear(p, d * 0.5) then
+			hills += 1
+			Kit.part(model, {
+				Name = "Hill",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(d, d, d),
+				Position = p - Vector3.new(0, d * rng:NextNumber(0.36, 0.42), 0),
+				Color = Color3.fromRGB(rng:NextInteger(98, 120), rng:NextInteger(132, 150), rng:NextInteger(80, 96)),
+				Material = Enum.Material.Grass,
+			})
+		end
+	end
+	local trees = 0
+	for _ = 1, 400 do
+		if trees >= 70 then
+			break
+		end
+		-- Trees grow in groves: pick a grove centre, then a few around it.
+		local c = Vector3.new(rng:NextNumber(-13600, -3200), 0, rng:NextNumber(-5600, 7800))
+		if clear(c, 500) then
+			for _ = 1, rng:NextInteger(3, 6) do
+				local p = c + Vector3.new(rng:NextNumber(-450, 450), 0, rng:NextNumber(-450, 450))
+				if clear(p, 120) then
+					trees += 1
+					Props.pine(model, p, rng:NextNumber(450, 950), rng:NextInteger(1, 1e6))
+				end
+			end
+		end
+	end
+	for _ = 1, 60 do
+		local p = Vector3.new(rng:NextNumber(-13600, -3200), 0, rng:NextNumber(-5600, 7800))
+		if clear(p, 200) then
+			Props.boulder(model, p, rng:NextNumber(160, 420), rng:NextInteger(1, 1e6))
+		end
+	end
 end
 
 function TitanWilderness.build(root: Instance)
@@ -124,16 +253,55 @@ function TitanWilderness.build(root: Instance)
 	-- Sky Falls: a cliff with a glowing waterfall.
 	local falls = Vector3.new(-12500, 0, -500)
 	Kit.tower(m, "FallsCliff", falls, Vector2.new(1600, 900), 3000, Color3.fromRGB(110, 105, 100), Enum.Material.Rock)
+	-- The falls: a glassy cascade with bright foam bands, a pool and mist.
 	local water = Kit.block(
 		m,
 		"Waterfall",
 		falls + Vector3.new(810, 1500, 0),
-		Vector3.new(30, 3000, 400),
-		Color3.fromRGB(120, 200, 255),
-		Enum.Material.Neon
+		Vector3.new(40, 3000, 420),
+		Color3.fromRGB(150, 210, 245),
+		Enum.Material.Glass
 	)
-	water.Transparency = 0.35
+	water.Transparency = 0.25
 	water.CanCollide = false
+	water.CastShadow = false
+	for i = 1, 6 do
+		local foam = Kit.block(
+			m,
+			"Foam",
+			falls + Vector3.new(832, i * 480 - 120, rng:NextNumber(-120, 120)),
+			Vector3.new(8, 220, rng:NextNumber(120, 260)),
+			Color3.fromRGB(235, 248, 255),
+			Enum.Material.SmoothPlastic
+		)
+		foam.Transparency = 0.35
+		foam.CanCollide = false
+		foam.CastShadow = false
+	end
+	local pool = Kit.pillar(
+		m,
+		"Pool",
+		falls + Vector3.new(1250, 2, 0),
+		12,
+		1300,
+		Color3.fromRGB(70, 150, 200),
+		Enum.Material.Glass
+	)
+	pool.Transparency = 0.2
+	pool.CanCollide = false
+	local mist = Kit.block(
+		m,
+		"Mist",
+		falls + Vector3.new(950, 80, 0),
+		Vector3.new(300, 40, 500),
+		Color3.fromRGB(240, 248, 255),
+		Enum.Material.SmoothPlastic
+	)
+	mist.Transparency = 1
+	mist.CanCollide = false
+	local spray = Kit.sparkles(mist, Color3.fromRGB(220, 240, 255), 120, 14)
+	spray.LightEmission = 0.4
+	spray.Transparency = NumberSequence.new(0.5, 1)
 	Kit.discovery(m, "SkyFalls", falls + Vector3.new(500, 3100, 0), Vector3.new(1000, 300, 900))
 	Kit.collectible(m, "TitanShard", ZONE, falls + Vector3.new(0, 3000, 0))
 	-- Ledges up the cliff face.
@@ -248,6 +416,22 @@ function TitanWilderness.build(root: Instance)
 	Kit.discovery(m, "ColossusArena", arena + Vector3.new(0, 400, 0), Vector3.new(5000, 800, 5000))
 	Kit.bossArena(m, "Colossus", arena)
 
+	backdropRange(m)
+	landscape(m, {
+		{ Vector3.new(-3400, 0, 1100), 1400 }, -- spawn camp
+		{ Vector3.new(-11000, 0, 4000), 3000 }, -- Titan Peak
+		{ Vector3.new(-6500, 0, 6500), 2100 },
+		{ Vector3.new(-13000, 0, -4500), 1800 },
+		{ Vector3.new(-4000, 0, -5000), 1500 },
+		{ Vector3.new(-6000, 0, 3000), 1900 }, -- crystal valley
+		{ Vector3.new(-8500, 0, 6500), 1900 }, -- ruins
+		{ Vector3.new(-12500, 0, -500), 1900 }, -- falls
+		{ Vector3.new(-12500, 0, 6800), 1300 }, -- tomb
+		{ Vector3.new(-7000, 0, -2800), 4300 }, -- Colossus crater
+		{ Vector3.new(-10000, 0, 0), 1200 },
+		{ Vector3.new(-13800, 0, 8000), 400 }, -- lost coin
+		{ Vector3.new(-3000, 0, -5800), 400 }, -- hidden toy
+	}, { { Vector3.new(-3600, 0, 1100), Vector3.new(-9000, 0, 3500) } })
 	Kit.spawnPad(m, ZONE, Vector3.new(-3400, 0, 1100), 200)
 	Kit.fastTravel(m, ZONE, Vector3.new(-3600, 0, 600), 200)
 	Kit.npc(m, "Elder", Vector3.new(-3900, 0, 1100), Vector3.new(1, 0, 0))

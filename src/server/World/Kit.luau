@@ -544,7 +544,7 @@ function Kit.station(
 	local trim = Kit.pillar(
 		m,
 		"BaseTrim",
-		position + Vector3.new(0, h * 0.13, 0),
+		position + Vector3.new(0, h * 0.09, 0),
 		h * 0.03,
 		h * 0.94,
 		accent,
@@ -624,42 +624,50 @@ function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, sca
 	)
 	inlay.CanCollide = false
 	inlay.Transparency = 0.25
-	-- Arch at the back of the pad.
-	local backZ = position.Z + h * 0.62
+	-- Arch on the far side of the pad from the zone's spawn, facing it, so
+	-- arriving players look through the gateway instead of into its back.
+	local zone = ZoneConfig.get(zoneId)
+	local toSpawn = if zone then Vector3.new(zone.Spawn.X - position.X, 0, zone.Spawn.Z - position.Z) else Vector3.zero
+	local facing = if toSpawn.Magnitude > 0.01 then toSpawn.Unit else Vector3.new(0, 0, -1)
 	local y0 = position.Y + h * 0.08
+	local archCf = CFrame.lookAt(position - facing * h * 0.62, position - facing * h * 0.62 + facing)
+	local function archPart(name: string, offset: Vector3, size: Vector3, color: Color3, material: Enum.Material): Part
+		local p = Kit.part(m, {
+			Name = name,
+			Size = size,
+			CFrame = archCf + Vector3.new(0, y0 - position.Y, 0) + archCf:VectorToWorldSpace(offset),
+			Color = color,
+			Material = material,
+			CanCollide = false,
+		})
+		return p
+	end
 	for _, side in { -1, 1 } do
-		local pylon = Kit.block(
-			m,
+		archPart(
 			"Pylon",
-			Vector3.new(position.X + side * h * 0.78, y0 + h * 1.1, backZ),
+			Vector3.new(side * h * 0.78, h * 1.1, 0),
 			Vector3.new(h * 0.16, h * 2.2, h * 0.2),
 			frame,
 			Enum.Material.Metal
 		)
-		pylon.CanCollide = false
-		local strip = Kit.block(
-			m,
+		archPart(
 			"PylonGlow",
-			Vector3.new(position.X + side * h * 0.69, y0 + h * 1.1, backZ),
+			Vector3.new(side * h * 0.69, h * 1.1, 0),
 			Vector3.new(h * 0.025, h * 1.9, h * 0.08),
 			energy,
 			Enum.Material.Neon
 		)
-		strip.CanCollide = false
 	end
-	local lintel = Kit.block(
-		m,
+	archPart(
 		"Lintel",
-		Vector3.new(position.X, y0 + h * 2.25, backZ),
+		Vector3.new(0, h * 2.25, 0),
 		Vector3.new(h * 1.8, h * 0.18, h * 0.24),
 		frame,
 		Enum.Material.Metal
 	)
-	lintel.CanCollide = false
-	local field = Kit.block(
-		m,
+	local field = archPart(
 		"EnergyField",
-		Vector3.new(position.X, y0 + h * 1.08, backZ),
+		Vector3.new(0, h * 1.08, 0),
 		Vector3.new(h * 1.38, h * 2.12, h * 0.04),
 		energy,
 		Enum.Material.ForceField

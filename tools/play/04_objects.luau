@@ -175,8 +175,33 @@ for _, n in { "Part", "WedgePart", "CornerWedgePart", "TrussPart", "MeshPart", "
 	class(n, "BasePart")
 end
 classes.Terrain.defaults.Anchored = true
-classes.Terrain.methods.FillBlock = function() end
-classes.Terrain.methods.Clear = function() end
+-- Terrain fills are recorded (for the screenshot renderer), not voxelised.
+E.terrainFills = {}
+E.terrainColors = {}
+local function fill(kind, cf, size, material)
+	table.insert(E.terrainFills, { kind = kind, cf = cf, size = size, material = material })
+end
+classes.Terrain.methods.FillBlock = function(_, cf, size, material)
+	fill("Block", cf, size, material)
+end
+classes.Terrain.methods.FillBall = function(_, center, radius, material)
+	fill("Ball", CFrame.new(center), Vector3.new(radius * 2, radius * 2, radius * 2), material)
+end
+classes.Terrain.methods.FillCylinder = function(_, cf, height, radius, material)
+	fill("Cylinder", cf, Vector3.new(radius * 2, height, radius * 2), material)
+end
+classes.Terrain.methods.FillWedge = function(_, cf, size, material)
+	fill("Wedge", cf, size, material)
+end
+classes.Terrain.methods.SetMaterialColor = function(_, material, color)
+	E.terrainColors[material.Name] = color
+end
+classes.Terrain.methods.GetMaterialColor = function(_, material)
+	return E.terrainColors[material.Name] or Color3.new(0.5, 0.5, 0.5)
+end
+classes.Terrain.methods.Clear = function()
+	table.clear(E.terrainFills)
+end
 
 ------------------------------------------------------------------ models
 local function partsOf(o)

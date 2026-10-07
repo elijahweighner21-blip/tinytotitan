@@ -15,6 +15,7 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local Kitchen = {}
 
@@ -399,8 +400,66 @@ local function droplets(m: Instance)
 	Kit.enemySpawner(m, "Fly", Vector3.new(105, 50, -280), 3, 30)
 end
 
+-- Clean, bright kitchen details: tiled floor, a subway-tile backsplash,
+-- pendant lamps over the table and everyday things on every surface.
+local function decor(m: Instance)
+	local d = Kit.model(m, "KitchenDecor")
+	Props.tileGrid(d, 0, -300, 320, 0, 0, 13.3, Color3.fromRGB(196, 198, 196))
+	local splash = Kit.block(
+		d,
+		"Backsplash",
+		Vector3.new(112, 51, -299.6),
+		Vector3.new(225, 22, 0.6),
+		Color3.fromRGB(226, 238, 242),
+		Enum.Material.SmoothPlastic
+	)
+	splash.CanCollide = false
+	for i = 1, 5 do
+		local line = Kit.block(
+			d,
+			"Grout",
+			Vector3.new(112, 40 + i * 3.7, -299.25),
+			Vector3.new(225, 0.25, 0.1),
+			Color3.fromRGB(190, 200, 205),
+			Enum.Material.SmoothPlastic
+		)
+		line.CanCollide = false
+		line.CastShadow = false
+	end
+	Props.pendantLamp(d, Vector3.new(128, 140, -150), 72, Color3.fromRGB(40, 120, 110))
+	Props.pendantLamp(d, Vector3.new(172, 140, -150), 72, Color3.fromRGB(40, 120, 110))
+	-- Counter top (y 40).
+	Props.fruitBowl(d, Vector3.new(60, 40, -287), 61)
+	Props.mug(d, Vector3.new(88, 40, -284), Color3.fromRGB(240, 120, 80), 0.5)
+	Props.mug(d, Vector3.new(96, 40, -290), Color3.fromRGB(80, 150, 220), 2)
+	local board = Kit.block(
+		d,
+		"CuttingBoard",
+		Vector3.new(150, 40.4, -287),
+		Vector3.new(18, 0.8, 11),
+		Color3.fromRGB(196, 150, 100),
+		Enum.Material.Wood
+	)
+	board.CanCollide = true
+	local loaf = Kit.part(d, {
+		Name = "Bread",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(12, 5.5, 6.5),
+		Position = Vector3.new(150, 43.4, -287),
+		Color = Color3.fromRGB(200, 140, 70),
+		Material = Enum.Material.Sand,
+	})
+	loaf.CanCollide = true
+	Props.mug(d, Vector3.new(306, 40, -100), Color3.fromRGB(250, 250, 245), 1)
+	-- Table top (y 33).
+	Props.plate(d, Vector3.new(112, 33, -128), Color3.fromRGB(240, 200, 90))
+	Props.plate(d, Vector3.new(188, 33, -172), Color3.fromRGB(200, 90, 70))
+	Props.mug(d, Vector3.new(116, 33, -176), Color3.fromRGB(250, 210, 60), 1.2)
+end
+
 function Kitchen.build(root: Instance)
 	local m = Kit.folder(root, "Kitchen")
+	decor(m)
 	counters(m)
 	fridge(m)
 	table_(m)

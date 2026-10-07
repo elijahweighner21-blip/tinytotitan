@@ -60,7 +60,10 @@ end
 
 local zones = {}
 for _, z in ZoneConfig.Zones do
-	E.teleport(p, z.Spawn + Vector3.new(0, 30, 0))
+	-- Stand at the spawn (feet on the ground) so the client's zone detection,
+	-- which uses the feet position, sees the right zone.
+	local h = 5 * ((p:GetAttribute("Scale") :: number?) or 1)
+	E.teleport(p, z.Spawn + Vector3.new(0, h * 0.55 + 1, 0))
 	E.run(5)
 	zones[z.Id] = {
 		Id = z.Id,
@@ -117,12 +120,20 @@ for _, d in E.workspace:GetDescendants() do
 		end
 	end
 end
+local terrain = {}
+for _, f in E.terrainFills do
+	table.insert(terrain, { k = f.kind, c = { f.cf:GetComponents() }, z = v3(f.size), mt = f.material.Name })
+end
+local terrainColors = {}
+for name, color in E.terrainColors do
+	terrainColors[name] = c3(color)
+end
 local tiers = {}
 for i, t in SizeConfig.Tiers do
 	tiers[i] = { Name = t.Name, Scale = t.Scale }
 end
 -- Printed in chunks: very long single lines get truncated.
-local json = HttpService:JSONEncode({ parts = parts, lights = lights, zones = zones, tiers = tiers })
+local json = HttpService:JSONEncode({ parts = parts, lights = lights, zones = zones, tiers = tiers, terrain = terrain, terrainColors = terrainColors })
 for i = 1, #json, 30000 do
 	print("@@WORLD@@" .. string.sub(json, i, i + 29999))
 end

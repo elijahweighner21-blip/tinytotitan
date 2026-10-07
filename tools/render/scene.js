@@ -135,7 +135,14 @@ const unitWedge = (() => {
 	g.rotateY(-Math.PI / 2); // shape X → world Z
 	return g;
 })();
-const GEOMETRY = { Block: unitBox, Ball: unitBall, Cylinder: unitCyl, Wedge: unitWedge, CornerWedge: unitWedge };
+const GEOMETRY = {
+	Block: unitBox,
+	Ball: unitBall,
+	Cylinder: unitCyl,
+	Wedge: unitWedge,
+	CornerWedge: unitWedge,
+	TerrainCylinder: new THREE.CylinderGeometry(0.5, 0.5, 1, 40), // terrain cylinders run along Y
+};
 
 function addPart(part) {
 	const geo = GEOMETRY[part.s] ?? unitBox;
@@ -151,6 +158,21 @@ function addPart(part) {
 	scene.add(mesh);
 }
 for (const part of world.parts) addPart(part);
+
+// Terrain fills, drawn as their primitive shapes with Roblox's default
+// terrain colours (or the colours the game sets).
+const TERRAIN = {
+	Grass: [106, 127, 63], LeafyGrass: [115, 132, 74], Rock: [102, 108, 111], Snow: [195, 199, 218], Ground: [102, 92, 59],
+	Water: [12, 84, 92], Sand: [143, 126, 95], Mud: [58, 46, 36], Slate: [63, 127, 107], Sandstone: [137, 90, 71],
+	Basalt: [30, 30, 37], Glacier: [101, 176, 234], Salt: [198, 189, 181], Limestone: [206, 173, 148], Pavement: [148, 148, 140],
+	Asphalt: [115, 123, 107], Ice: [129, 194, 224], CrackedLava: [232, 156, 74], Cobblestone: [132, 123, 90], Concrete: [127, 102, 63],
+};
+const terrainGeo = { Block: unitBox, Ball: unitBall, Cylinder: new THREE.CylinderGeometry(0.5, 0.5, 1, 40), Wedge: unitWedge };
+for (const f of world.terrain ?? []) {
+	const col = world.terrainColors?.[f.mt] ?? TERRAIN[f.mt] ?? [120, 120, 120];
+	const water = f.mt === "Water";
+	addPart({ s: f.k === "Cylinder" ? "TerrainCylinder" : f.k, z: f.z, c: f.c, k: col, t: water ? 0.35 : 0, mt: water ? "Glass" : f.mt === "Snow" ? "Snow" : f.mt === "Grass" ? "Grass" : "Rock" });
+}
 
 // Point lights (cheap: only the nearest few are enabled per shot).
 const pointLights = world.lights.map((l) => {

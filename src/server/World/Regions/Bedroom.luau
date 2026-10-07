@@ -17,6 +17,7 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local Bedroom = {}
 
@@ -469,8 +470,75 @@ local function playroom(m: Instance)
 	Kit.enemySpawner(m, "Moth", Vector3.new(-100, 30, -150), 3, 40)
 end
 
+-- Lived-in details: posters, a glowing gaming desk, fairy lights over the
+-- bed, clothes, shoes and school stuff on the floor.
+local function decor(m: Instance)
+	local d = Kit.model(m, "BedroomDecor")
+	Props.poster(
+		d,
+		CFrame.lookAt(Vector3.new(-120, 82, 320), Vector3.new(-120, 82, 0)),
+		30,
+		42,
+		Color3.fromRGB(38, 44, 92),
+		Color3.fromRGB(255, 170, 70),
+		"LEVEL UP"
+	)
+	Props.poster(
+		d,
+		CFrame.lookAt(Vector3.new(-62, 86, 320), Vector3.new(-62, 86, 0)),
+		26,
+		36,
+		Color3.fromRGB(230, 70, 90),
+		Color3.fromRGB(255, 230, 120),
+		"TITAN"
+	)
+	Props.poster(
+		d,
+		CFrame.lookAt(Vector3.new(-100, 92, 2), Vector3.new(-100, 92, 320)),
+		40,
+		26,
+		Color3.fromRGB(24, 26, 40),
+		Color3.fromRGB(120, 90, 255),
+		"GAME ON"
+	)
+	-- Gaming desk glow: an LED strip along the desk front and a screen light.
+	local strip = Kit.block(
+		d,
+		"DeskLed",
+		Vector3.new(-105, 30.7, 43.6),
+		Vector3.new(88, 0.5, 0.5),
+		Color3.fromRGB(160, 90, 255),
+		Enum.Material.Neon
+	)
+	strip.CanCollide = false
+	Kit.light(strip, Color3.fromRGB(160, 100, 255), 24, 0.8)
+	local screenGlow = Kit.part(d, {
+		Name = "ScreenGlow",
+		Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(-112, 46, 24),
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+	})
+	Kit.light(screenGlow, Color3.fromRGB(110, 200, 255), 30, 1.2)
+	-- Fairy lights over the bed.
+	local warm = { Color3.fromRGB(255, 214, 140), Color3.fromRGB(255, 190, 120), Color3.fromRGB(255, 230, 170) }
+	Props.stringLights(d, Vector3.new(-277, 112, 176), Vector3.new(-277, 112, 304), 16, 9, warm, 1.6)
+	-- Floor life.
+	Props.clothes(d, Vector3.new(-152, 0, 286), 41)
+	Props.sneaker(d, Vector3.new(-205, 0, 160), 0.4, Color3.fromRGB(220, 60, 60))
+	Props.sneaker(d, Vector3.new(-190, 0, 157), 0.1, Color3.fromRGB(220, 60, 60))
+	Props.pencil(d, Vector3.new(-132, 0, 62), 0.6)
+	Props.pencil(d, Vector3.new(-92, 0, 74), 2.1, Color3.fromRGB(80, 160, 230))
+	Props.paper(d, Vector3.new(-120, 0, 54), 0.3)
+	Props.paper(d, Vector3.new(-78, 0, 86), -0.5)
+	Props.outlet(d, CFrame.lookAt(Vector3.new(-40, 15.5, 2), Vector3.new(-40, 15.5, 320)), true)
+	Props.plant(d, Vector3.new(-242, 47, 40), 20, 52, Color3.fromRGB(230, 230, 225))
+end
+
 function Bedroom.build(root: Instance)
 	local m = Kit.folder(root, "Bedroom")
+	decor(m)
 	bed(m)
 	desk(m)
 	windowsill(m)
