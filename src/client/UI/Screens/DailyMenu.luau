@@ -203,7 +203,7 @@ function DailyMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Daily",
 		Title = "Daily Rewards",
-		Icon = "📅",
+		Icon = Theme.Icons.Daily,
 		Accent = Theme.Colors.Gold,
 		Watch = { "Daily" },
 		Render = render,

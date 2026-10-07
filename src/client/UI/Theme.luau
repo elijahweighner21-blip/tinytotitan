@@ -63,6 +63,44 @@ Theme.Tween = {
 	Bounce = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
 }
 
+-- One icon and one colour per system, shared by the dock, menu titles and
+-- notifications so every screen speaks the same visual language.
+Theme.Icons = {
+	Upgrades = "🧪",
+	Skills = "🌟",
+	Quests = "📜",
+	Map = "🗺️",
+	Challenges = "⏱️",
+	Collections = "💎",
+	Inventory = "🎒",
+	Daily = "📅",
+	Achievements = "🏆",
+	Ascension = "🌀",
+	Leaderboards = "📊",
+	Party = "👥",
+	Shop = "🛒",
+	Settings = "⚙️",
+	Admin = "🛠️",
+}
+
+Theme.SystemColors = {
+	Upgrades = Color3.fromRGB(120, 255, 150),
+	Skills = Color3.fromRGB(190, 150, 255),
+	Quests = Color3.fromRGB(255, 205, 60),
+	Map = Color3.fromRGB(80, 220, 255),
+	Challenges = Color3.fromRGB(255, 160, 70),
+	Collections = Color3.fromRGB(110, 190, 255),
+	Inventory = Color3.fromRGB(220, 170, 120),
+	Daily = Color3.fromRGB(255, 214, 80),
+	Achievements = Color3.fromRGB(255, 205, 60),
+	Ascension = Color3.fromRGB(200, 120, 255),
+	Leaderboards = Color3.fromRGB(80, 220, 255),
+	Party = Color3.fromRGB(110, 230, 140),
+	Shop = Color3.fromRGB(255, 205, 60),
+	Settings = Color3.fromRGB(170, 180, 205),
+	Admin = Color3.fromRGB(255, 90, 100),
+}
+
 -- Reference resolution the layouts are designed against; UIManager scales.
 Theme.ReferenceSize = Vector2.new(1280, 720)
 

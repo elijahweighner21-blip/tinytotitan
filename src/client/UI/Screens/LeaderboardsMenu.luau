@@ -148,7 +148,7 @@ function LeaderboardsMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Leaderboards",
 		Title = "Leaderboards",
-		Icon = "📊",
+		Icon = Theme.Icons.Leaderboards,
 		Accent = Theme.Colors.Gold,
 		Render = render,
 	})

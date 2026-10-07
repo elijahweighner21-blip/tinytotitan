@@ -325,7 +325,7 @@ function QuestsMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Quests",
 		Title = "Quests",
-		Icon = "!",
+		Icon = Theme.Icons.Quests,
 		Accent = Theme.Colors.Gold,
 		Tabs = {
 			{ Id = "Active", Text = "Active" },

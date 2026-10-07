@@ -148,7 +148,9 @@ function Window.Open(self: any)
 	self.Root.Visible = true
 	self._scale.Scale = 0.92
 	self.Body.BackgroundTransparency = 0.6
+	self.Root.Position = UDim2.new(0.5, 0, 0.5, 18)
 	TweenService:Create(self._scale, Theme.Tween.Bounce, { Scale = 1 }):Play()
+	TweenService:Create(self.Root, Theme.Tween.Normal, { Position = UDim2.fromScale(0.5, 0.5) }):Play()
 	TweenService:Create(self.Body, Theme.Tween.Normal, { BackgroundTransparency = Theme.PanelTransparency }):Play()
 end
 

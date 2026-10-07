@@ -88,7 +88,7 @@ for _, screen in SCREENS do
 	local menus = gui:FindFirstChild("TT_Menus")
 	local worst = nil
 	for _, window in menus:GetChildren() do
-		if window:IsA("Frame") then
+		if window:IsA("Frame") and window.Name ~= "Backdrop" then
 			local r = E.absRect(window)
 			local limit = window:FindFirstChildOfClass("UISizeConstraint")
 			if r and limit then

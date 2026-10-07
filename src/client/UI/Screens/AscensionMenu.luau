@@ -257,7 +257,7 @@ function AscensionMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Ascension",
 		Title = "Ascension",
-		Icon = "∞",
+		Icon = Theme.Icons.Ascension,
 		Accent = Theme.Colors.Gold,
 		Tabs = {
 			{ Id = "Ascend", Text = "Ascend" },

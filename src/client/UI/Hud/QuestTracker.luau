@@ -6,6 +6,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local QuestConfig = require(Shared.Config.QuestConfig)
@@ -21,8 +22,53 @@ local Hud = require(script.Parent.Hud)
 local QuestTracker = {}
 
 local frame: TextButton
+local caption: TextLabel
+local percent: TextLabel
 local title: TextLabel
 local list: Frame
+local border: UIStroke
+local lastSignature = ""
+
+local function objectiveRow(text: string, progress: number, count: number, order: number)
+	local done = progress >= count
+	local row = Create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = order,
+		Parent = list,
+		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 3) },
+	})
+	local suffix = if count > 1
+		then string.format("  %s/%s", Format.abbreviate(progress), Format.abbreviate(count))
+		else ""
+	Create.label(
+		(if done then "✔  " else "") .. text .. suffix,
+		Theme.TextSize.Small,
+		if done then Theme.Colors.Success else Theme.Colors.Text,
+		Theme.Fonts.Body,
+		{
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			LayoutOrder = 1,
+			Parent = row,
+		}
+	)
+	local track = Create("Frame", {
+		BackgroundColor3 = Color3.fromRGB(10, 12, 20),
+		BackgroundTransparency = 0.2,
+		Size = UDim2.new(1, 0, 0, 4),
+		LayoutOrder = 2,
+		Parent = row,
+		[Create.Children] = { Create.corner(Theme.RadiusPill) },
+	})
+	Create("Frame", {
+		BackgroundColor3 = if done then Theme.Colors.Success else Theme.Colors.Gold,
+		Size = UDim2.fromScale(math.clamp(progress / math.max(count, 1), 0, 1), 1),
+		Parent = track,
+		[Create.Children] = { Create.corner(Theme.RadiusPill) },
+	})
+end
 
 local function refresh()
 	local data = DataController:Get()
@@ -38,40 +84,40 @@ local function refresh()
 		return
 	end
 	frame.Visible = true
-	title.Text = (if def.Category == "Story" then "★ " else "") .. def.Name
+	caption.Text = Theme.Icons.Quests .. "  " .. (if def.Category == "Story" then "STORY QUEST" else "QUEST")
+	title.Text = string.upper(def.Name)
 	for _, child in list:GetChildren() do
-		if child:IsA("TextLabel") then
+		if child:IsA("Frame") then
 			child:Destroy()
 		end
 	end
+	local total, sum = 0, 0
+	local signature = id
 	for i, objective in def.Objectives do
 		local progress = math.min(active.Progress[i] or 0, objective.Count)
-		local done = progress >= objective.Count
-		local count = if objective.Count > 1
-			then string.format("  %s/%s", Format.abbreviate(progress), Format.abbreviate(objective.Count))
-			else ""
-		Create.label(
-			(if done then "✔ " else "• ") .. objective.Text .. count,
-			Theme.TextSize.Small,
-			if done then Theme.Colors.Success else Theme.Colors.TextDim,
-			Theme.Fonts.Body,
-			{
-				Size = UDim2.new(1, 0, 0, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				LayoutOrder = i,
-				Parent = list,
-			}
-		)
+		total += 1
+		sum += progress / math.max(objective.Count, 1)
+		signature ..= ":" .. progress
+		objectiveRow(objective.Text, progress, objective.Count, i)
 	end
+	percent.Text = string.format("%d%%", math.floor(sum / math.max(total, 1) * 100))
+	-- Progress made: flash the border.
+	if lastSignature ~= "" and signature ~= lastSignature and string.sub(lastSignature, 1, #id) == id then
+		border.Transparency = 0
+		border.Thickness = 3
+		TweenService:Create(border, Theme.Tween.Slow, { Transparency = 0.6, Thickness = 1.5 }):Play()
+	end
+	lastSignature = signature
 end
 
 function QuestTracker.mount()
+	border = Create.stroke(Theme.Colors.Gold, 0.6, 1.5)
 	frame = Create("TextButton", {
 		Name = "QuestTracker",
 		Text = "",
 		AutoButtonColor = false,
 		BackgroundColor3 = Theme.Colors.Panel,
-		BackgroundTransparency = 0.25,
+		BackgroundTransparency = 0.18,
 		Size = UDim2.fromOffset(290, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 3,
@@ -80,24 +126,42 @@ function QuestTracker.mount()
 		Parent = Hud.rightColumn or UIManager.Hud,
 		[Create.Children] = {
 			Create.corner(Theme.Radius),
-			Create.stroke(Theme.Colors.Gold, 0.7),
+			border,
+			Create.gradient(Color3.new(1, 1, 1), Color3.fromRGB(190, 195, 215), 90),
 			Create.padding(10, 12),
-			Create.list(Enum.FillDirection.Vertical, 4),
+			Create.list(Enum.FillDirection.Vertical, 6),
 		},
 	})
-	title = Create.label("", Theme.TextSize.Body, Theme.Colors.Gold, Theme.Fonts.Title, {
+	local header = Create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 14),
+		LayoutOrder = 1,
+		Parent = frame,
+	})
+	caption = Create.label("", Theme.TextSize.Tiny, Theme.Colors.Gold, Theme.Fonts.Display, {
+		Size = UDim2.fromScale(0.7, 1),
+		Parent = header,
+	})
+	percent = Create.label("", Theme.TextSize.Tiny, Theme.Colors.Gold, Theme.Fonts.Display, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(1, 0),
+		Size = UDim2.fromScale(0.3, 1),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = header,
+	})
+	title = Create.label("", Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Display, {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 1,
+		LayoutOrder = 2,
 		Parent = frame,
 	})
 	list = Create("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 2,
+		LayoutOrder = 3,
 		Parent = frame,
-		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 2) },
+		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 6) },
 	})
 	frame.Activated:Connect(function()
 		UIManager:Open("Quests")

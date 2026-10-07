@@ -248,7 +248,7 @@ function CollectionsMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Collections",
 		Title = "Collections",
-		Icon = "◆",
+		Icon = Theme.Icons.Collections,
 		Accent = Theme.Colors.Shards,
 		Tabs = {
 			{ Id = "Zones", Text = "Collectibles" },

@@ -173,7 +173,7 @@ function MapMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Map",
 		Title = "World Map",
-		Icon = "🗺",
+		Icon = Theme.Icons.Map,
 		Accent = Theme.Colors.Accent,
 		Watch = { "FastTravel", "Discoveries", "Progress" },
 		Render = render,

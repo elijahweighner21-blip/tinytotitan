@@ -205,7 +205,9 @@ local function showNextCard()
 	cardStroke.Color = card.Color
 	cardFrame.Visible = true
 	cardFrame.Position = UDim2.new(0.5, 0, 0, -140)
-	TweenService:Create(cardFrame, Theme.Tween.Bounce, { Position = UDim2.new(0.5, 0, 0, 110) }):Play()
+	-- Over an open menu, stop at the top edge instead of covering its title.
+	local restY = if UIManager:IsMenuOpen() then 8 else 110
+	TweenService:Create(cardFrame, Theme.Tween.Bounce, { Position = UDim2.new(0.5, 0, 0, restY) }):Play()
 	if card.Sound then
 		AudioController:Play(card.Sound)
 	end

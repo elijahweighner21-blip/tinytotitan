@@ -295,7 +295,7 @@ function AdminMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Admin",
 		Title = "Admin",
-		Icon = "🛠",
+		Icon = Theme.Icons.Admin,
 		Accent = Theme.Colors.Danger,
 		Render = function(m)
 			m.Window:SetSubtitle("Every command is verified and logged by the server")

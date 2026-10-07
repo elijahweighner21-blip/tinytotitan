@@ -11,6 +11,8 @@
 ]]
 
 local GuiService = game:GetService("GuiService")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -64,6 +66,50 @@ UIManager.Hud = makeGui("TT_HUD", 1, false)
 UIManager.Menus = makeGui("TT_Menus", 5, false)
 UIManager.Overlay = makeGui("TT_Overlay", 10, true)
 UIManager.Loading = makeGui("TT_Loading", 100, true)
+
+-- Behind an open menu: a dim backdrop and (when the graphics preset allows
+-- post effects) a soft blur of the world, so the menu has the focus.
+local backdrop = Create("Frame", {
+	Name = "Backdrop",
+	BackgroundColor3 = Color3.fromRGB(6, 8, 16),
+	BackgroundTransparency = 1,
+	-- Oversized so it still covers the screen under any UIScale.
+	Position = UDim2.fromScale(-1.5, -1.5),
+	Size = UDim2.fromScale(4, 4),
+	ZIndex = 0,
+	Visible = false,
+	Parent = UIManager.Menus,
+}) :: Frame
+local blurAllowed = true
+local function menuBlur(): BlurEffect
+	local blur = Lighting:FindFirstChild("MenuBlur")
+	if blur and blur:IsA("BlurEffect") then
+		return blur
+	end
+	local b = Instance.new("BlurEffect")
+	b.Name = "MenuBlur"
+	b.Size = 0
+	b.Parent = Lighting
+	return b
+end
+local function setBackdrop(on: boolean)
+	backdrop.Visible = true
+	local tween = TweenService:Create(backdrop, Theme.Tween.Normal, { BackgroundTransparency = if on then 0.55 else 1 })
+	tween:Play()
+	if not on then
+		tween.Completed:Once(function()
+			if current == nil then
+				backdrop.Visible = false
+			end
+		end)
+	end
+	TweenService:Create(menuBlur(), Theme.Tween.Normal, { Size = if on and blurAllowed then 10 else 0 }):Play()
+end
+
+-- Post effects off (Low preset) also turns the menu blur off.
+function UIManager:SetBlurAllowed(allowed: boolean)
+	blurAllowed = allowed
+end
 
 local function viewportScale(): number
 	local camera = workspace.CurrentCamera
@@ -129,6 +175,7 @@ function UIManager:Close(name: string?)
 	if menu then
 		menu.Close()
 	end
+	setBackdrop(false)
 	GuiService.SelectedObject = nil
 	Sound.play("Close")
 	UIManager.MenuClosed:Fire(target)
@@ -147,6 +194,7 @@ function UIManager:Open(name: string)
 		UIManager:Close(current)
 	end
 	current = name
+	setBackdrop(true)
 	menu.Open()
 	Sound.play("Open")
 	focus(menu.Root)

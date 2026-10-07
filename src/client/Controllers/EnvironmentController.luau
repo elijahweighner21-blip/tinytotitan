@@ -26,6 +26,7 @@ local Signal = require(Shared.Util.Signal)
 
 local Client = script.Parent.Parent
 local Net = require(Client.Net)
+local UIManager = require(Client.UI.UIManager)
 local SettingsController = require(script.Parent.SettingsController)
 local EffectsController = require(script.Parent.EffectsController)
 local ZoneController = require(script.Parent.ZoneController)
@@ -427,6 +428,7 @@ local function applyGraphics(name: string)
 		end
 	end
 	EffectsController:SetPreset(name)
+	UIManager:SetBlurAllowed(preset.PostEffects)
 	EnvironmentController.PresetChanged:Fire(name)
 end
 

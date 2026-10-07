@@ -185,7 +185,7 @@ function ChallengesMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Challenges",
 		Title = "Challenges",
-		Icon = "⏱",
+		Icon = Theme.Icons.Challenges,
 		Accent = Theme.Colors.Accent,
 		Tabs = tabs,
 		Watch = { "Challenges", "Progress" },

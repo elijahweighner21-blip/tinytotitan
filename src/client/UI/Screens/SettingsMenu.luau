@@ -184,7 +184,7 @@ function SettingsMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Settings",
 		Title = "Settings",
-		Icon = "⚙",
+		Icon = Theme.Icons.Settings,
 		Accent = Theme.Colors.Accent,
 		Tabs = tabs,
 		Watch = { "Progress", "Tutorial" },

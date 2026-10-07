@@ -12,6 +12,7 @@ local Signal = require(ReplicatedStorage:WaitForChild("Shared").Util.Signal)
 
 local UI = script.Parent
 local UIManager = require(UI.UIManager)
+local Theme = require(script.Parent.Theme)
 local Window = require(UI.Components.Window)
 local Tabs = require(UI.Components.Tabs)
 local DataController = require(UI.Parent.Controllers.DataController)
@@ -49,7 +50,7 @@ function MenuBase.new(opts: Options): Menu
 		Name = opts.Name,
 		Title = opts.Title,
 		Icon = opts.Icon,
-		Accent = opts.Accent,
+		Accent = opts.Accent or Theme.SystemColors[opts.Name],
 		Size = opts.Size,
 		Parent = UIManager.Menus,
 		Tabs = opts.Tabs ~= nil,

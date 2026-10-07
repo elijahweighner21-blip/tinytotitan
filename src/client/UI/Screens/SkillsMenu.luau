@@ -11,6 +11,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local SkillConfig = require(Shared.Config.SkillConfig)
@@ -82,6 +83,8 @@ local function costTable(def: Types.Skill): { [string]: number }
 	end
 	return costs
 end
+
+local pulses: { Tween } = {}
 
 local function nodePosition(p: Vector2): UDim2
 	return UDim2.new(0.5, (p.X - 1) * LANE_W, 0, 40 + p.Y * ROW_H)
@@ -160,6 +163,10 @@ local function render(menu: MenuBase.Menu, tab: string)
 		return
 	end
 	menu.Window:SetSubtitle(string.format("✦ %d Skill Points", data.Currencies.SkillPoints))
+	for _, pulse in pulses do
+		pulse:Cancel()
+	end
+	table.clear(pulses)
 	for _, child in canvas:GetChildren() do
 		child:Destroy()
 	end
@@ -184,12 +191,17 @@ local function render(menu: MenuBase.Menu, tab: string)
 				local b = Vector2.new((def.Position.X - 1) * LANE_W, 40 + def.Position.Y * ROW_H + NODE / 2)
 				local mid = (a + b) / 2
 				local length = (b - a).Magnitude
+				-- Walked path: solid branch colour; next step: faint branch
+				-- colour; out of reach: a thin dim line.
+				local walked = data.Skills[def.Id] ~= nil
+				local reachable = not walked and data.Skills[pre] ~= nil
 				Create("Frame", {
-					BackgroundColor3 = if data.Skills[def.Id] then branch.Color else Theme.Colors.Locked,
+					BackgroundColor3 = if walked or reachable then branch.Color else Theme.Colors.Locked,
+					BackgroundTransparency = if walked then 0 elseif reachable then 0.45 else 0.35,
 					BorderSizePixel = 0,
 					AnchorPoint = Vector2.new(0.5, 0.5),
 					Position = UDim2.new(0.5, mid.X, 0, mid.Y),
-					Size = UDim2.fromOffset(length, 4),
+					Size = UDim2.fromOffset(length, if walked then 5 else 3),
 					Rotation = math.deg(math.atan2(b.Y - a.Y, b.X - a.X)),
 					Parent = canvas,
 				})
@@ -199,34 +211,90 @@ local function render(menu: MenuBase.Menu, tab: string)
 	for _, def in nodes do
 		local owned = data.Skills[def.Id] ~= nil
 		local available = not owned and #unmet(def, data) == 0
+		local isSelected = selected == def.Id
 		local color = if owned then branch.Color elseif available then Theme.Colors.PanelLighter else Theme.Colors.Panel
+		local position = nodePosition(def.Position)
+		-- Glow behind unlocked nodes; a pulsing ring around ones you can buy.
+		if owned or available then
+			local ring = Create("Frame", {
+				Name = "Ring",
+				BackgroundColor3 = branch.Color,
+				BackgroundTransparency = if owned then 0.72 else 0.8,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = position + UDim2.fromOffset(0, NODE / 2),
+				Size = UDim2.fromOffset(NODE + 14, NODE + 14),
+				Parent = canvas,
+				[Create.Children] = { Create.corner(Theme.RadiusPill) },
+			})
+			if available then
+				local pulse = TweenService:Create(
+					ring,
+					TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+					{ Size = UDim2.fromOffset(NODE + 24, NODE + 24), BackgroundTransparency = 0.92 }
+				)
+				pulse:Play()
+				table.insert(pulses, pulse)
+			end
+		end
 		local node = Create("TextButton", {
 			Name = def.Id,
 			Text = def.Icon,
 			TextSize = 28,
 			FontFace = Theme.Fonts.Display,
-			TextColor3 = if owned or available then Theme.Colors.Text else Theme.Colors.TextFaint,
+			TextColor3 = Theme.Colors.Text,
+			TextTransparency = if owned or available then 0 else 0.55,
 			BackgroundColor3 = color,
 			AnchorPoint = Vector2.new(0.5, 0),
-			Position = nodePosition(def.Position),
+			Position = position,
 			Size = UDim2.fromOffset(NODE, NODE),
 			Parent = canvas,
 			[Create.Children] = {
 				Create.corner(Theme.RadiusPill),
 				Create.stroke(
-					if available then branch.Color else Color3.new(1, 1, 1),
-					if available or selected == def.Id then 0 else 0.8,
-					if selected == def.Id then 3 else 2
+					if isSelected
+						then Color3.new(1, 1, 1)
+						elseif owned or available then branch.Color
+						else Color3.new(1, 1, 1),
+					if isSelected then 0 elseif owned then 0.35 elseif available then 0 else 0.85,
+					if isSelected then 3 else 2
 				),
-				Create.label(def.Name, Theme.TextSize.Tiny, Theme.Colors.TextDim, Theme.Fonts.Title, {
-					AnchorPoint = Vector2.new(0.5, 0),
-					Position = UDim2.new(0.5, 0, 1, 2),
-					Size = UDim2.fromOffset(130, 14),
-					TextXAlignment = Enum.TextXAlignment.Center,
-					TextWrapped = false,
-				}),
+				Create.gradient(Color3.new(1, 1, 1), Color3.fromRGB(175, 180, 200), 90),
+				Create("UIScale", { Scale = if isSelected then 1.12 else 1 }),
+				Create.label(
+					def.Name,
+					Theme.TextSize.Tiny,
+					if owned then branch.Color elseif available then Theme.Colors.Text else Theme.Colors.TextFaint,
+					Theme.Fonts.Title,
+					{
+						AnchorPoint = Vector2.new(0.5, 0),
+						Position = UDim2.new(0.5, 0, 1, 3),
+						Size = UDim2.fromOffset(130, 14),
+						TextXAlignment = Enum.TextXAlignment.Center,
+						TextWrapped = false,
+					}
+				),
 			},
 		}) :: TextButton
+		if not owned and not available then
+			Create.label("🔒", 12, Theme.Colors.TextDim, Theme.Fonts.Display, {
+				AnchorPoint = Vector2.new(1, 1),
+				Position = UDim2.new(1, 2, 1, 2),
+				Size = UDim2.fromOffset(18, 18),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = node,
+			})
+		elseif owned then
+			Create.label("✔", 12, Color3.fromRGB(20, 30, 20), Theme.Fonts.Display, {
+				AnchorPoint = Vector2.new(1, 1),
+				Position = UDim2.new(1, 2, 1, 2),
+				Size = UDim2.fromOffset(18, 18),
+				BackgroundColor3 = Theme.Colors.Success,
+				BackgroundTransparency = 0,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = node,
+				[Create.Children] = { Create.corner(Theme.RadiusPill) },
+			})
+		end
 		node.Activated:Connect(function()
 			selected = def.Id
 			menuRef:Refresh()
@@ -243,7 +311,7 @@ function SkillsMenu.mount()
 	menuRef = MenuBase.new({
 		Name = "Skills",
 		Title = "Skill Tree",
-		Icon = "✦",
+		Icon = Theme.Icons.Skills,
 		Accent = Theme.Colors.XP,
 		Tabs = tabs,
 		Watch = { "Skills", "Currencies", "Progress", "Resources", "Achievements", "Bosses" },

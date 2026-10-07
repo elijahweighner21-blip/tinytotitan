@@ -98,7 +98,7 @@ function AchievementsMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Achievements",
 		Title = "Achievements",
-		Icon = "🏆",
+		Icon = Theme.Icons.Achievements,
 		Accent = Theme.Colors.Gold,
 		Tabs = tabs,
 		Watch = { "Achievements" },

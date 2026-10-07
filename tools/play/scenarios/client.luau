@@ -52,7 +52,7 @@ mark = #E.log
 local tabCount = 0
 local menus = gui:FindFirstChild("TT_Menus")
 for _, window in menus:GetChildren() do
-	if window:IsA("Frame") then
+	if window:IsA("Frame") and window.Name ~= "Backdrop" then
 		task.spawn(function()
 			UIManager:Open(window.Name)
 		end)

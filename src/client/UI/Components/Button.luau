@@ -3,7 +3,7 @@
 	Button
 	The one button used everywhere. Hover lifts and brightens, press squashes,
 	disabled states dim; gamepad selection shows the same highlight as hover.
-	Styles: Primary, Secondary, Ghost, Danger, Gold, Robux, Success.
+	Styles: Primary, Secondary, Ghost, Danger, Gold, Robux, Success, Owned.
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -45,6 +45,8 @@ local STYLES: { [string]: { Fill: Color3, Text: Color3, Stroke: number } } = {
 	Gold = { Fill = Theme.Colors.Gold, Text = Color3.fromRGB(40, 25, 0), Stroke = 1 },
 	Robux = { Fill = Theme.Colors.Robux, Text = Color3.fromRGB(5, 30, 10), Stroke = 1 },
 	Success = { Fill = Theme.Colors.Success, Text = Color3.fromRGB(5, 30, 10), Stroke = 1 },
+	-- Already bought / equipped: calm, clearly not a call to action.
+	Owned = { Fill = Color3.fromRGB(34, 74, 52), Text = Theme.Colors.Success, Stroke = 0.6 },
 }
 
 local Button = {}
@@ -83,6 +85,8 @@ function Button.new(opts: Options): Button
 			Create.corner(Theme.RadiusSmall),
 			stroke,
 			scale,
+			-- Lit from above: reads as a pressable surface, not a flat box.
+			Create.gradient(Color3.new(1, 1, 1), Color3.fromRGB(196, 200, 210), 90),
 			Create.padding(4, 10),
 			label,
 		},

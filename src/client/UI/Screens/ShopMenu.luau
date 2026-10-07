@@ -148,7 +148,7 @@ local function passCard(pass: { [string]: any }, order: number, big: boolean?)
 				end,
 			})
 		else
-			Button.new({ Text = "OWNED", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
+			Button.new({ Text = "✔ OWNED", Style = "Owned", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
 				:SetEnabled(false)
 		end
 		return
@@ -221,7 +221,7 @@ local function cosmeticCard(id: string, order: number, label: string?)
 	card:SetTag(label or def.Rarity, color)
 	if owned then
 		card:SetTag("OWNED ✔", Theme.Colors.Success)
-		Button.new({ Text = "OWNED", Style = "Ghost", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
+		Button.new({ Text = "✔ OWNED", Style = "Owned", Size = UDim2.fromOffset(120, 34), Parent = card.Footer })
 			:SetEnabled(false)
 		return
 	end
@@ -366,7 +366,7 @@ function ShopMenu.mount()
 	menuRef = MenuBase.new({
 		Name = "Shop",
 		Title = "Shop",
-		Icon = "🛒",
+		Icon = Theme.Icons.Shop,
 		Accent = Theme.Colors.Gold,
 		Size = UDim2.fromOffset(980, 600),
 		Tabs = tabs,

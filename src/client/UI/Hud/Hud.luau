@@ -25,7 +25,6 @@ local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local SizeConfig = require(Shared.Config.SizeConfig)
 local ZoneConfig = require(Shared.Config.ZoneConfig)
 local AbilityConfig = require(Shared.Config.AbilityConfig)
 local TutorialConfig = require(Shared.Config.TutorialConfig)
@@ -37,6 +36,7 @@ local Client = script.Parent.Parent.Parent
 local Theme = require(Client.UI.Theme)
 local Create = require(Client.UI.Create)
 local UIManager = require(Client.UI.UIManager)
+local MassBar = require(script.Parent.MassBar)
 local ProgressBar = require(Client.UI.Components.ProgressBar)
 local DataController = require(Client.Controllers.DataController)
 local MovementController = require(Client.Controllers.MovementController)
@@ -50,29 +50,27 @@ local Hud = {}
 local player = Players.LocalPlayer
 
 local DOCK: { { Menu: string, Icon: string, Key: string, Label: string } } = {
-	{ Menu = "Upgrades", Icon = "⬆", Key = "U", Label = "Upgrades" },
-	{ Menu = "Skills", Icon = "✦", Key = "K", Label = "Skills" },
-	{ Menu = "Quests", Icon = "!", Key = "J", Label = "Quests" },
-	{ Menu = "Map", Icon = "🗺", Key = "M", Label = "Map" },
-	{ Menu = "Challenges", Icon = "⏱", Key = "L", Label = "Challenges" },
-	{ Menu = "Collections", Icon = "◆", Key = "O", Label = "Collections" },
-	{ Menu = "Inventory", Icon = "🎒", Key = "I", Label = "Inventory" },
-	{ Menu = "Daily", Icon = "📅", Key = "G", Label = "Daily" },
-	{ Menu = "Achievements", Icon = "🏆", Key = "H", Label = "Achievements" },
-	{ Menu = "Ascension", Icon = "∞", Key = "Y", Label = "Ascension" },
-	{ Menu = "Leaderboards", Icon = "📊", Key = "", Label = "Leaderboards" },
-	{ Menu = "Party", Icon = "👥", Key = "", Label = "Party" },
-	{ Menu = "Shop", Icon = "🛒", Key = "B", Label = "Shop" },
-	{ Menu = "Settings", Icon = "⚙", Key = "P", Label = "Settings" },
+	{ Menu = "Upgrades", Icon = Theme.Icons.Upgrades, Key = "U", Label = "Upgrades" },
+	{ Menu = "Skills", Icon = Theme.Icons.Skills, Key = "K", Label = "Skills" },
+	{ Menu = "Quests", Icon = Theme.Icons.Quests, Key = "J", Label = "Quests" },
+	{ Menu = "Map", Icon = Theme.Icons.Map, Key = "M", Label = "Map" },
+	{ Menu = "Challenges", Icon = Theme.Icons.Challenges, Key = "L", Label = "Challenges" },
+	{ Menu = "Collections", Icon = Theme.Icons.Collections, Key = "O", Label = "Collections" },
+	{ Menu = "Inventory", Icon = Theme.Icons.Inventory, Key = "I", Label = "Inventory" },
+	{ Menu = "Daily", Icon = Theme.Icons.Daily, Key = "G", Label = "Daily" },
+	{ Menu = "Achievements", Icon = Theme.Icons.Achievements, Key = "H", Label = "Achievements" },
+	{ Menu = "Ascension", Icon = Theme.Icons.Ascension, Key = "Y", Label = "Ascension" },
+	{ Menu = "Leaderboards", Icon = Theme.Icons.Leaderboards, Key = "", Label = "Leaderboards" },
+	{ Menu = "Party", Icon = Theme.Icons.Party, Key = "", Label = "Party" },
+	{ Menu = "Shop", Icon = Theme.Icons.Shop, Key = "B", Label = "Shop" },
+	{ Menu = "Settings", Icon = Theme.Icons.Settings, Key = "P", Label = "Settings" },
 }
 
 -- UI elements ------------------------------------------------------------------
 local levelText: TextLabel
 local tierText: TextLabel
 local xpBar: ProgressBar.ProgressBar
-local sizeBar: ProgressBar.ProgressBar
-local sizeText: TextLabel
-local massText: TextLabel
+local massBar: MassBar.MassBar
 local energyBar: ProgressBar.ProgressBar
 local chargeBar: ProgressBar.ProgressBar
 local healthBar: ProgressBar.ProgressBar
@@ -104,7 +102,8 @@ local function panel(props: { [any]: any }): Frame
 	end
 	local frame = Create("Frame", base)
 	Create.corner(Theme.Radius).Parent = frame
-	Create.stroke(nil, 0.88).Parent = frame
+	Create.stroke(nil, 0.86).Parent = frame
+	Create.gradient(Color3.new(1, 1, 1), Color3.fromRGB(190, 195, 215), 90).Parent = frame
 	return frame
 end
 
@@ -154,7 +153,7 @@ local function buildStatus(parent: Instance)
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = badge,
 	})
-	tierText = Create.label("Microscopic", Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Title, {
+	tierText = Create.label("LEVEL 1", Theme.TextSize.Body, Theme.Colors.XP, Theme.Fonts.Display, {
 		Position = UDim2.fromOffset(68, 8),
 		Size = UDim2.new(1, -78, 0, 20),
 		TextTruncate = Enum.TextTruncate.AtEnd,
@@ -242,37 +241,26 @@ local function buildBars(parent: Instance)
 		Name = "Bars",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -14),
-		Size = UDim2.fromOffset(520, 70),
+		Position = UDim2.new(0.5, 0, 1, -12),
+		Size = UDim2.fromOffset(560, 76),
 		Parent = parent,
 	})
-	sizeText = Create.label("SIZE", Theme.TextSize.Small, Theme.Colors.Mass, Theme.Fonts.Title, {
-		Size = UDim2.new(0.7, 0, 0, 16),
-		TextStrokeTransparency = 0.5,
+	massBar = MassBar.new(frame, 560)
+	-- Energy: a slim bar under the Mass bar with its icon.
+	Create.label("⚡", Theme.TextSize.Small, Theme.Colors.Energy, Theme.Fonts.Display, {
+		Position = UDim2.fromOffset(0, 62),
+		Size = UDim2.fromOffset(16, 12),
+		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = frame,
-	})
-	massText = Create.label("0 Mass", Theme.TextSize.Small, Theme.Colors.Text, Theme.Fonts.Title, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.new(0.3, 0, 0, 16),
-		TextXAlignment = Enum.TextXAlignment.Right,
-		TextStrokeTransparency = 0.5,
-		Parent = frame,
-	})
-	sizeBar = ProgressBar.new({
-		Parent = frame,
-		Color = Theme.Colors.Mass,
-		Position = UDim2.fromOffset(0, 20),
-		Size = UDim2.new(1, 0, 0, 24),
-		TextSize = Theme.TextSize.Small,
 	})
 	energyBar = ProgressBar.new({
 		Parent = frame,
 		Color = Theme.Colors.Energy,
-		Position = UDim2.fromOffset(0, 50),
-		Size = UDim2.new(1, 0, 0, 12),
+		Position = UDim2.fromOffset(22, 63),
+		Size = UDim2.new(1, -22, 0, 10),
 		TextSize = Theme.TextSize.Tiny,
 	})
+	energyBar.Label.Visible = false
 	chargeBar = ProgressBar.new({
 		Parent = parent,
 		Color = Theme.Colors.Warning,
@@ -396,20 +384,51 @@ local function buildDock(parent: Instance)
 		},
 	})
 	for i, entry in DOCK do
+		local tint = Theme.SystemColors[entry.Menu] or Theme.Colors.Accent
 		local button = Create("TextButton", {
 			Name = entry.Menu,
 			Text = entry.Icon,
 			TextSize = 20,
 			FontFace = Theme.Fonts.Display,
-			TextColor3 = if entry.Menu == "Shop" then Theme.Colors.Gold else Theme.Colors.Text,
-			BackgroundColor3 = Theme.Colors.Panel,
-			BackgroundTransparency = 0.2,
-			AutoButtonColor = true,
+			TextColor3 = Theme.Colors.Text,
+			BackgroundColor3 = tint:Lerp(Theme.Colors.Panel, 0.72),
+			BackgroundTransparency = 0.08,
+			AutoButtonColor = false,
 			Size = UDim2.fromOffset(38, 38),
 			LayoutOrder = i,
 			Parent = dock,
-			[Create.Children] = { Create.corner(Theme.RadiusSmall), Create.stroke(nil, 0.88) },
+			[Create.Children] = {
+				Create.corner(Theme.RadiusSmall),
+				Create.stroke(tint, 0.55, 1.5),
+				Create.gradient(Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 160), 90),
+			},
 		}) :: TextButton
+		local hover = Create("UIScale", { Scale = 1, Parent = button }) :: UIScale
+		if entry.Key ~= "" then
+			Create.label(entry.Key, 9, Theme.Colors.TextDim, Theme.Fonts.Mono, {
+				AnchorPoint = Vector2.new(1, 1),
+				Position = UDim2.new(1, -3, 1, -1),
+				Size = UDim2.fromOffset(10, 10),
+				TextXAlignment = Enum.TextXAlignment.Right,
+				Parent = button,
+			})
+		end
+		button.MouseEnter:Connect(function()
+			TweenService:Create(hover, Theme.Tween.Fast, { Scale = 1.1 }):Play()
+			TweenService:Create(button, Theme.Tween.Fast, { BackgroundColor3 = tint:Lerp(Theme.Colors.Panel, 0.5) })
+				:Play()
+		end)
+		button.MouseLeave:Connect(function()
+			TweenService:Create(hover, Theme.Tween.Fast, { Scale = 1 }):Play()
+			TweenService:Create(button, Theme.Tween.Fast, { BackgroundColor3 = tint:Lerp(Theme.Colors.Panel, 0.72) })
+				:Play()
+		end)
+		button.MouseButton1Down:Connect(function()
+			TweenService:Create(hover, Theme.Tween.Fast, { Scale = 0.92 }):Play()
+		end)
+		button.MouseButton1Up:Connect(function()
+			TweenService:Create(hover, Theme.Tween.Fast, { Scale = 1.1 }):Play()
+		end)
 		local tip = Create.label(
 			entry.Label .. (if entry.Key ~= "" then "  [" .. entry.Key .. "]" else ""),
 			Theme.TextSize.Small,
@@ -486,30 +505,14 @@ local function refreshProgress()
 	if not data then
 		return
 	end
-	local mass = data.Currencies.Mass
-	local tier, fraction, nextReq = Progression.tierProgress(mass)
-	local tierDef = SizeConfig.getTier(tier)
-	tierText.Text = tierDef.Name
-	tierText.TextColor3 = tierDef.Color
-	if nextReq then
-		local nextDef = SizeConfig.getTier(tier + 1)
-		sizeText.Text = "SIZE  →  " .. string.upper(nextDef.Name)
-		sizeBar:SetText(string.format("%s / %s", Format.abbreviate(mass), Format.abbreviate(nextReq)))
-		sizeBar:SetPulse(fraction >= 0.95)
-	else
-		sizeText.Text = "SIZE  ·  MAXIMUM"
-		sizeBar:SetText(Format.abbreviate(mass))
-		sizeBar:SetPulse(false)
-	end
-	sizeBar:Set(fraction)
-	sizeBar:SetColor(tierDef.Color:Lerp(Theme.Colors.Mass, 0.5))
-	countTo("Mass", massText, mass, "Mass  ")
+	local shrink = player:GetAttribute("Shrink")
+	massBar:Update(data.Currencies.Mass, shrink == true)
 	local level = data.Progress.Level
 	levelText.Text = tostring(level)
+	tierText.Text = "LEVEL " .. tostring(level)
 	local need = Progression.xpToNext(level)
 	xpBar:Set(if need > 0 then data.Progress.XP / need else 1)
 	xpBar:SetText(string.format("%s / %s XP", Format.abbreviate(data.Progress.XP), Format.abbreviate(need)))
-	local shrink = player:GetAttribute("Shrink")
 	shrinkChip.Visible = shrink == true
 	shrinkChip.Text = "🔻 SHRINK MODE"
 end
@@ -605,7 +608,7 @@ local function refreshHint()
 				elseif device == "Gamepad" and step.GamepadHint then step.GamepadHint
 				else step.Hint
 		)
-	hintFrame.Visible = true
+	hintFrame.Visible = not UIManager:IsMenuOpen()
 end
 
 function Hud.banner(title: string, subtitle: string, color: Color3?)
@@ -716,10 +719,12 @@ function Hud.mount()
 	UIManager.MenuOpened:Connect(function()
 		dock.Visible = false
 		hotbar.Visible = false
+		hintFrame.Visible = false
 	end)
 	UIManager.MenuClosed:Connect(function()
 		dock.Visible = true
 		hotbar.Visible = InputController:GetDevice() ~= "Touch"
+		refreshHint()
 	end)
 	layoutDock()
 	local camera = workspace.CurrentCamera

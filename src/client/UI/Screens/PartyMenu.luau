@@ -189,7 +189,7 @@ function PartyMenu.mount()
 	menuRef = MenuBase.new({
 		Name = "Party",
 		Title = "Party",
-		Icon = "👥",
+		Icon = Theme.Icons.Party,
 		Accent = Theme.Colors.Accent,
 		Render = render,
 	})

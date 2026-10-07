@@ -144,7 +144,7 @@ function UpgradesMenu.mount()
 	local menu = MenuBase.new({
 		Name = "Upgrades",
 		Title = "Upgrades",
-		Icon = "⬆",
+		Icon = Theme.Icons.Upgrades,
 		Accent = Theme.Colors.Energy,
 		Tabs = tabs,
 		Watch = { "Upgrades", "Currencies", "Resources", "Progress" },

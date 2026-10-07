@@ -276,7 +276,7 @@ function InventoryMenu.mount()
 	menuRef = MenuBase.new({
 		Name = "Inventory",
 		Title = "Inventory",
-		Icon = "🎒",
+		Icon = Theme.Icons.Inventory,
 		Accent = Theme.Colors.XP,
 		Tabs = {
 			{ Id = "Cosmetics", Text = "Cosmetics" },
