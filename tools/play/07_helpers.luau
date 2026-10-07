@@ -93,3 +93,40 @@ function E.errorsSince(mark)
 	end
 	return out
 end
+
+-- Exact oriented-box overlap (separating axis test). GetPartBoundsInBox,
+-- like Roblox's, matches axis-aligned bounds; tests that care about real
+-- geometry confirm hits with this.
+function E.boxesOverlap(cfA, sizeA, cfB, sizeB)
+	local axesA = { cfA.RightVector, cfA.UpVector, cfA.LookVector }
+	local axesB = { cfB.RightVector, cfB.UpVector, cfB.LookVector }
+	local ha, hb = sizeA / 2, sizeB / 2
+	local extA = { ha.X, ha.Y, ha.Z }
+	local extB = { hb.X, hb.Y, hb.Z }
+	local d = cfB.Position - cfA.Position
+	local function separated(axis)
+		if axis.Magnitude < 1e-6 then
+			return false
+		end
+		axis = axis.Unit
+		local ra, rb = 0, 0
+		for i = 1, 3 do
+			ra += extA[i] * math.abs(axesA[i]:Dot(axis))
+			rb += extB[i] * math.abs(axesB[i]:Dot(axis))
+		end
+		return math.abs(d:Dot(axis)) > ra + rb
+	end
+	for i = 1, 3 do
+		if separated(axesA[i]) or separated(axesB[i]) then
+			return false
+		end
+	end
+	for i = 1, 3 do
+		for j = 1, 3 do
+			if separated(axesA[i]:Cross(axesB[j])) then
+				return false
+			end
+		end
+	end
+	return true
+end

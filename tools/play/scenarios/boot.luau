@@ -47,10 +47,14 @@ local CS = E.game:GetService("CollectionService")
 for _, tag in { "Station", "FastTravelStation" } do
 	for _, part in CS:GetTagged(tag) do
 		local top = part.Position + Vector3.new(0, part.Size.X / 2, 0)
-		local clearance = E.workspace:GetPartBoundsInBox(CFrame.new(top + Vector3.new(0, part.Size.Y * 0.25, 0)), Vector3.new(part.Size.Y * 0.5, part.Size.Y * 0.4, part.Size.Y * 0.5), box)
+		local probeCf = CFrame.new(top + Vector3.new(0, part.Size.Y * 0.25, 0))
+		local probeSize = Vector3.new(part.Size.Y * 0.5, part.Size.Y * 0.4, part.Size.Y * 0.5)
+		local clearance = E.workspace:GetPartBoundsInBox(probeCf, probeSize, box)
 		local names = {}
 		for _, p in clearance do
-			if p ~= part and not p:IsDescendantOf(part.Parent) and not string.find(p.Name, "FastTravel") then
+			-- Only the station's own model is exempt; everything else that
+			-- really intersects the space above the pad blocks it.
+			if p ~= part and not p:IsDescendantOf(part.Parent) and E.boxesOverlap(probeCf, probeSize, p.CFrame, p.Size) then
 				table.insert(names, p:GetFullName())
 			end
 		end

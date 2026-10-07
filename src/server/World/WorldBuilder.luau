@@ -31,11 +31,17 @@ WorldBuilder.Built = false
 WorldBuilder.VipLounge = Vector3.new(0, 600, 30000)
 
 local function setupLighting()
-	Lighting.Ambient = Color3.fromRGB(70, 70, 80)
-	Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 130)
-	Lighting.EnvironmentDiffuseScale = 0.6
-	Lighting.EnvironmentSpecularScale = 0.4
-	Lighting.ExposureCompensation = 0.1
+	-- Neutral daylight defaults; each player's client blends to its zone's
+	-- look (EnvironmentController presets).
+	Lighting.Ambient = Color3.fromRGB(140, 125, 112)
+	Lighting.OutdoorAmbient = Color3.fromRGB(165, 150, 135)
+	Lighting.Brightness = 2.4
+	Lighting.ClockTime = 15.6
+	Lighting.GeographicLatitude = 28
+	Lighting.EnvironmentDiffuseScale = 1
+	Lighting.EnvironmentSpecularScale = 0.8
+	Lighting.ExposureCompensation = 0.2
+	Lighting.ShadowSoftness = 0.25
 	local function ensure(className: string, name: string): Instance
 		local existing = Lighting:FindFirstChild(name)
 		if existing then

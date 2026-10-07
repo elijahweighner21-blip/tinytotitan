@@ -403,6 +403,128 @@ function Kit.orbRing(parent: Instance, zoneId: string, center: Vector3, radius: 
 	end
 end
 
+-- A ring of `segments` short blocks (Roblox has no torus primitive).
+-- `cframe` is the ring's centre; the ring lies in its local XZ plane.
+function Kit.ring(
+	parent: Instance,
+	name: string,
+	cframe: CFrame,
+	radius: number,
+	thickness: number,
+	segments: number,
+	color: Color3,
+	material: Enum.Material?
+): { Part }
+	local parts = {}
+	local chord = 2 * radius * math.sin(math.pi / segments) * 1.08
+	for i = 1, segments do
+		local a = (i / segments) * math.pi * 2
+		local seg = Kit.part(parent, {
+			Name = name,
+			Size = Vector3.new(chord, thickness, thickness),
+			CFrame = cframe * CFrame.Angles(0, -a, 0) * CFrame.new(0, 0, -radius),
+			Color = color,
+			Material = material or Enum.Material.Neon,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		table.insert(parts, seg)
+	end
+	return parts
+end
+
+-- Soft rising sparkles (cheap; clients scale emitters with the graphics preset).
+function Kit.sparkles(part: BasePart, color: Color3, size: number, rate: number?)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = "Sparkles"
+	e.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	e.LightEmission = 1
+	e.LightInfluence = 0
+	e.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.2, size),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	e.Transparency = NumberSequence.new(0.2, 1)
+	e.Lifetime = NumberRange.new(1.4, 2.4)
+	e.Rate = rate or 4
+	e.Speed = NumberRange.new(size * 4, size * 8)
+	e.SpreadAngle = Vector2.new(25, 25)
+	e.EmissionDirection = Enum.NormalId.Top
+	e.Parent = part
+	return e
+end
+
+-- A soft vertical light beam that fades upward: a landmark you can spot
+-- from across the zone without a solid neon tube in the way.
+function Kit.lightBeam(part: BasePart, height: number, width: number, color: Color3): Beam
+	local bottom = Instance.new("Attachment")
+	bottom.Name = "BeamBottom"
+	bottom.Parent = part
+	local top = Instance.new("Attachment")
+	top.Name = "BeamTop"
+	top.WorldPosition = part.Position + Vector3.new(0, height, 0)
+	top.Parent = part
+	local beam = Instance.new("Beam")
+	beam.Attachment0 = bottom
+	beam.Attachment1 = top
+	beam.Color = ColorSequence.new(color)
+	beam.LightEmission = 1
+	beam.LightInfluence = 0
+	beam.FaceCamera = true
+	beam.Width0 = width
+	beam.Width1 = width * 0.35
+	beam.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.35),
+		NumberSequenceKeypoint.new(0.6, 0.75),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	beam.Segments = 1
+	beam.Parent = part
+	return beam
+end
+
+-- A lit display with text, on the given face of `part`.
+function Kit.screen(part: BasePart, text: string, color: Color3, face: Enum.NormalId?)
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Screen"
+	gui.Face = face or Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+	gui.CanvasSize = Vector2.new(400, 240)
+	gui.LightInfluence = 0
+	gui.Brightness = 1.6
+	gui.Parent = part
+	local bg = Instance.new("Frame")
+	bg.Size = UDim2.fromScale(1, 1)
+	bg.BackgroundColor3 = Color3.fromRGB(14, 20, 36)
+	bg.BorderSizePixel = 0
+	bg.Parent = gui
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), color:Lerp(Color3.new(0, 0, 0), 0.4))
+	gradient.Rotation = 90
+	gradient.Transparency = NumberSequence.new(0, 0.2)
+	gradient.Parent = bg
+	local bar = Instance.new("Frame")
+	bar.Size = UDim2.new(1, -40, 0, 8)
+	bar.Position = UDim2.fromOffset(20, 26)
+	bar.BackgroundColor3 = color
+	bar.BorderSizePixel = 0
+	bar.Parent = bg
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, -40, 1, -70)
+	label.Position = UDim2.fromOffset(20, 50)
+	label.Text = string.upper(text)
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(240, 248, 255)
+	label.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Heavy)
+	label.Parent = bg
+	return gui
+end
+
+-- An upgrade terminal: pedestal, console with a lit screen naming the menu,
+-- and a spinning holographic core. The pedestal stays the tagged part.
 function Kit.station(
 	parent: Instance,
 	menu: string,
@@ -413,52 +535,145 @@ function Kit.station(
 ): Model
 	local m = Kit.model(parent, "Station_" .. menu)
 	local h = ScaleMath.height(scale)
+	local accent = color or Kit.Colors.Neon
+	local dark = Color3.fromRGB(38, 44, 62)
+	local light = Color3.fromRGB(226, 232, 242)
 	-- A knee-high pedestal about one body-height across: easy to walk up to,
 	-- never big enough to swallow a spawn point.
-	local base = Kit.pillar(m, "Base", position, h * 0.15, h * 0.9, Color3.fromRGB(40, 45, 60), Enum.Material.Metal)
-	local core = Kit.ball(
+	local base = Kit.pillar(m, "Base", position, h * 0.15, h * 0.9, dark, Enum.Material.Metal)
+	local trim = Kit.pillar(
 		m,
-		"Core",
-		position + Vector3.new(0, h * 0.7, 0),
-		h * 0.45,
-		color or Kit.Colors.Neon,
+		"BaseTrim",
+		position + Vector3.new(0, h * 0.13, 0),
+		h * 0.03,
+		h * 0.94,
+		accent,
 		Enum.Material.Neon
 	)
+	trim.CanCollide = false
+	-- Console body with an angled screen facing outward (-Z).
+	local top = position.Y + h * 0.15
+	local console = Kit.block(
+		m,
+		"Console",
+		Vector3.new(position.X, top + h * 0.3, position.Z + h * 0.18),
+		Vector3.new(h * 0.5, h * 0.6, h * 0.16),
+		light,
+		Enum.Material.SmoothPlastic
+	)
+	console.CanCollide = false
+	local screen = Kit.part(m, {
+		Name = "Screen",
+		Size = Vector3.new(h * 0.42, h * 0.3, h * 0.02),
+		CFrame = CFrame.new(position.X, top + h * 0.42, position.Z + h * 0.09) * CFrame.Angles(math.rad(-12), 0, 0),
+		Color = Color3.fromRGB(16, 20, 32),
+		Material = Enum.Material.Glass,
+		CanCollide = false,
+		CastShadow = false,
+	})
+	Kit.screen(screen, label, accent, Enum.NormalId.Front)
+	-- Hologram: a translucent core inside a slowly spinning ring.
+	local coreY = top + h * 0.85
+	local core =
+		Kit.ball(m, "Core", Vector3.new(position.X, coreY, position.Z + h * 0.18), h * 0.2, accent, Enum.Material.Neon)
 	core.CanCollide = false
-	local light = Instance.new("PointLight")
-	light.Color = core.Color
-	light.Range = math.clamp(h * 3, 4, 60)
-	light.Brightness = 1.5
-	light.Parent = core
+	core.Transparency = 0.15
+	local spinner = Kit.model(m, "Hologram")
+	Kit.ring(
+		spinner,
+		"HoloRing",
+		CFrame.new(position.X, coreY, position.Z + h * 0.18) * CFrame.Angles(math.rad(70), 0, 0),
+		h * 0.2,
+		h * 0.02,
+		14,
+		accent
+	)
+	Kit.tag(spinner, "Spin", { Speed = 0.8 })
+	local glow = Instance.new("PointLight")
+	glow.Color = accent
+	glow.Range = math.clamp(h * 3, 4, 60)
+	glow.Brightness = 1.2
+	glow.Parent = core
+	Kit.sparkles(core, accent, h * 0.03, 3)
 	m.PrimaryPart = base
 	Kit.tag(base, "Station", { Menu = menu, Label = label })
 	return m
 end
 
+-- A fast-travel gateway: a metal pad with a glowing rim (the tagged part you
+-- stand on) under a standing arch filled with shimmering energy.
 function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, scale: number): Part
 	local h = ScaleMath.height(scale)
-	local pad = Kit.pillar(
-		parent,
-		"FastTravel_" .. zoneId,
-		position,
-		h * 0.08,
-		h * 1.6,
-		Color3.fromRGB(60, 200, 255),
-		Enum.Material.Neon
-	)
-	pad.Transparency = 0.2
+	local energy = Color3.fromRGB(70, 210, 255)
+	local frame = Color3.fromRGB(44, 52, 74)
+	local m = Kit.model(parent, "Gateway_" .. zoneId)
+	local pad = Kit.pillar(m, "FastTravel_" .. zoneId, position, h * 0.08, h * 1.6, frame, Enum.Material.Metal)
 	pad.CanCollide = true
-	local ring = Kit.pillar(
-		parent,
-		"FastTravelRing_" .. zoneId,
-		position + Vector3.new(0, h * 1.6, 0),
-		h * 0.06,
-		h * 1.5,
-		Color3.fromRGB(150, 230, 255),
+	local rim =
+		Kit.pillar(m, "Rim", position - Vector3.new(0, h * 0.01, 0), h * 0.08, h * 1.72, energy, Enum.Material.Neon)
+	rim.CanCollide = false
+	rim.CastShadow = false
+	local inlay = Kit.pillar(
+		m,
+		"Inlay",
+		position + Vector3.new(0, h * 0.05, 0),
+		h * 0.035,
+		h * 0.9,
+		Color3.fromRGB(150, 235, 255),
 		Enum.Material.Neon
 	)
-	ring.CanCollide = false
-	ring.Transparency = 0.5
+	inlay.CanCollide = false
+	inlay.Transparency = 0.25
+	-- Arch at the back of the pad.
+	local backZ = position.Z + h * 0.62
+	local y0 = position.Y + h * 0.08
+	for _, side in { -1, 1 } do
+		local pylon = Kit.block(
+			m,
+			"Pylon",
+			Vector3.new(position.X + side * h * 0.78, y0 + h * 1.1, backZ),
+			Vector3.new(h * 0.16, h * 2.2, h * 0.2),
+			frame,
+			Enum.Material.Metal
+		)
+		pylon.CanCollide = false
+		local strip = Kit.block(
+			m,
+			"PylonGlow",
+			Vector3.new(position.X + side * h * 0.69, y0 + h * 1.1, backZ),
+			Vector3.new(h * 0.025, h * 1.9, h * 0.08),
+			energy,
+			Enum.Material.Neon
+		)
+		strip.CanCollide = false
+	end
+	local lintel = Kit.block(
+		m,
+		"Lintel",
+		Vector3.new(position.X, y0 + h * 2.25, backZ),
+		Vector3.new(h * 1.8, h * 0.18, h * 0.24),
+		frame,
+		Enum.Material.Metal
+	)
+	lintel.CanCollide = false
+	local field = Kit.block(
+		m,
+		"EnergyField",
+		Vector3.new(position.X, y0 + h * 1.08, backZ),
+		Vector3.new(h * 1.38, h * 2.12, h * 0.04),
+		energy,
+		Enum.Material.ForceField
+	)
+	field.CanCollide = false
+	field.CanQuery = false
+	field.CastShadow = false
+	field.Transparency = 0.35
+	Kit.sparkles(field, energy, h * 0.035, 6)
+	local light = Instance.new("PointLight")
+	light.Color = energy
+	light.Range = math.clamp(h * 3.5, 4, 60)
+	light.Brightness = 1.4
+	light.Parent = field
 	Kit.tag(pad, "FastTravelStation", { StationId = zoneId })
 	return pad
 end
@@ -556,20 +771,44 @@ function Kit.hazard(part: BasePart, damage: number)
 	Kit.tag(part, "Hazard", { Damage = damage })
 end
 
+-- Where players appear: a low, light disc with a ring of soft beacons and a
+-- few rising sparkles. Non-colliding, so it can never trap anyone.
 function Kit.spawnPad(parent: Instance, zoneId: string, position: Vector3, scale: number)
 	local h = ScaleMath.height(scale)
-	local pad = Kit.pillar(
-		parent,
-		"Spawn_" .. zoneId,
-		position - Vector3.new(0, 0.01, 0),
-		math.max(0.05, h * 0.05),
-		h * 3,
-		Color3.fromRGB(255, 255, 255),
-		Enum.Material.Neon
-	)
-	pad.Transparency = 0.6
-	pad.CanCollide = false
-	pad.CastShadow = false
+	local m = Kit.model(parent, "Spawn_" .. zoneId)
+	local thin = math.max(0.05, h * 0.025)
+	local function disc(name: string, dia: number, lift: number, color: Color3, material: Enum.Material): Part
+		local d = Kit.pillar(m, name, position + Vector3.new(0, lift - thin, 0), thin, dia, color, material)
+		d.CanCollide = false
+		d.CanQuery = false
+		d.CastShadow = false
+		return d
+	end
+	disc("Spawn_" .. zoneId, h * 1.9, thin * 0.6, Color3.fromRGB(236, 240, 248), Enum.Material.SmoothPlastic)
+	local inner = disc("Inner", h * 1.6, thin * 0.9, Color3.fromRGB(196, 222, 240), Enum.Material.Glass)
+	inner.Transparency = 0.25
+	local core = disc("Emblem", h * 0.45, thin * 1.2, Color3.fromRGB(110, 225, 255), Enum.Material.Neon)
+	core.Transparency = 0.25
+	for i = 1, 10 do
+		local a = (i / 10) * math.pi * 2
+		Kit.part(m, {
+			Name = "Beacon",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(h * 0.06, h * 0.06, h * 0.06),
+			Position = position + Vector3.new(math.cos(a) * h * 0.72, thin * 1.2, math.sin(a) * h * 0.72),
+			Color = Color3.fromRGB(170, 235, 255),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+	end
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(140, 220, 255)
+	light.Range = math.clamp(h * 3, 4, 60)
+	light.Brightness = 0.6
+	light.Parent = core
+	Kit.sparkles(core, Color3.fromRGB(140, 230, 255), h * 0.035, 2)
 end
 
 -- Wall along X (fixed Z) or Z (fixed X) with rectangular openings.

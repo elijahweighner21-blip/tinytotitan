@@ -16,6 +16,7 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local FloorWorld = {}
 
@@ -405,6 +406,143 @@ local function scatter(m: Instance)
 	end
 end
 
+local INCH = 13.3 / 12
+
+-- The starting camp around the spawn: a tiny person's campsite made of
+-- things dropped on the floor — a bottle-cap campfire, a thread spool
+-- watchtower, a matchbox table, push-pin posts strung with bead lights.
+local function camp(m: Instance)
+	local c = Kit.model(m, "TinyCamp")
+	-- Bottle-cap campfire with glowing embers.
+	local fire = Vector3.new(44, 0, 289)
+	Kit.pillar(c, "CapRim", fire, 0.28 * INCH, 1.15 * INCH, Color3.fromRGB(190, 40, 46), Enum.Material.Metal)
+	Kit.pillar(
+		c,
+		"CapInside",
+		fire + Vector3.new(0, 0.05, 0),
+		0.26 * INCH,
+		1.0 * INCH,
+		Color3.fromRGB(220, 220, 225),
+		Enum.Material.Metal
+	)
+	local rng = Random.new(77)
+	for i = 1, 6 do
+		local a = i * 1.05
+		local ember = Kit.ball(
+			c,
+			"Ember",
+			fire + Vector3.new(math.cos(a) * 0.22, 0.34, math.sin(a) * 0.22),
+			rng:NextNumber(0.14, 0.22),
+			Color3.fromRGB(255, rng:NextInteger(110, 170), 60),
+			Enum.Material.Neon
+		)
+		ember.CanCollide = false
+	end
+	local flame =
+		Kit.ball(c, "FireGlow", fire + Vector3.new(0, 0.5, 0), 0.3, Color3.fromRGB(255, 190, 90), Enum.Material.Neon)
+	flame.CanCollide = false
+	flame.Transparency = 0.3
+	Kit.light(flame, Color3.fromRGB(255, 170, 90), 14, 1.2)
+	Kit.sparkles(flame, Color3.fromRGB(255, 170, 80), 0.05, 5)
+	-- Thread spool watchtower (2 in tall).
+	local spool = Vector3.new(52.5, 0, 291)
+	Kit.pillar(c, "SpoolFlange", spool, 0.18 * INCH, 1.5 * INCH, Color3.fromRGB(214, 180, 132), Enum.Material.Wood)
+	Kit.pillar(c, "Thread", spool, 2 * INCH, 1.15 * INCH, Color3.fromRGB(70, 120, 200), Enum.Material.Fabric)
+	Kit.pillar(
+		c,
+		"SpoolFlange",
+		spool + Vector3.new(0, 1.82 * INCH, 0),
+		0.18 * INCH,
+		1.5 * INCH,
+		Color3.fromRGB(214, 180, 132),
+		Enum.Material.Wood
+	)
+	-- Matchbox table with a couple of spilled matches as benches.
+	Kit.block(
+		c,
+		"Matchbox",
+		Vector3.new(38.5, 0.35, 291),
+		Vector3.new(2.2, 0.7, 1.5),
+		Color3.fromRGB(230, 200, 70),
+		Enum.Material.Cardboard
+	)
+	Kit.block(
+		c,
+		"MatchboxStrip",
+		Vector3.new(38.5, 0.35, 290.24),
+		Vector3.new(2.0, 0.5, 0.02),
+		Color3.fromRGB(120, 70, 50),
+		Enum.Material.Sand
+	)
+	for i, off in { Vector3.new(0, 0, -1.4), Vector3.new(1.6, 0, 0.3) } do
+		local match = Kit.part(c, {
+			Name = "Match",
+			Size = Vector3.new(2.1, 0.12, 0.12),
+			CFrame = CFrame.new(Vector3.new(38.5, 0.06, 291) + off) * CFrame.Angles(0, i * 0.8, 0),
+			Color = Color3.fromRGB(235, 215, 170),
+			Material = Enum.Material.Wood,
+		})
+		match.CanCollide = true
+		Kit.ball(
+			c,
+			"MatchHead",
+			match.CFrame * Vector3.new(1.05, 0, 0),
+			0.2,
+			Color3.fromRGB(200, 50, 40),
+			Enum.Material.Sand
+		)
+	end
+	-- Push-pin posts strung with bead lights around the camp.
+	local warm = {
+		Color3.fromRGB(255, 210, 120),
+		Color3.fromRGB(255, 150, 120),
+		Color3.fromRGB(150, 220, 255),
+		Color3.fromRGB(180, 255, 160),
+	}
+	local tops = {
+		Props.pushPin(c, Vector3.new(35, 0, 296), Color3.fromRGB(230, 60, 70)),
+		Props.pushPin(c, Vector3.new(48, 0, 297.5), Color3.fromRGB(70, 150, 240)),
+		Props.pushPin(c, Vector3.new(57, 0, 287), Color3.fromRGB(250, 200, 60)),
+		Props.pushPin(c, Vector3.new(33, 0, 285), Color3.fromRGB(110, 210, 120)),
+	}
+	Props.stringLights(c, tops[1], tops[2], 10, 0.35, warm)
+	Props.stringLights(c, tops[2], tops[3], 10, 0.35, warm)
+	Props.stringLights(c, tops[4], tops[1], 12, 0.4, warm)
+end
+
+-- Room dressing at human scale: what makes the floor read as a real living
+-- room from a speck's point of view.
+local function livingRoom(m: Instance)
+	local d = Kit.model(m, "LivingRoomDecor")
+	Props.floorboards(d, 0, 0, 320, 320, 0, 6, Color3.fromRGB(150, 112, 72), 31)
+	-- Wall outlet beside the spawn with a phone charger glowing green.
+	Props.outlet(d, CFrame.lookAt(Vector3.new(88, 15.5, 320), Vector3.new(88, 15.5, 0)), true)
+	-- Paintings.
+	Props.painting(d, CFrame.lookAt(Vector3.new(70, 78, 320), Vector3.new(70, 78, 0)), 56, 38, {
+		Color3.fromRGB(250, 214, 170),
+		Color3.fromRGB(90, 140, 180),
+		Color3.fromRGB(240, 120, 80),
+		Color3.fromRGB(255, 200, 90),
+	}, 11)
+	Props.painting(d, CFrame.lookAt(Vector3.new(320, 82, 230), Vector3.new(0, 82, 230)), 64, 42, {
+		Color3.fromRGB(200, 225, 240),
+		Color3.fromRGB(110, 160, 110),
+		Color3.fromRGB(245, 245, 235),
+		Color3.fromRGB(80, 110, 160),
+	}, 12, Color3.fromRGB(40, 40, 46))
+	Props.painting(
+		d,
+		CFrame.lookAt(Vector3.new(60, 74, 2), Vector3.new(60, 74, 320)),
+		44,
+		56,
+		{ Color3.fromRGB(240, 230, 210), Color3.fromRGB(220, 150, 110), Color3.fromRGB(120, 90, 160) },
+		13
+	)
+	-- A big leafy plant in the window corner and a reading lamp by the couch.
+	Props.plant(d, Vector3.new(304, 0, 302), 46, 21)
+	Props.floorLamp(d, Vector3.new(304, 0, 22), 66)
+end
+
 function FloorWorld.build(root: Instance)
 	local m = Kit.folder(root, "FloorWorld")
 	rug(m)
@@ -416,6 +554,8 @@ function FloorWorld.build(root: Instance)
 	couch(m)
 	antHill(m)
 	scatter(m)
+	camp(m)
+	livingRoom(m)
 
 	-- Spawn corner: first orbs are in sight of the spawn and lead to the rug.
 	Kit.spawnPad(m, ZONE, Vector3.new(46, 0, 282), 0.2)

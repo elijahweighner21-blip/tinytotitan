@@ -36,99 +36,289 @@ local EnvironmentController = {}
 -- (presetName) when the effective graphics preset changes.
 EnvironmentController.PresetChanged = Signal.new() :: Signal.Signal<string>
 
+-- One look per region: the whole set (sun, ambient, atmosphere, clouds,
+-- grade, bloom, rays, depth of field) blends together on zone change, so
+-- moving between areas feels like one continuous world.
 type LightPreset = {
 	ClockTime: number,
 	Brightness: number,
 	Ambient: Color3,
 	OutdoorAmbient: Color3,
-	Density: number,
-	Haze: number,
-	AtmosphereColor: Color3,
-	Tint: Color3,
 	Exposure: number,
+	Diffuse: number,
+	Specular: number,
+	Density: number,
+	Offset: number,
+	Haze: number,
+	Glare: number,
+	AtmosphereColor: Color3,
+	Decay: Color3,
+	Tint: Color3,
+	Saturation: number,
+	Contrast: number,
+	Bloom: number,
+	BloomThreshold: number,
+	Rays: number,
+	Blur: number, -- far depth-of-field intensity (0 = off)
+	Clouds: number, -- cloud cover (0 = clear)
+	CloudColor: Color3,
 }
 
+local rgb = Color3.fromRGB
 local PRESETS: { [string]: LightPreset } = {
-	Indoor = {
-		ClockTime = 14.5,
-		Brightness = 1.6,
-		Ambient = Color3.fromRGB(95, 85, 80),
-		OutdoorAmbient = Color3.fromRGB(140, 125, 115),
-		Density = 0.25,
-		Haze = 0.8,
-		AtmosphereColor = Color3.fromRGB(235, 215, 190),
-		Tint = Color3.fromRGB(255, 244, 230),
-		Exposure = 0.15,
-	},
-	Kitchen = {
-		ClockTime = 13,
-		Brightness = 2,
-		Ambient = Color3.fromRGB(100, 100, 105),
-		OutdoorAmbient = Color3.fromRGB(150, 150, 160),
-		Density = 0.2,
-		Haze = 0.6,
-		AtmosphereColor = Color3.fromRGB(225, 230, 240),
-		Tint = Color3.fromRGB(245, 250, 255),
-		Exposure = 0.2,
-	},
-	Outdoor = {
-		ClockTime = 11,
-		Brightness = 2.6,
-		Ambient = Color3.fromRGB(80, 90, 100),
-		OutdoorAmbient = Color3.fromRGB(135, 150, 165),
-		Density = 0.3,
-		Haze = 1.4,
-		AtmosphereColor = Color3.fromRGB(200, 220, 240),
-		Tint = Color3.fromRGB(255, 255, 255),
-		Exposure = 0.05,
-	},
-	City = {
-		ClockTime = 17.4,
-		Brightness = 2.2,
-		Ambient = Color3.fromRGB(90, 80, 95),
-		OutdoorAmbient = Color3.fromRGB(150, 130, 140),
-		Density = 0.35,
-		Haze = 1.8,
-		AtmosphereColor = Color3.fromRGB(240, 200, 180),
-		Tint = Color3.fromRGB(255, 240, 225),
-		Exposure = 0.05,
-	},
-	Titan = {
-		ClockTime = 16,
+	-- Living room: warm late-afternoon light pouring through the windows.
+	Living = {
+		ClockTime = 15.6,
 		Brightness = 2.4,
-		Ambient = Color3.fromRGB(85, 85, 110),
-		OutdoorAmbient = Color3.fromRGB(140, 140, 175),
-		Density = 0.4,
-		Haze = 2.2,
-		AtmosphereColor = Color3.fromRGB(190, 200, 240),
-		Tint = Color3.fromRGB(240, 245, 255),
-		Exposure = 0,
+		Ambient = rgb(150, 128, 108),
+		OutdoorAmbient = rgb(170, 152, 132),
+		Exposure = 0.25,
+		Diffuse = 0.8,
+		Specular = 0.6,
+		Density = 0.18,
+		Offset = 0,
+		Haze = 1,
+		Glare = 0,
+		AtmosphereColor = rgb(255, 226, 190),
+		Decay = rgb(200, 160, 120),
+		Tint = rgb(255, 243, 228),
+		Saturation = 0.12,
+		Contrast = 0.1,
+		Bloom = 0.45,
+		BloomThreshold = 1.3,
+		Rays = 0.06,
+		Blur = 0,
+		Clouds = 0.4,
+		CloudColor = rgb(255, 240, 225),
 	},
-	Wild = {
-		ClockTime = 7.2,
+	-- Bedroom: cozy golden hour with soft lavender shadows.
+	Bedroom = {
+		ClockTime = 17.2,
 		Brightness = 2.1,
-		Ambient = Color3.fromRGB(95, 80, 110),
-		OutdoorAmbient = Color3.fromRGB(160, 130, 170),
-		Density = 0.42,
-		Haze = 2.6,
-		AtmosphereColor = Color3.fromRGB(230, 190, 220),
-		Tint = Color3.fromRGB(255, 235, 245),
-		Exposure = 0.05,
+		Ambient = rgb(138, 118, 138),
+		OutdoorAmbient = rgb(165, 145, 160),
+		Exposure = 0.25,
+		Diffuse = 0.8,
+		Specular = 0.6,
+		Density = 0.2,
+		Offset = 0,
+		Haze = 1.2,
+		Glare = 0,
+		AtmosphereColor = rgb(255, 215, 200),
+		Decay = rgb(190, 140, 160),
+		Tint = rgb(255, 238, 226),
+		Saturation = 0.14,
+		Contrast = 0.1,
+		Bloom = 0.5,
+		BloomThreshold = 1.2,
+		Rays = 0.08,
+		Blur = 0,
+		Clouds = 0.45,
+		CloudColor = rgb(255, 225, 215),
 	},
+	-- Kitchen: clean, bright midday light with crisp reflections.
+	Kitchen = {
+		ClockTime = 12.6,
+		Brightness = 3,
+		Ambient = rgb(165, 166, 172),
+		OutdoorAmbient = rgb(185, 190, 200),
+		Exposure = 0.3,
+		Diffuse = 1,
+		Specular = 1,
+		Density = 0.15,
+		Offset = 0,
+		Haze = 0.6,
+		Glare = 0,
+		AtmosphereColor = rgb(232, 240, 250),
+		Decay = rgb(170, 185, 205),
+		Tint = rgb(248, 252, 255),
+		Saturation = 0.1,
+		Contrast = 0.08,
+		Bloom = 0.4,
+		BloomThreshold = 1.4,
+		Rays = 0.04,
+		Blur = 0,
+		Clouds = 0.35,
+		CloudColor = rgb(255, 255, 255),
+	},
+	-- Backyard: bright natural sunlight, clear blue sky, puffy clouds.
+	Backyard = {
+		ClockTime = 13.2,
+		Brightness = 3,
+		Ambient = rgb(110, 116, 126),
+		OutdoorAmbient = rgb(150, 162, 178),
+		Exposure = 0.1,
+		Diffuse = 1,
+		Specular = 0.7,
+		Density = 0.22,
+		Offset = 0.2,
+		Haze = 1,
+		Glare = 0.3,
+		AtmosphereColor = rgb(199, 222, 244),
+		Decay = rgb(106, 129, 160),
+		Tint = rgb(255, 254, 250),
+		Saturation = 0.14,
+		Contrast = 0.08,
+		Bloom = 0.35,
+		BloomThreshold = 1.5,
+		Rays = 0.06,
+		Blur = 0,
+		Clouds = 0.55,
+		CloudColor = rgb(255, 255, 255),
+	},
+	-- Neighborhood: warm, colourful late afternoon.
+	Suburb = {
+		ClockTime = 16.4,
+		Brightness = 2.8,
+		Ambient = rgb(122, 106, 100),
+		OutdoorAmbient = rgb(172, 152, 140),
+		Exposure = 0.1,
+		Diffuse = 1,
+		Specular = 0.7,
+		Density = 0.25,
+		Offset = 0.2,
+		Haze = 1.3,
+		Glare = 0.4,
+		AtmosphereColor = rgb(236, 212, 190),
+		Decay = rgb(142, 112, 112),
+		Tint = rgb(255, 242, 228),
+		Saturation = 0.16,
+		Contrast = 0.1,
+		Bloom = 0.4,
+		BloomThreshold = 1.4,
+		Rays = 0.08,
+		Blur = 0,
+		Clouds = 0.6,
+		CloudColor = rgb(255, 236, 220),
+	},
+	-- Downtown: dramatic golden hour, long shadows, glowing signs.
+	City = {
+		ClockTime = 17.7,
+		Brightness = 2.5,
+		Ambient = rgb(98, 88, 112),
+		OutdoorAmbient = rgb(150, 130, 152),
+		Exposure = 0.05,
+		Diffuse = 1,
+		Specular = 1,
+		Density = 0.3,
+		Offset = 0.25,
+		Haze = 1.7,
+		Glare = 0.8,
+		AtmosphereColor = rgb(240, 192, 170),
+		Decay = rgb(112, 82, 112),
+		Tint = rgb(255, 238, 222),
+		Saturation = 0.1,
+		Contrast = 0.15,
+		Bloom = 0.7,
+		BloomThreshold = 1.1,
+		Rays = 0.12,
+		Blur = 0.06,
+		Clouds = 0.5,
+		CloudColor = rgb(255, 200, 175),
+	},
+	-- Titan City: epic scale — bright sun, cool blue distance haze.
+	Titan = {
+		ClockTime = 15,
+		Brightness = 3.2,
+		Ambient = rgb(92, 102, 138),
+		OutdoorAmbient = rgb(140, 156, 200),
+		Exposure = 0,
+		Diffuse = 1,
+		Specular = 1,
+		Density = 0.32,
+		Offset = 0.35,
+		Haze = 1.5,
+		Glare = 0.6,
+		AtmosphereColor = rgb(175, 200, 245),
+		Decay = rgb(92, 112, 172),
+		Tint = rgb(242, 247, 255),
+		Saturation = 0.15,
+		Contrast = 0.14,
+		Bloom = 0.55,
+		BloomThreshold = 1.2,
+		Rays = 0.1,
+		Blur = 0.1,
+		Clouds = 0.7,
+		CloudColor = rgb(240, 245, 255),
+	},
+	-- Titan Wilderness: cinematic dawn, fog in the valleys, dramatic sky.
+	Wild = {
+		ClockTime = 7.4,
+		Brightness = 2.6,
+		Ambient = rgb(106, 92, 122),
+		OutdoorAmbient = rgb(172, 142, 182),
+		Exposure = 0.05,
+		Diffuse = 1,
+		Specular = 0.8,
+		Density = 0.36,
+		Offset = 0.25,
+		Haze = 2,
+		Glare = 1.2,
+		AtmosphereColor = rgb(240, 196, 200),
+		Decay = rgb(122, 92, 152),
+		Tint = rgb(255, 238, 232),
+		Saturation = 0.12,
+		Contrast = 0.16,
+		Bloom = 0.6,
+		BloomThreshold = 1.2,
+		Rays = 0.16,
+		Blur = 0.12,
+		Clouds = 0.65,
+		CloudColor = rgb(255, 222, 230),
+	},
+	-- World event: the power goes out.
 	Outage = {
 		ClockTime = 21,
 		Brightness = 0.4,
-		Ambient = Color3.fromRGB(25, 25, 40),
-		OutdoorAmbient = Color3.fromRGB(40, 40, 60),
-		Density = 0.45,
+		Ambient = rgb(28, 30, 48),
+		OutdoorAmbient = rgb(44, 46, 70),
+		Exposure = -0.2,
+		Diffuse = 0.5,
+		Specular = 0.5,
+		Density = 0.42,
+		Offset = 0,
 		Haze = 0.5,
-		AtmosphereColor = Color3.fromRGB(60, 70, 110),
-		Tint = Color3.fromRGB(170, 185, 255),
-		Exposure = -0.3,
+		Glare = 0,
+		AtmosphereColor = rgb(60, 70, 110),
+		Decay = rgb(30, 35, 70),
+		Tint = rgb(170, 185, 255),
+		Saturation = -0.1,
+		Contrast = 0.12,
+		Bloom = 0.8,
+		BloomThreshold = 0.9,
+		Rays = 0,
+		Blur = 0,
+		Clouds = 0.8,
+		CloudColor = rgb(60, 65, 90),
+	},
+	-- World event: Titan Storm rolls in.
+	Storm = {
+		ClockTime = 16,
+		Brightness = 1.2,
+		Ambient = rgb(70, 72, 98),
+		OutdoorAmbient = rgb(100, 104, 140),
+		Exposure = -0.05,
+		Diffuse = 0.8,
+		Specular = 1,
+		Density = 0.45,
+		Offset = 0.1,
+		Haze = 2.4,
+		Glare = 0,
+		AtmosphereColor = rgb(120, 130, 170),
+		Decay = rgb(60, 60, 110),
+		Tint = rgb(215, 225, 255),
+		Saturation = -0.05,
+		Contrast = 0.2,
+		Bloom = 0.8,
+		BloomThreshold = 1,
+		Rays = 0,
+		Blur = 0.05,
+		Clouds = 0.95,
+		CloudColor = rgb(80, 85, 110),
 	},
 }
 
-local basePreset = "Indoor"
+local basePreset = "Living"
 local override: string? = nil
 local overrideUntil = 0
 local effectivePreset = "High"
@@ -138,8 +328,33 @@ local lowSince: number? = nil
 local highSince: number? = nil
 local swayParts: { [BasePart]: CFrame } = {}
 local discoParts: { BasePart } = {}
+local spinners: { [PVInstance]: { Home: CFrame, Speed: number } } = {}
+local nearbySpin: { PVInstance } = {}
 local lastSwayRefresh = 0
 local nearbySway: { BasePart } = {}
+
+local function lightingChild(className: string, name: string): Instance
+	local existing = Lighting:FindFirstChild(name)
+	if existing and existing.ClassName == className then
+		return existing
+	end
+	local inst = Instance.new(className)
+	inst.Name = name
+	inst.Parent = Lighting
+	return inst
+end
+
+local function clouds(): Clouds
+	local existing = workspace.Terrain:FindFirstChildOfClass("Clouds")
+	if existing then
+		return existing
+	end
+	local c = Instance.new("Clouds")
+	c.Cover = 0.5
+	c.Density = 0.6
+	c.Parent = workspace.Terrain
+	return c
+end
 
 local function applyLighting(name: string, duration: number)
 	local p = PRESETS[name]
@@ -147,21 +362,46 @@ local function applyLighting(name: string, duration: number)
 		return
 	end
 	local info = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-	TweenService:Create(Lighting, info, {
+	local function tween(target: Instance, goal: { [string]: any })
+		if duration <= 0 then
+			for k, v in goal do
+				(target :: any)[k] = v
+			end
+		else
+			TweenService:Create(target, info, goal):Play()
+		end
+	end
+	tween(Lighting, {
 		ClockTime = p.ClockTime,
 		Brightness = p.Brightness,
 		Ambient = p.Ambient,
 		OutdoorAmbient = p.OutdoorAmbient,
 		ExposureCompensation = p.Exposure,
-	}):Play()
-	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
-	if atmosphere then
-		TweenService:Create(atmosphere, info, { Density = p.Density, Haze = p.Haze, Color = p.AtmosphereColor }):Play()
-	end
-	local grade = Lighting:FindFirstChild("Grade")
-	if grade and grade:IsA("ColorCorrectionEffect") then
-		TweenService:Create(grade, info, { TintColor = p.Tint }):Play()
-	end
+		EnvironmentDiffuseScale = p.Diffuse,
+		EnvironmentSpecularScale = p.Specular,
+	})
+	tween(lightingChild("Atmosphere", "Atmosphere"), {
+		Density = p.Density,
+		Offset = p.Offset,
+		Haze = p.Haze,
+		Glare = p.Glare,
+		Color = p.AtmosphereColor,
+		Decay = p.Decay,
+	})
+	tween(lightingChild("ColorCorrectionEffect", "Grade"), {
+		TintColor = p.Tint,
+		Saturation = p.Saturation,
+		Contrast = p.Contrast,
+	})
+	tween(lightingChild("BloomEffect", "Bloom"), { Intensity = p.Bloom, Threshold = p.BloomThreshold })
+	tween(lightingChild("SunRaysEffect", "SunRays"), { Intensity = p.Rays })
+	local dof = lightingChild("DepthOfFieldEffect", "DistanceBlur") :: DepthOfFieldEffect
+	dof.NearIntensity = 0
+	dof.FocusDistance = 400
+	dof.InFocusRadius = 600
+	dof.Enabled = (SettingsConfig.Presets[effectivePreset] or SettingsConfig.Presets.High).PostEffects
+	tween(dof, { FarIntensity = p.Blur })
+	tween(clouds(), { Cover = p.Clouds, Color = p.CloudColor })
 end
 
 local function refreshLighting(duration: number)
@@ -240,6 +480,12 @@ local function trackSway(part: Instance)
 	end
 end
 
+local function trackSpin(instance: Instance)
+	if instance:IsA("PVInstance") then
+		spinners[instance] = { Home = instance:GetPivot(), Speed = (instance:GetAttribute("Speed") :: number?) or 1 }
+	end
+end
+
 local function trackDisco(part: Instance)
 	if part:IsA("BasePart") then
 		table.insert(discoParts, part)
@@ -264,6 +510,18 @@ local function animateAmbient(now: number)
 					end
 				end
 			end
+			table.clear(nearbySpin)
+			for spinner, info in spinners do
+				if (info.Home.Position - camera.CFrame.Position).Magnitude < range * 2 then
+					table.insert(nearbySpin, spinner)
+				end
+			end
+		end
+	end
+	for _, spinner in nearbySpin do
+		local info = spinners[spinner]
+		if info and spinner.Parent then
+			spinner:PivotTo(info.Home * CFrame.Angles(0, now * info.Speed, 0))
 		end
 	end
 	for _, part in nearbySway do
@@ -323,6 +581,13 @@ function EnvironmentController:Start()
 	CollectionService:GetInstanceAddedSignal("Sway"):Connect(trackSway)
 	CollectionService:GetInstanceRemovedSignal("Sway"):Connect(function(part)
 		swayParts[part :: BasePart] = nil
+	end)
+	for _, spinner in CollectionService:GetTagged("Spin") do
+		trackSpin(spinner)
+	end
+	CollectionService:GetInstanceAddedSignal("Spin"):Connect(trackSpin)
+	CollectionService:GetInstanceRemovedSignal("Spin"):Connect(function(spinner)
+		spinners[spinner :: PVInstance] = nil
 	end)
 	for _, part in CollectionService:GetTagged("Disco") do
 		trackDisco(part)

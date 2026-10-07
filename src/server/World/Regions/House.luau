@@ -23,6 +23,69 @@ local House = {}
 local WALL_H = 140
 local T = 4
 
+-- A window in a wall opening: glass, a white frame, a sill and two curtains.
+-- `inward` is +1/-1: which side of the wall is the room.
+local function window(
+	m: Instance,
+	axis: "X" | "Z",
+	fixed: number,
+	from: number,
+	to: number,
+	bottom: number,
+	top: number,
+	inward: number,
+	curtain: Color3
+)
+	local C = Kit.Colors
+	local frame = Color3.fromRGB(250, 248, 242)
+	local len = to - from
+	local mid = (from + to) / 2
+	local h = top - bottom
+	local function at(along: number, y: number, depth: number): Vector3
+		if axis == "X" then
+			return Vector3.new(along, y, fixed + depth * inward)
+		end
+		return Vector3.new(fixed + depth * inward, y, along)
+	end
+	local function size(along: number, y: number, depth: number): Vector3
+		if axis == "X" then
+			return Vector3.new(along, y, depth)
+		end
+		return Vector3.new(depth, y, along)
+	end
+	local glass =
+		Kit.block(m, "WindowGlass", at(mid, bottom + h / 2, 0), size(len, h, 0.6), C.Glass, Enum.Material.Glass)
+	glass.Transparency = 0.75
+	glass.CastShadow = false
+	-- Frame and a cross mullion.
+	Kit.block(m, "WindowFrame", at(mid, top - 1.5, 0), size(len + 4, 3, 6), frame, Enum.Material.Wood)
+	Kit.block(m, "WindowFrame", at(mid, bottom + h / 2, 0), size(len, 2, 5), frame, Enum.Material.Wood)
+	Kit.block(m, "WindowFrame", at(mid, bottom + h / 2, 0), size(2, h, 5), frame, Enum.Material.Wood)
+	Kit.block(m, "WindowFrame", at(from + 1, bottom + h / 2, 0), size(2.5, h, 6), frame, Enum.Material.Wood)
+	Kit.block(m, "WindowFrame", at(to - 1, bottom + h / 2, 0), size(2.5, h, 6), frame, Enum.Material.Wood)
+	Kit.block(m, "Windowsill", at(mid, bottom - 1, 4), size(len + 10, 3, 12), frame, Enum.Material.Wood)
+	-- Curtains gathered at each side, plus the rod.
+	for _, side in { from - 6, to + 6 } do
+		local c = Kit.block(
+			m,
+			"Curtain",
+			at(side, bottom + h / 2 + 6, 5),
+			size(12, h + 16, 2.5),
+			curtain,
+			Enum.Material.Fabric
+		)
+		c.CastShadow = true
+	end
+	Kit.block(
+		m,
+		"CurtainRod",
+		at(mid, top + 10, 6),
+		size(len + 34, 1.5, 1.5),
+		Color3.fromRGB(70, 60, 55),
+		Enum.Material.Metal
+	)
+end
+
 function House.build(root: Instance)
 	local m = Kit.model(root, "HouseShell", true)
 	local C = Kit.Colors
@@ -70,7 +133,9 @@ function House.build(root: Instance)
 	-- Exterior walls ----------------------------------------------------------
 	-- Front (z = 320): front door (decor, closed) + Forgotten Vent opening.
 	Kit.wall(m, "FrontWall", "X", 322, -284, 324, 0, WALL_H, T, {
+		{ -250, -175, 112, 38 },
 		{ -130, -110, 9 },
+		{ 215, 300, 112, 38 },
 	}, C.Wall)
 	Kit.box(m, "FrontDoor", Vector3.new(140, 0, 318.5), Vector3.new(50, 100, 1.5), C.Wood, Enum.Material.Wood)
 	-- Back (z = -300): kitchen back door with a pet door at the bottom.
@@ -90,13 +155,21 @@ function House.build(root: Instance)
 	)
 	-- West (x = -280): bedroom window.
 	Kit.wall(m, "WestWall", "Z", -282, -302, 324, 0, WALL_H, T, {
+		{ -220, -140, 110, 40 },
 		{ 90, 170, 110, 50 },
 	}, C.Wall)
-	local glass = Kit.box(m, "Window", Vector3.new(-284, 50, 90), Vector3.new(1, 60, 80), C.Glass, Enum.Material.Glass)
-	glass.Transparency = 0.6
-	Kit.box(m, "Windowsill", Vector3.new(-280, 47, 86), Vector3.new(14, 3, 88), C.Ceiling, Enum.Material.SmoothPlastic)
+	window(m, "Z", -282, 90, 170, 50, 110, 1, Color3.fromRGB(120, 150, 200))
 	-- East (x = 320).
-	Kit.wall(m, "EastWall", "Z", 322, -302, 324, 0, WALL_H, T, nil, C.Wall)
+	Kit.wall(m, "EastWall", "Z", 322, -302, 324, 0, WALL_H, T, {
+		{ -250, -170, 110, 40 },
+		{ 60, 140, 112, 38 },
+	}, C.Wall)
+	-- Glazing, frames, sills and curtains for every window opening.
+	window(m, "X", 322, -250, -175, 38, 112, -1, Color3.fromRGB(120, 150, 200))
+	window(m, "X", 322, 215, 300, 38, 112, -1, Color3.fromRGB(205, 120, 90))
+	window(m, "Z", -282, -220, -140, 40, 110, 1, Color3.fromRGB(240, 190, 90))
+	window(m, "Z", 322, -250, -170, 40, 110, -1, Color3.fromRGB(110, 170, 140))
+	window(m, "Z", 322, 60, 140, 38, 112, -1, Color3.fromRGB(205, 120, 90))
 
 	-- Interior walls --------------------------------------------------------
 	-- Bedroom | Living (x = 0): doorway + painting cavity window.
@@ -140,19 +213,80 @@ function House.build(root: Instance)
 		Color3.fromRGB(110, 60, 50),
 		Enum.Material.Slate
 	)
-	-- Ceiling lights per room (soft, no shadows for performance).
+	-- Lighting. Roblox lights reach at most 60 studs, so ceiling fixtures
+	-- (138 studs up) are decorative; warm fill lights at lamp height light
+	-- the floor where small players actually are.
 	for _, pos in
 		{
-			Vector3.new(160, 138, 160),
-			Vector3.new(-140, 138, 160),
-			Vector3.new(-140, 138, -150),
-			Vector3.new(160, 138, -150),
+			Vector3.new(160, 139, 160),
+			Vector3.new(-140, 139, 160),
+			Vector3.new(-140, 139, -150),
+			Vector3.new(160, 139, -150),
 		}
 	do
-		local lamp =
-			Kit.block(m, "CeilingLamp", pos, Vector3.new(30, 3, 30), Color3.fromRGB(255, 245, 220), Enum.Material.Neon)
+		local rim =
+			Kit.pillar(m, "CeilingLampRim", pos - Vector3.new(0, 2, 0), 3, 36, C.Ceiling, Enum.Material.SmoothPlastic)
+		rim.CFrame = CFrame.new(pos - Vector3.new(0, 1.5, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		rim.CanCollide = false
+		local lamp = Kit.pillar(
+			m,
+			"CeilingLamp",
+			pos - Vector3.new(0, 3.5, 0),
+			1,
+			30,
+			Color3.fromRGB(255, 244, 222),
+			Enum.Material.Neon
+		)
+		lamp.CFrame = CFrame.new(pos - Vector3.new(0, 3.4, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		lamp.CanCollide = false
-		Kit.light(lamp, Color3.fromRGB(255, 240, 215), 60, 0.8)
+	end
+	local fills: { { any } } = {
+		-- living room / floor world
+		{ Vector3.new(80, 42, 80), Color3.fromRGB(255, 220, 180) },
+		{ Vector3.new(240, 42, 80), Color3.fromRGB(255, 225, 190) },
+		{ Vector3.new(80, 42, 240), Color3.fromRGB(255, 215, 175) },
+		{ Vector3.new(240, 42, 240), Color3.fromRGB(255, 225, 190) },
+		-- bedroom
+		{ Vector3.new(-70, 42, 80), Color3.fromRGB(255, 210, 190) },
+		{ Vector3.new(-210, 42, 80), Color3.fromRGB(230, 205, 255) },
+		{ Vector3.new(-70, 42, 240), Color3.fromRGB(255, 214, 186) },
+		{ Vector3.new(-210, 42, 240), Color3.fromRGB(255, 210, 200) },
+		-- playroom
+		{ Vector3.new(-70, 42, -80), Color3.fromRGB(255, 230, 200) },
+		{ Vector3.new(-210, 42, -80), Color3.fromRGB(210, 225, 255) },
+		{ Vector3.new(-70, 42, -220), Color3.fromRGB(255, 230, 200) },
+		{ Vector3.new(-210, 42, -220), Color3.fromRGB(255, 225, 205) },
+		-- kitchen (cooler, brighter)
+		{ Vector3.new(80, 46, -80), Color3.fromRGB(245, 248, 255) },
+		{ Vector3.new(240, 46, -80), Color3.fromRGB(250, 250, 255) },
+		{ Vector3.new(80, 46, -220), Color3.fromRGB(255, 248, 235) },
+		{ Vector3.new(240, 46, -220), Color3.fromRGB(245, 248, 255) },
+	}
+	for _, fill in fills do
+		local anchor = Kit.part(m, {
+			Name = "FillLight",
+			Size = Vector3.new(1, 1, 1),
+			Position = fill[1],
+			Transparency = 1,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		Kit.light(anchor, fill[2], 60, 1.1)
+	end
+
+	-- Baseboards: a thin trim line where walls meet the floor reads as
+	-- "house" at every scale.
+	local trim = Color3.fromRGB(248, 245, 238)
+	for _, b in
+		{
+			{ Vector3.new(-280, 0, 318), Vector3.new(600, 6, 2) },
+			{ Vector3.new(-280, 0, -300), Vector3.new(600, 6, 2) },
+			{ Vector3.new(-280, 0, -300), Vector3.new(2, 6, 620) },
+			{ Vector3.new(318, 0, -300), Vector3.new(2, 6, 620) },
+		}
+	do
+		Kit.box(m, "Baseboard", b[1], b[2], trim, Enum.Material.SmoothPlastic)
 	end
 
 	-- Size gates between rooms ---------------------------------------------

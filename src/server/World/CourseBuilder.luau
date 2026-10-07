@@ -509,28 +509,62 @@ function CourseBuilder.buildPads(root: Instance)
 		local body = ChallengeConfig.physics(def.RequiredTier)
 		local zone = ZoneConfig.get(def.Zone)
 		local color = if zone then zone.MapColor else Color3.new(1, 1, 1)
+		local frame = Color3.fromRGB(44, 50, 70)
 		local pad = Kit.pillar(
 			folder,
 			"ChallengePad_" .. def.Id,
 			def.Anchor,
 			math.max(0.08, body * 0.08),
 			body * 3,
-			color,
-			Enum.Material.Neon
+			frame,
+			Enum.Material.Metal
 		)
-		pad.Transparency = 0.15
-		local beacon = Kit.pillar(
+		local rim = Kit.pillar(
 			folder,
-			"ChallengeBeacon_" .. def.Id,
-			def.Anchor + Vector3.new(0, body * 0.08, 0),
-			body * 4,
-			body * 0.25,
+			"ChallengeRim",
+			def.Anchor - Vector3.new(0, body * 0.01, 0),
+			math.max(0.08, body * 0.08),
+			body * 3.15,
 			color,
 			Enum.Material.Neon
 		)
-		beacon.CanCollide = false
-		beacon.Transparency = 0.5
-		beacon.CastShadow = false
+		rim.CanCollide = false
+		rim.CanQuery = false
+		rim.CastShadow = false
+		local inlay = Kit.pillar(
+			folder,
+			"ChallengeInlay",
+			def.Anchor + Vector3.new(0, body * 0.06, 0),
+			math.max(0.04, body * 0.04),
+			body * 1.2,
+			color,
+			Enum.Material.Neon
+		)
+		inlay.CanCollide = false
+		inlay.CanQuery = false
+		inlay.Transparency = 0.3
+		-- Beam landmark + a sign naming the challenge.
+		Kit.lightBeam(pad, body * 12, body * 1.4, color)
+		local post = Kit.block(
+			folder,
+			"ChallengeSignPost",
+			def.Anchor + Vector3.new(body * 1.7, body * 0.75, 0),
+			Vector3.new(body * 0.12, body * 1.5, body * 0.12),
+			frame,
+			Enum.Material.Metal
+		)
+		post.CanCollide = false
+		local sign = Kit.block(
+			folder,
+			"ChallengeSign",
+			def.Anchor + Vector3.new(body * 1.7, body * 1.75, 0),
+			Vector3.new(body * 1.6, body * 0.9, body * 0.08),
+			frame,
+			Enum.Material.SmoothPlastic
+		)
+		sign.CanCollide = false
+		Kit.screen(sign, def.Name, color, Enum.NormalId.Front)
+		Kit.screen(sign, def.Name, color, Enum.NormalId.Back)
 		Kit.tag(pad, "ChallengeStart", { ChallengeId = def.Id })
 	end
 end

@@ -28,7 +28,7 @@ local Zones: { Zone } = {
 		MapColor = Color3.fromRGB(196, 160, 120),
 		Description = "The living-room carpet. A jungle of fibers, crumbs and lost coins.",
 		Ambience = "Indoor",
-		Lighting = "Indoor",
+		Lighting = "Living",
 	},
 	{
 		Id = "Bedroom",
@@ -44,7 +44,7 @@ local Zones: { Zone } = {
 		MapColor = Color3.fromRGB(120, 140, 200),
 		Description = "Furniture mountains, cable vines, a playroom and a vent nobody remembers.",
 		Ambience = "Bedroom",
-		Lighting = "Indoor",
+		Lighting = "Bedroom",
 	},
 	{
 		Id = "Kitchen",
@@ -76,7 +76,7 @@ local Zones: { Zone } = {
 		MapColor = Color3.fromRGB(110, 180, 90),
 		Description = "A grass forest, a garden, a shed and a terrifying lawnmower.",
 		Ambience = "Outdoor",
-		Lighting = "Outdoor",
+		Lighting = "Backyard",
 	},
 	{
 		Id = "Neighborhood",
@@ -92,7 +92,7 @@ local Zones: { Zone } = {
 		MapColor = Color3.fromRGB(160, 160, 150),
 		Description = "Streets, houses, a playground and a construction site.",
 		Ambience = "Suburb",
-		Lighting = "Outdoor",
+		Lighting = "Suburb",
 	},
 	{
 		Id = "Downtown",
