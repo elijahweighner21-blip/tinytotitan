@@ -33,10 +33,85 @@ local function inPlaza(x: number, z: number): boolean
 	return (Vector3.new(cx, 0, cz) - PLAZA_CENTER).Magnitude < PLAZA_RADIUS + BLOCK * 0.45
 end
 
+local SHOPS =
+	{ "CAFE", "PIZZA", "BOOKS", "ARCADE", "BAKERY", "GYM", "MARKET", "TOYS", "NOODLES", "CINEMA", "FLOWERS", "TECH" }
+local AWNINGS = {
+	Color3.fromRGB(220, 70, 70),
+	Color3.fromRGB(60, 140, 200),
+	Color3.fromRGB(250, 180, 60),
+	Color3.fromRGB(70, 170, 120),
+	Color3.fromRGB(150, 90, 200),
+}
+local buildingCount = 0
+
+-- A glass tower with floor bands (one slab per band wraps all four faces),
+-- a street-level storefront with an awning and a sign, rooftop equipment and
+-- a few lit window rows for the golden-hour glow.
 local function building(parent: Instance, name: string, min: Vector3, footprint: Vector2, height: number, color: Color3)
+	buildingCount += 1
+	local rng = Random.new(buildingCount * 37)
 	local model = Kit.model(parent, name, height > 1200)
 	local center = Vector3.new(min.X + footprint.X / 2, 0, min.Z + footprint.Y / 2)
 	Kit.tower(model, "Body", center, footprint, height, color, Enum.Material.Glass)
+	local trim = Color3.fromRGB(205, 205, 200):Lerp(color, 0.2)
+	-- Floor bands every two storeys.
+	for y = 340, height - 60, 340 do
+		local band = Kit.block(
+			model,
+			"FloorBand",
+			center + Vector3.new(0, min.Y + y, 0),
+			Vector3.new(footprint.X + 6, 14, footprint.Y + 6),
+			trim,
+			Enum.Material.Concrete
+		)
+		band.CastShadow = false
+	end
+	-- Ground-floor podium.
+	Kit.block(
+		model,
+		"Podium",
+		center + Vector3.new(0, min.Y + 90, 0),
+		Vector3.new(footprint.X + 8, 180, footprint.Y + 8),
+		trim:Lerp(Color3.fromRGB(80, 80, 85), 0.35),
+		Enum.Material.Concrete
+	)
+	-- Storefront on the -X face: awning + sign.
+	local face = center + Vector3.new(-footprint.X / 2 - 4, min.Y, 0)
+	local awning = Kit.part(model, {
+		Name = "Awning",
+		Size = Vector3.new(60, 10, math.min(footprint.Y * 0.7, 300)),
+		CFrame = CFrame.new(face + Vector3.new(-26, 170, 0)) * CFrame.Angles(0, 0, math.rad(-14)),
+		Color = AWNINGS[rng:NextInteger(1, #AWNINGS)],
+		Material = Enum.Material.Fabric,
+	})
+	awning.CanCollide = false
+	local sign = Kit.block(
+		model,
+		"ShopSign",
+		face + Vector3.new(-3, 215, 0),
+		Vector3.new(4, 50, math.min(footprint.Y * 0.55, 240)),
+		Color3.fromRGB(30, 30, 36),
+		Enum.Material.SmoothPlastic
+	)
+	sign.CanCollide = false
+	Kit.screen(sign, SHOPS[rng:NextInteger(1, #SHOPS)], awning.Color, Enum.NormalId.Left)
+	-- Some towers have a few warmly lit window rows.
+	if rng:NextNumber() < 0.45 then
+		for _ = 1, rng:NextInteger(2, 4) do
+			local y = min.Y + rng:NextInteger(2, math.max(2, math.floor(height / 170) - 1)) * 170 - 60
+			local glow = Kit.block(
+				model,
+				"LitWindows",
+				center + Vector3.new(-footprint.X / 2 - 1, y, 0),
+				Vector3.new(2, 50, footprint.Y * rng:NextNumber(0.3, 0.8)),
+				Color3.fromRGB(255, 214, 150),
+				Enum.Material.Neon
+			)
+			glow.Transparency = 0.35
+			glow.CanCollide = false
+			glow.CastShadow = false
+		end
+	end
 	-- Ledges every ~200 studs on one face make every tower climbable.
 	for y = 180, height - 100, 200 do
 		Kit.block(
@@ -48,14 +123,46 @@ local function building(parent: Instance, name: string, min: Vector3, footprint:
 			Enum.Material.Concrete
 		)
 	end
+	local roofY = height + 6
 	Kit.block(
 		model,
 		"Roof",
-		center + Vector3.new(0, height + 6, 0),
+		center + Vector3.new(0, roofY, 0),
 		Vector3.new(footprint.X + 20, 12, footprint.Y + 20),
 		Color3.fromRGB(70, 70, 75),
 		Enum.Material.Concrete
 	)
+	-- Rooftop equipment.
+	local unit = Kit.block(
+		model,
+		"AcUnit",
+		center + Vector3.new(footprint.X * 0.2, roofY + 36, -footprint.Y * 0.15),
+		Vector3.new(80, 60, 60),
+		Color3.fromRGB(180, 182, 185),
+		Enum.Material.Metal
+	)
+	unit.CanCollide = true
+	if rng:NextNumber() < 0.5 then
+		Kit.pillar(
+			model,
+			"WaterTank",
+			center + Vector3.new(-footprint.X * 0.2, roofY + 6, footprint.Y * 0.2),
+			110,
+			70,
+			Color3.fromRGB(140, 100, 70),
+			Enum.Material.WoodPlanks
+		)
+	else
+		Kit.pillar(
+			model,
+			"Antenna",
+			center + Vector3.new(-footprint.X * 0.2, roofY + 6, footprint.Y * 0.2),
+			220,
+			6,
+			Color3.fromRGB(160, 160, 165),
+			Enum.Material.Metal
+		)
+	end
 	return center
 end
 

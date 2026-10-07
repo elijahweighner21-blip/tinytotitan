@@ -238,7 +238,7 @@ function applyLighting(L) {
 	skyUniforms.sunDir.value.copy(dir);
 	hemi.color = rgb(L.OutdoorAmbient, 1 / 255 * 0 + 1).multiplyScalar(1.1);
 	hemi.groundColor = rgb(L.Ambient).multiplyScalar(1.0);
-	hemi.intensity = 0.9;
+	hemi.intensity = 1.5;
 	renderer.toneMappingExposure = Math.pow(2, L.Exposure ?? 0) * 0.95;
 	const atm = L.Atmosphere;
 	if (atm) {

@@ -727,4 +727,47 @@ function Props.clothes(parent: Instance, base: Vector3, seed: number)
 	return m
 end
 
+-- A leafy broadleaf tree: trunk, two branches and a clustered crown of
+-- overlapping canopy balls in varied greens. `height` = total height.
+function Props.tree(parent: Instance, base: Vector3, height: number, seed: number)
+	local rng = Random.new(seed)
+	local m = Kit.model(parent, "Tree")
+	local bark = Color3.fromRGB(rng:NextInteger(92, 112), rng:NextInteger(68, 80), rng:NextInteger(48, 56))
+	local trunk = Kit.pillar(m, "Trunk", base, height * 0.55, height * 0.09, bark, Enum.Material.Wood)
+	trunk.CanCollide = true
+	for i = 1, 2 do
+		local a = rng:NextNumber(0, 6) + i * 3
+		local len = height * 0.28
+		Kit.part(m, {
+			Name = "Branch",
+			Size = Vector3.new(height * 0.045, len, height * 0.045),
+			CFrame = CFrame.new(base + Vector3.new(0, height * (0.42 + i * 0.06), 0))
+				* CFrame.Angles(0, a, 0)
+				* CFrame.Angles(math.rad(42), 0, 0)
+				* CFrame.new(0, len / 2, 0),
+			Color = bark,
+			Material = Enum.Material.Wood,
+		}).CanCollide =
+			false
+	end
+	local hue = Color3.fromRGB(rng:NextInteger(66, 104), rng:NextInteger(132, 168), rng:NextInteger(62, 84))
+	local crownY = height * 0.68
+	for i = 1, rng:NextInteger(5, 7) do
+		local s = height * rng:NextNumber(0.34, 0.5)
+		local a = i * 1.3 + rng:NextNumber(-0.3, 0.3)
+		local r = if i == 1 then 0 else height * rng:NextNumber(0.14, 0.24)
+		Kit.part(m, {
+			Name = "Canopy",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(s, s * 0.85, s),
+			Position = base
+				+ Vector3.new(math.cos(a) * r, crownY + rng:NextNumber(-0.06, 0.12) * height, math.sin(a) * r),
+			Color = hue:Lerp(Color3.fromRGB(150, 190, 90), rng:NextNumber(0, 0.3)),
+			Material = Enum.Material.Grass,
+		}).CanCollide =
+			false
+	end
+	return m
+end
+
 return Props

@@ -18,6 +18,7 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local Neighborhood = {}
 
@@ -369,8 +370,7 @@ local function park(m: Instance)
 	for _ = 1, 10 do
 		local p = center + Vector3.new(rng:NextNumber(-850, 850), 0, rng:NextNumber(-600, 600))
 		if (p - center).Magnitude > 550 then
-			Kit.pillar(m, "TreeTrunk", p, 220, 30, Color3.fromRGB(100, 75, 50), Enum.Material.Wood)
-			Kit.ball(m, "TreeCrown", p + Vector3.new(0, 280, 0), 200, Kit.Colors.DarkGrass, Enum.Material.Grass)
+			Props.tree(m, p, rng:NextNumber(380, 520), rng:NextInteger(1, 1e6))
 		end
 	end
 	-- Storm drain culvert at the park's north-west corner. The pipe opening is
