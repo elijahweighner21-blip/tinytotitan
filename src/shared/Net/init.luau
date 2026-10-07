@@ -57,7 +57,7 @@ Net.Requests = {
 	StartChallenge = { Rate = 1, Burst = 3, Purpose = "Begin a challenge run (must be at the start pad)." },
 	LeaveChallenge = { Rate = 1, Burst = 3, Purpose = "Abort the current challenge run." },
 	FastTravel = { Rate = 0.5, Burst = 2, Purpose = "Teleport to an unlocked station." },
-	Ascend = { Rate = 0.1, Burst = 1, Purpose = "Perform Ascension (prestige)." },
+	Ascend = { Rate = 0.2, Burst = 3, Purpose = "Perform Ascension (prestige)." },
 	BuyAscensionNode = { Rate = 3, Burst = 5, Purpose = "Rank up an Ascension tree node." },
 	EquipCosmetic = { Rate = 4, Burst = 8, Purpose = "Equip/unequip an owned cosmetic." },
 	EquipTitle = { Rate = 2, Burst = 4, Purpose = "Equip an owned title." },

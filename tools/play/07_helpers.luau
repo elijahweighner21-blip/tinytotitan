@@ -66,7 +66,7 @@ function E.teleport(player, position)
 	player:SetAttribute("TeleportGrace", E.epoch + E.now)
 end
 -- Walks the character toward a point at a plausible speed (keeps anti-exploit happy).
-function E.walkTo(player, position, speed)
+function E.walkTo(player, position, speed, stopWhen)
 	local root = E.root(player)
 	if not root then
 		return
@@ -76,6 +76,9 @@ function E.walkTo(player, position, speed)
 	local v = speed or 12
 	local steps = math.max(1, math.ceil(dist / v * 30))
 	for i = 1, steps do
+		if stopWhen and stopWhen() then
+			return
+		end
 		local p = start:Lerp(position, i / steps)
 		player.Character:PivotTo(CFrame.new(p))
 		E.step(1 / 30)
