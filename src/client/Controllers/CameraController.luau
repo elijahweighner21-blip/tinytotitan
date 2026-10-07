@@ -84,12 +84,34 @@ end
 
 local motionRoll = 0
 
+-- Roblox's default camera fades your character out when the camera is
+-- within ~2 studs of it. That threshold doesn't scale, so a 1-stud-tall
+-- Microscopic player was faded (invisible) at normal camera distances.
+-- Undo the fade unless the camera is genuinely inside the character.
+local function keepCharacterVisible(camera: Camera)
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	if not character or not head then
+		return
+	end
+	local h = MovementController:GetHeight()
+	if (camera.CFrame.Position - head.Position).Magnitude < h * 0.3 then
+		return -- true first person: let the default fade hide the body
+	end
+	for _, d in character:GetDescendants() do
+		if d:IsA("BasePart") and d.LocalTransparencyModifier > 0 then
+			d.LocalTransparencyModifier = 0
+		end
+	end
+end
+
 local function onRender(dt: number)
 	local camera = workspace.CurrentCamera
 	if not camera then
 		return
 	end
 	updateZoom(dt)
+	keepCharacterVisible(camera)
 	-- FOV.
 	local baseFov = SettingsController:Get("FieldOfView") or 70
 	local state = MovementController:GetState()
