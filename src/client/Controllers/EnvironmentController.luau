@@ -33,6 +33,7 @@ local ZoneController = require(script.Parent.ZoneController)
 local MovementController = require(script.Parent.MovementController)
 
 local EnvironmentController = {}
+EnvironmentController.Animated = 0
 
 -- (presetName) when the effective graphics preset changes.
 EnvironmentController.PresetChanged = Signal.new() :: Signal.Signal<string>
@@ -330,8 +331,12 @@ local lowSince: number? = nil
 local highSince: number? = nil
 local swayParts: { [BasePart]: CFrame } = {}
 local discoParts: { BasePart } = {}
-local spinners: { [PVInstance]: { Home: CFrame, Speed: number } } = {}
+type SpinInfo = { Home: CFrame, Speed: number, Parts: { BasePart }, Offsets: { CFrame }, Radius: number }
+local spinners: { [PVInstance]: SpinInfo } = {}
 local nearbySpin: { PVInstance } = {}
+local discoNear = false
+local movingParts: { BasePart } = {}
+local movingFrames: { CFrame } = {}
 local lastSwayRefresh = 0
 local nearbySway: { BasePart } = {}
 
@@ -485,7 +490,25 @@ end
 
 local function trackSpin(instance: Instance)
 	if instance:IsA("PVInstance") then
-		spinners[instance] = { Home = instance:GetPivot(), Speed = (instance:GetAttribute("Speed") :: number?) or 1 }
+		local home = instance:GetPivot()
+		local info: SpinInfo = {
+			Home = home,
+			Speed = (instance:GetAttribute("Speed") :: number?) or 1,
+			Parts = {},
+			Offsets = {},
+			Radius = 0,
+		}
+		-- Offsets from the pivot, so a frame's spin is one batched move.
+		local list: { Instance } = if instance:IsA("BasePart") then { instance } else instance:GetDescendants()
+		for _, d in list do
+			if d:IsA("BasePart") then
+				table.insert(info.Parts, d)
+				local offset = home:ToObjectSpace(d.CFrame)
+				table.insert(info.Offsets, offset)
+				info.Radius = math.max(info.Radius, offset.Position.Magnitude + d.Size.Magnitude * 0.5)
+			end
+		end
+		spinners[instance] = info
 	end
 end
 
@@ -502,29 +525,56 @@ local function animateAmbient(now: number)
 	if now - lastSwayRefresh > 1 then
 		lastSwayRefresh = now
 		table.clear(nearbySway)
+		table.clear(nearbySpin)
 		local camera = workspace.CurrentCamera
 		if camera then
-			local range = math.max(MovementController:GetHeight() * 30, 150)
+			local eye = camera.CFrame.Position
+			local h = MovementController:GetHeight()
+			-- Sway only what's near and big enough to notice at this size;
+			-- how many depends on the graphics preset.
+			local swayRange = math.max(h * 12, 150)
+			local swayCap = if effectivePreset == "High" then 250 else 100
+			local minSize = h * 0.03
 			for part in swayParts do
-				if (part.Position - camera.CFrame.Position).Magnitude < range then
+				local d = (part.Position - eye).Magnitude
+				-- Too small on screen to notice swaying? Skip it.
+				if part.Size.Y >= minSize and d < swayRange and part.Size.Y / math.max(d, 1) > 0.01 then
 					table.insert(nearbySway, part)
-					if #nearbySway >= 250 then
+					if #nearbySway >= swayCap then
 						break
 					end
 				end
 			end
-			table.clear(nearbySpin)
+			-- Spinning holograms: only the nearest few (each is many parts).
+			local spinRange = math.max(h * 30, 150)
+			local found: { { Spinner: PVInstance, D: number } } = {}
 			for spinner, info in spinners do
-				if (info.Home.Position - camera.CFrame.Position).Magnitude < range * 2 then
-					table.insert(nearbySpin, spinner)
+				local d = (info.Home.Position - eye).Magnitude
+				if d < spinRange and info.Radius / math.max(d, 1) > 0.008 then
+					table.insert(found, { Spinner = spinner, D = d })
 				end
 			end
+			table.sort(found, function(a, b)
+				return a.D < b.D
+			end)
+			for i = 1, math.min(#found, 10) do
+				table.insert(nearbySpin, found[i].Spinner)
+			end
+			EnvironmentController.Animated = #nearbySway + #nearbySpin
+			discoNear = #discoParts > 0 and (discoParts[1].Position - eye).Magnitude < math.max(h * 40, 1500)
 		end
 	end
+	-- Everything that moves this frame goes into one BulkMoveTo call.
+	table.clear(movingParts)
+	table.clear(movingFrames)
 	for _, spinner in nearbySpin do
 		local info = spinners[spinner]
 		if info and spinner.Parent then
-			spinner:PivotTo(info.Home * CFrame.Angles(0, now * info.Speed, 0))
+			local cf = info.Home * CFrame.Angles(0, now * info.Speed, 0)
+			for i, part in info.Parts do
+				table.insert(movingParts, part)
+				table.insert(movingFrames, cf * info.Offsets[i])
+			end
 		end
 	end
 	for _, part in nearbySway do
@@ -533,11 +583,18 @@ local function animateAmbient(now: number)
 			local phase = home.Position.X * 0.05 + home.Position.Z * 0.03
 			local angle = math.sin(now * 1.3 + phase) * 0.06
 			local pivot = home.Position - home.UpVector * part.Size.Y * 0.5
-			part.CFrame = CFrame.new(pivot) * CFrame.Angles(angle, 0, angle * 0.6) * CFrame.new(-pivot) * home
+			table.insert(movingParts, part)
+			table.insert(
+				movingFrames,
+				CFrame.new(pivot) * CFrame.Angles(angle, 0, angle * 0.6) * CFrame.new(-pivot) * home
+			)
 		end
 	end
+	if #movingParts > 0 then
+		workspace:BulkMoveTo(movingParts, movingFrames, Enum.BulkMoveMode.FireCFrameChanged)
+	end
 	for i, part in discoParts do
-		if part.Parent then
+		if discoNear and part.Parent then
 			part.Color = Color3.fromHSV((now * 0.2 + i * 0.13) % 1, 0.7, 1)
 		end
 	end

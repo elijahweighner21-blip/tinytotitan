@@ -53,7 +53,7 @@ local lastCheck = 0
 local lastAnimRefresh = 0
 local beaconFolder: Folder
 
-local MAX_ANIMATED = 80
+local MAX_ANIMATED = 48
 local combo = 0
 local lastCollect = 0
 
@@ -290,7 +290,8 @@ local function refreshAnimated(now: number)
 	for _, e in entries do
 		if isAvailable(e, now) then
 			local d = (e.Part.Position - origin).Magnitude
-			if d < range then
+			-- Only animate what's big enough on screen for motion to show.
+			if d < range and e.Radius / math.max(d, 1) > 0.004 then
 				table.insert(candidates, { e = e, d = d })
 			end
 		end
@@ -311,13 +312,23 @@ local function refreshAnimated(now: number)
 	end
 end
 
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
+
 local function animate(now: number)
+	table.clear(moveParts)
+	table.clear(moveFrames)
 	for _, e in animated do
 		if e.Part.Parent then
 			local bob = math.sin(now * 2 + e.Phase) * e.Radius * 0.25
 			local spin = CFrame.Angles(0, now * 1.6 + e.Phase, 0)
-			e.Part.CFrame = CFrame.new(e.Home.Position + Vector3.new(0, bob, 0)) * spin * e.Home.Rotation
+			table.insert(moveParts, e.Part)
+			table.insert(moveFrames, CFrame.new(e.Home.Position + Vector3.new(0, bob, 0)) * spin * e.Home.Rotation)
 		end
+	end
+	if #moveParts > 0 then
+		-- One batched move instead of a property write per collectible.
+		workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end
 

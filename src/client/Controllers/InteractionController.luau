@@ -79,6 +79,9 @@ local KEY_GLYPH: { [string]: string } = {
 	Touch = "TAP",
 }
 
+local positionCache: { [Instance]: { Position: Vector3, Size: number, At: number } } = {}
+setmetatable(positionCache :: any, { __mode = "k" })
+
 local function positionOf(instance: Instance): (Vector3?, number)
 	if instance:IsA("BasePart") then
 		return instance.Position, instance.Size.Magnitude
@@ -257,8 +260,7 @@ local function buildTarget(kind: string, instance: Instance): Target?
 end
 
 -- How far away a target of this kind can be used from.
-local function reachFor(kind: string, instance: Instance, size: number): number
-	local derived = DataController:GetDerived()
+local function reachFor(kind: string, instance: Instance, size: number, derived: any): number
 	local myHeight = derived.Height
 	if kind == "Interactable" or kind == "LockedDoor" then
 		return derived.InteractRange + size * 0.6
@@ -303,13 +305,27 @@ local function scan(): Target?
 	local best: Target? = nil
 	local bestScore = math.huge
 	local look = root.CFrame.LookVector
+	-- Stats once per scan (deriving them is not free), and cached positions
+	-- for things that never move (stations, pads, NPCs, doors).
+	local derived = DataController:GetDerived()
+	local now = os.clock()
 	for _, kind in TAGS do
+		local static = kind ~= "Interactable"
 		for instance in tracked[kind] do
-			local position, size = positionOf(instance)
+			local position: Vector3?, size: number
+			local cached = if static then positionCache[instance] else nil
+			if cached and now - cached.At < 5 then
+				position, size = cached.Position, cached.Size
+			else
+				position, size = positionOf(instance)
+				if static and position then
+					positionCache[instance] = { Position = position :: Vector3, Size = size, At = now }
+				end
+			end
 			if position then
 				local offset = position - origin
 				local dist = offset.Magnitude
-				local reach = reachFor(kind, instance, size)
+				local reach = reachFor(kind, instance, size, derived)
 				if dist <= reach then
 					-- Prefer things in front of the player.
 					local facingBonus = if dist > 0.01 then 1 - 0.35 * offset.Unit:Dot(look) else 0.65

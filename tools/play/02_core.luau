@@ -178,11 +178,14 @@ function SignalMT:Fire(...)
 				-- Workspace.SignalBehavior = Deferred (the default for new
 				-- places): handlers run at the next resumption point, and a
 				-- connection disconnected in the meantime never runs.
-				task.defer(function(...)
+				local co = task.defer(function(...)
 					if c.Connected then
 						c._fn(...)
 					end
 				end, ...)
+				if E.profiling then
+					labels[co] = labelFor(c._fn)
+				end
 			else
 				spawnFn(c._fn, ...)
 			end

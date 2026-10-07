@@ -541,7 +541,6 @@ local function streets(m: Instance)
 			Enum.Material.Neon
 		)
 		head.CanCollide = false
-		Kit.light(head, Color3.fromRGB(255, 214, 160), 60, 1.2)
 	end
 	for _, x in XS do
 		for _, z in ZS do
