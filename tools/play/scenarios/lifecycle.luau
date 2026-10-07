@@ -105,6 +105,30 @@ E.check("tier increased", alice:GetAttribute("Tier") > tier0, tostring(tier0) ..
 E.check("character grew", alice.Character:GetScale() > 0.21, tostring(alice.Character:GetScale()))
 E.check("still alive after growing", alice.Character:FindFirstChildOfClass("Humanoid").Health > 0)
 
+print("== Flying")
+local AntiExploit = E.serverModule("Services.AntiExploitService")
+local groundPos = E.root(alice).Position
+local sky = groundPos + Vector3.new(0, 0, 0) + Vector3.new(30000, 3000, 30000)
+local function airborne()
+	local p = RaycastParams.new()
+	p.FilterType = Enum.RaycastFilterType.Exclude
+	p.FilterDescendantsInstances = { alice.Character }
+	return E.workspace:Raycast(E.root(alice).Position, Vector3.new(0, -2000, 0), p) == nil
+end
+-- Falling fast through the void (as after a mega jump or glide) is never punished.
+E.teleport(alice, sky)
+E.run(4)
+E.root(alice).AssemblyLinearVelocity = Vector3.new(0, -60, 0)
+local score0 = AntiExploit:GetScore(alice)
+E.run(8)
+E.check("falling player is not flagged as flying", AntiExploit:GetScore(alice) <= score0 and airborne(), AntiExploit:GetScore(alice))
+-- Hovering with no ground below for several seconds is corrected.
+E.root(alice).AssemblyLinearVelocity = Vector3.zero
+E.run(8)
+E.check("hovering player is returned to the ground", not airborne(), tostring(E.root(alice).Position))
+E.teleport(alice, groundPos)
+E.run(4)
+
 print("== Save, leave, rejoin")
 local snapshot = { Mass = E.data(alice).Currencies.Mass, GE = E.data(alice).Currencies.GrowthEnergy, Up = E.data(alice).Upgrades.MassGain, Collectibles = 0 }
 E.removePlayer(alice)
