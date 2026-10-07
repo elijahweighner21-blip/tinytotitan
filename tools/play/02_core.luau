@@ -1,5 +1,6 @@
 -- Scheduler, signals and logging for the headless engine.
 local E = __E
+E.deferredEvents = true -- like Workspace.SignalBehavior = Default (Deferred) in real Roblox
 
 E.now = 1000 -- virtual seconds since "server start"
 E.epoch = 1791000000 -- os.time() at now = 0 (a fixed date for reproducibility)
@@ -173,7 +174,18 @@ function SignalMT:Fire(...)
 	self._conns = alive
 	for _, c in alive do
 		if c.Connected then
-			spawnFn(c._fn, ...)
+			if E.deferredEvents then
+				-- Workspace.SignalBehavior = Deferred (the default for new
+				-- places): handlers run at the next resumption point, and a
+				-- connection disconnected in the meantime never runs.
+				task.defer(function(...)
+					if c.Connected then
+						c._fn(...)
+					end
+				end, ...)
+			else
+				spawnFn(c._fn, ...)
+			end
 		end
 	end
 end

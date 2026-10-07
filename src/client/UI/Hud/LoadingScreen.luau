@@ -102,11 +102,23 @@ function LoadingScreen.run()
 	end
 	if not DataController:IsLoaded() then
 		setStep("Still loading your save — hang tight...", 0.6)
-		DataController.Loaded:Wait()
+		-- The server kicks with an explanation if the save truly can't load,
+		-- so this only ends early if something else went wrong.
+		while not DataController:IsLoaded() and os.clock() - started < 120 do
+			task.wait(0.25)
+		end
 	end
 	setStep("Preparing Character...", 0.8)
-	local character = player.Character or player.CharacterAdded:Wait()
-	character:WaitForChild("HumanoidRootPart", 15)
+	local waitedFrom = os.clock()
+	while not player.Character and os.clock() - waitedFrom < 25 do
+		task.wait(0.1)
+	end
+	local character = player.Character
+	if character then
+		character:WaitForChild("HumanoidRootPart", 10)
+	else
+		warn("[Client] no character after 25s; showing the game anyway")
+	end
 	setStep("Ready!", 1)
 	task.wait(0.35)
 end

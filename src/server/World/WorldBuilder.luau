@@ -218,7 +218,12 @@ function WorldBuilder.build()
 	end
 	local root = Instance.new("Folder")
 	root.Name = "World"
-	setupLighting()
+	local lightingOk, lightingErr = pcall(function()
+		setupLighting()
+	end)
+	if not lightingOk then
+		Log.error("World", "lighting failed:", lightingErr)
+	end
 
 	local order = {
 		"House",
@@ -249,11 +254,21 @@ function WorldBuilder.build()
 	if not ok then
 		Log.error("World", "courses failed:", err)
 	end
-	buildVipLounge(root)
+	local function step(name: string, fn: () -> ())
+		local stepOk, stepErr = pcall(function()
+			fn()
+		end)
+		if not stepOk then
+			Log.error("World", name, "failed:", stepErr)
+		end
+	end
+	step("VIP lounge", function()
+		buildVipLounge(root)
+	end)
 	root.Parent = workspace
 	WorldBuilder.Built = true
-	validate()
-	publishIndex()
+	step("validation", validate)
+	step("world index", publishIndex)
 	Log.info("World", string.format("built %d parts in %.2fs", Kit.partCount(), os.clock() - started))
 end
 

@@ -222,7 +222,15 @@ function E.summary()
 		table.sort(keys)
 		print("Emulator: unknown property reads (nil): " .. table.concat(keys, ", "))
 	end
-	if checks.failed > 0 or errors > 0 then
+	local bad = {}
+	for k in E.unknownWrites do
+		table.insert(bad, k)
+	end
+	table.sort(bad)
+	if #bad > 0 then
+		print("✗ property writes that are not valid in real Roblox: " .. table.concat(bad, ", "))
+	end
+	if checks.failed > 0 or errors > 0 or #bad > 0 then
 		print("@@FAIL@@")
 	end
 end

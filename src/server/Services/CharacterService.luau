@@ -79,6 +79,51 @@ local function standingPosition(ground: Vector3, scale: number): Vector3
 	return ground + Vector3.new(0, ScaleMath.height(scale) * 0.55 + 1, 0)
 end
 
+-- LoadCharacterAsync is the current API; older Studio builds only have
+-- LoadCharacter. Never let a missing API leave a player without a body.
+local function spawnCharacter(player: Player)
+	if not player.Parent then
+		return
+	end
+	local ok, err = pcall(function()
+		player:LoadCharacterAsync()
+	end)
+	if not ok then
+		Log.warn("Character", "LoadCharacterAsync failed, falling back:", err)
+		local okLegacy, errLegacy = pcall(function()
+			(player :: any):LoadCharacter()
+		end)
+		if not okLegacy then
+			Log.error("Character", "could not spawn", player.UserId, errLegacy)
+		end
+	end
+end
+
+-- If the spawn point has no floor (a region failed to build), put a pad
+-- there so the player never falls forever.
+local function ensureGround(spawn: Vector3, scale: number)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local characters = {}
+	for _, other in Players:GetPlayers() do
+		if other.Character then
+			table.insert(characters, other.Character)
+		end
+	end
+	params.FilterDescendantsInstances = characters
+	local h = ScaleMath.height(scale)
+	if workspace:Raycast(spawn + Vector3.new(0, h * 2, 0), Vector3.new(0, -h * 6 - 20, 0), params) then
+		return
+	end
+	Log.error("Character", "no ground at spawn", tostring(spawn), "- placing a safety pad")
+	local pad = Instance.new("Part")
+	pad.Name = "SafetyPad"
+	pad.Anchored = true
+	pad.Size = Vector3.new(math.max(h * 8, 12), 1, math.max(h * 8, 12))
+	pad.Position = spawn - Vector3.new(0, 0.5, 0)
+	pad.Parent = workspace
+end
+
 function CharacterService:GetSpawnPosition(player: Player): Vector3
 	local tier = ProgressionService:GetTier(player)
 	local chosen = respawnPoints[player]
@@ -179,6 +224,7 @@ local function onCharacterAdded(player: Player, character: Model)
 	local placed, err = pcall(function()
 		ScaleService:ApplyNow(player)
 		local spawn = CharacterService:GetSpawnPosition(player)
+		ensureGround(spawn, ScaleService:GetScale(player))
 		local position = standingPosition(spawn, ScaleService:GetScale(player))
 		player:SetAttribute("TeleportGrace", workspace:GetServerTimeNow())
 		character:PivotTo(CFrame.new(position))
@@ -192,7 +238,7 @@ local function onCharacterAdded(player: Player, character: Model)
 		CharacterService.Died:Fire(player)
 		task.delay(GameConfig.RespawnTime, function()
 			if player.Parent and player.Character == character then
-				player:LoadCharacterAsync()
+				spawnCharacter(player)
 			end
 		end)
 	end)
@@ -225,9 +271,7 @@ function CharacterService:Start()
 			player.Character = nil
 		end
 		if PlayerDataService:IsLoaded(player) then
-			task.spawn(function()
-				player:LoadCharacterAsync()
-			end)
+			task.spawn(spawnCharacter, player)
 		end
 	end
 	Players.PlayerAdded:Connect(onPlayer)
@@ -238,7 +282,49 @@ function CharacterService:Start()
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		if not character or not humanoid or humanoid.Health <= 0 then
-			player:LoadCharacterAsync()
+			spawnCharacter(player)
+		end
+	end)
+	-- Watchdog: a loaded player without a living body for a while (a spawn
+	-- failed or an event was missed) gets one; a body still frozen long
+	-- after spawning is released.
+	task.spawn(function()
+		local missingSince: { [Player]: number } = {}
+		while true do
+			task.wait(2)
+			local now = os.clock()
+			for _, player in Players:GetPlayers() do
+				local character = player.Character
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+				local missing = PlayerDataService:IsLoaded(player)
+					and (not humanoid or not root or humanoid.Health <= 0)
+				if missing then
+					missingSince[player] = missingSince[player] or now
+					if now - missingSince[player] > GameConfig.RespawnTime + 6 then
+						missingSince[player] = nil
+						Log.warn("Character", "watchdog respawning", player.UserId)
+						task.spawn(spawnCharacter, player)
+					end
+				else
+					missingSince[player] = nil
+				end
+				if root and root.Anchored and humanoid and humanoid.Health > 0 then
+					local since = (root:GetAttribute("FrozenSince") :: number?) or now
+					root:SetAttribute("FrozenSince", since)
+					if now - since > 10 then
+						Log.warn("Character", "watchdog unfreezing", player.UserId)
+						root.Anchored = false
+					end
+				elseif root then
+					root:SetAttribute("FrozenSince", nil)
+				end
+			end
+			for player in missingSince do
+				if not player.Parent then
+					missingSince[player] = nil
+				end
+			end
 		end
 	end)
 	Players.PlayerRemoving:Connect(function(player)

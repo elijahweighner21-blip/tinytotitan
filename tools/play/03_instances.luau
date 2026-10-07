@@ -123,6 +123,42 @@ end
 
 local setParent
 
+-- Would this property write error in real Roblox ("X is not a valid member
+-- of Part")? Checked against the official API definitions (E.api).
+E.unknownWrites = {}
+local apiSets = {}
+local function apiHas(className, key)
+	local seen = 0
+	while className and className ~= "" and seen < 30 do
+		seen += 1
+		local set = apiSets[className]
+		if not set then
+			local raw = E.api and E.api[className]
+			if not raw then
+				return nil -- class unknown to the definitions: can't tell
+			end
+			set = { __parent = raw[1] }
+			for i = 2, #raw do
+				set[raw[i]] = true
+			end
+			apiSets[className] = set
+		end
+		if set[key] then
+			return true
+		end
+		className = set.__parent
+	end
+	return false
+end
+function E.checkWrite(className, key)
+	if type(key) ~= "string" or not E.api then
+		return
+	end
+	if apiHas(className, key) == false then
+		E.unknownWrites[className .. "." .. key] = true
+	end
+end
+
 InstMT.__newindex = function(o, k, v)
 	if k == "Parent" then
 		setParent(o, v)
@@ -137,6 +173,7 @@ InstMT.__newindex = function(o, k, v)
 		return
 	end
 	local c = rawget(o, "__class")
+	E.checkWrite(c.Name, k)
 	local s = lookup(c, "set", k)
 	if s then
 		s(o, v)

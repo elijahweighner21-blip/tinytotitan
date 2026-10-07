@@ -115,10 +115,14 @@ function DataController:Start()
 	else
 		player:GetAttributeChangedSignal("DataLoaded"):Once(ready)
 	end
-	-- Retry in case the first request raced the server's load.
-	task.delay(8, function()
-		if not data and player:GetAttribute("DataLoaded") then
-			ready()
+	-- Keep asking until the snapshot arrives, in case a request raced the
+	-- server's load or was dropped.
+	task.spawn(function()
+		while not data and player.Parent do
+			task.wait(5)
+			if not data and player:GetAttribute("DataLoaded") then
+				ready()
+			end
 		end
 	end)
 end

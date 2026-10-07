@@ -24,7 +24,20 @@ local WorldBuilder = require(Server.World.WorldBuilder)
 game:GetService("Players").CharacterAutoLoads = false
 
 Net.init()
-WorldBuilder.build()
+-- A world-building error must never stop the services from starting:
+-- without them nobody's save loads and nobody spawns.
+local built, buildErr = pcall(function()
+	WorldBuilder.build()
+end)
+if not built then
+	Log.error("Boot", "world build failed:", buildErr)
+end
+if not ReplicatedStorage:FindFirstChild("WorldIndex") then
+	-- Clients wait for this during loading; never leave them waiting.
+	local index = Instance.new("Folder")
+	index.Name = "WorldIndex"
+	index.Parent = ReplicatedStorage
+end
 
 -- Explicit order: core first, then gameplay, then meta systems. Anything not
 -- listed still loads afterwards (with a warning) so new services are never

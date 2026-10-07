@@ -95,6 +95,30 @@ try {
 	process.exit(1);
 }
 
+// Real Roblox class members from the luau-lsp definitions, so the emulator
+// can flag property writes that would error in a live game.
+function apiTable() {
+	const defs = path.join(root, ".tools", "globalTypes.d.luau");
+	if (!fs.existsSync(defs)) return "";
+	const lines = fs.readFileSync(defs, "utf8").split("\n");
+	const classes = [];
+	let current = null;
+	for (const line of lines) {
+		const head = /^declare extern type (\w+)(?: extends (\w+))? with/.exec(line);
+		if (head) {
+			current = { name: head[1], parent: head[2] ?? "", members: [] };
+			classes.push(current);
+		} else if (current && /^end/.test(line)) {
+			current = null;
+		} else if (current) {
+			const m = /^\t(?:function )?(\w+)[:(]/.exec(line);
+			if (m) current.members.push(m[1]);
+		}
+	}
+	const body = classes.map((c) => `[${JSON.stringify(c.name)}]={${[c.parent, ...c.members].map((x) => JSON.stringify(x)).join(",")}}`).join(",\n");
+	return `E.api = {\n${body}\n}\n`;
+}
+
 // `--play <scenario>`: boots the real game inside the headless Roblox engine
 // emulator (tools/play/*.luau) and runs a scenario script against it.
 function runPlay(scenario) {
@@ -126,7 +150,7 @@ function runPlay(scenario) {
 		walk(path.join(root, dir), base);
 	}
 	entries.sort((a, b) => a.vp.length - b.vp.length);
-	let bundle = engine + "\nlocal E = __E\n";
+	let bundle = engine + "\nlocal E = __E\n" + apiTable();
 	for (const e of entries) {
 		const vp = "{" + e.vp.map((x) => JSON.stringify(x)).join(",") + "}";
 		bundle += `E.mount(${vp}, ${JSON.stringify(e.kind)}, ${longString(e.source)}, ${JSON.stringify(e.file)})\n`;

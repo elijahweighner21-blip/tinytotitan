@@ -31,8 +31,12 @@ node tools/test/runner.mjs --play tools/play/scenarios/<name>.luau
 | `layout` | HUD and menus at six resolutions (phone portrait to 4K): on-screen, no overlaps, windows fit |
 | `datasafety` | corrupted, old-version and raw saves, session-lock handoff between servers, save outages |
 | `load` | 12 players of every size for 60 s with a script profiler (server CPU per service) |
+| `resilience` | the spawn region fails to build *and* `LoadCharacterAsync` is missing: the player still spawns (legacy fallback, safety pad), the loading screen clears, the watchdog replaces a lost body and releases a frozen one |
+| `resilience-world` | the whole world build throws: services still start, the save loads, the player spawns |
 
-A scenario prints `@@FAIL@@` and exits non-zero on any failed check or server/client error.
+Events fire deferred, like `Workspace.SignalBehavior = Default` in a new place. Every property write is checked against the official Roblox API definitions; a name that would error in a live game ("X is not a valid member of Part") fails the scenario.
+
+A scenario prints `@@FAIL@@` and exits non-zero on any failed check, server/client error or invalid property write.
 
 The emulator does **not** simulate physics (gravity, collisions, joints), rendering, animation, sound playback or real network latency, so it proves logic and wiring — not feel.
 
