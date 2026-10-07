@@ -175,11 +175,17 @@ local function onCharacterAdded(player: Player, character: Model)
 		return
 	end
 
-	ScaleService:ApplyNow(player)
-	local spawn = CharacterService:GetSpawnPosition(player)
-	local position = standingPosition(spawn, ScaleService:GetScale(player))
-	player:SetAttribute("TeleportGrace", workspace:GetServerTimeNow())
-	character:PivotTo(CFrame.new(position))
+	-- Whatever happens while placing the character, never leave it frozen.
+	local placed, err = pcall(function()
+		ScaleService:ApplyNow(player)
+		local spawn = CharacterService:GetSpawnPosition(player)
+		local position = standingPosition(spawn, ScaleService:GetScale(player))
+		player:SetAttribute("TeleportGrace", workspace:GetServerTimeNow())
+		character:PivotTo(CFrame.new(position))
+	end)
+	if not placed then
+		Log.error("Character", "placing character failed:", err)
+	end
 	root.Anchored = false
 
 	trove:Connect(humanoid.Died, function()

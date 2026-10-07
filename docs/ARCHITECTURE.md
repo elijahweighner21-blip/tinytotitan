@@ -5,7 +5,7 @@
 **Server** (`src/server/Main.server.luau`)
 
 1. `Net.init()` creates the six remotes immediately, so clients never wait on them.
-2. `WorldBuilder.build()` generates every region, challenge course and the VIP lounge, tags gameplay markers (`DiscoveryRegion`, `Collectible`, `NPCSpawn`, `BossArena`, …), validates that every configured discovery/NPC/boss/station exists, and publishes `ReplicatedStorage.WorldIndex` (positions of named targets for quest markers and the map, available even when streamed out).
+2. `WorldBuilder.build()` generates every region, challenge course and the VIP lounge, tags gameplay markers (`DiscoveryRegion`, `Collectible`, `NPCSpawn`, `BossArena`, …), validates that every configured discovery/NPC/boss/station exists, and publishes `ReplicatedStorage.WorldIndex` (positions of named targets for quest markers and the map).
 3. `Loader.run` requires all 44 services, calls `Init` on each in dependency order (wire handlers; no yielding on other services), then `Start` (loops, player hooks). A failing service is logged and skipped; it never stops the others.
 
 **Client** (`src/client/Main.client.luau`)
@@ -61,7 +61,7 @@ Additive sources (VIP, events, upgrades, ascension, party) are summed and capped
 
 ## Performance
 
-* World geometry is mostly anchored, non-colliding decor where possible; `StreamingEnabled` is on.
+* World geometry is mostly anchored, non-colliding decor where possible. `StreamingEnabled` is off: the world is ~4k parts, and streaming could leave a freshly spawned player without a floor.
 * Collectibles: proximity checks every 0.1s, only the ~80 nearest animate.
 * Effects are pooled, scaled by the Particles setting and graphics preset; other players' effects are capped (closest N) and can be hidden.
 * The Auto graphics preset steps quality down when FPS stays low and recovers slowly.

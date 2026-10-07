@@ -32,7 +32,7 @@
       "$className": "Workspace",
       "$properties": {
         "Gravity": 196.2,
-        "StreamingEnabled": true,
+        "StreamingEnabled": false,
         "FallenPartsDestroyHeight": -2000
       }
     },
