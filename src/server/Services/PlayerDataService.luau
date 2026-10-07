@@ -40,6 +40,7 @@ local ServerRoot = script.Parent.Parent
 local Net = require(ServerRoot.Net)
 local SessionLock = require(ServerRoot.Logic.SessionLock)
 local MockDataStore = require(ServerRoot.Logic.MockDataStore)
+local ContentSanitizer = require(ServerRoot.Logic.ContentSanitizer)
 
 type Data = DataSchema.Data
 
@@ -372,6 +373,10 @@ local function loadProfile(player: Player)
 	end
 
 	local data = DataSchema.prepare(loadedRaw)
+	local fixes = ContentSanitizer.apply(data)
+	if #fixes > 0 then
+		Log.warn("PlayerData", "repaired save for", player.UserId, table.concat(fixes, "; "))
+	end
 	local now = os.time()
 	local meta = (data :: any).Meta
 	if meta.FirstJoin == 0 then

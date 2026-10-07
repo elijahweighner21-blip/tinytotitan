@@ -222,3 +222,34 @@ describe("ReceiptLedger", function()
 		expect(ledger.p10).toBe(10)
 	end)
 end)
+
+describe("ContentSanitizer", function()
+	local ContentSanitizer = require(Server.Logic.ContentSanitizer)
+	local DataSchema = require(Shared.Data.DataSchema)
+	it("removes retired ids and clamps upgrade levels", function()
+		local data = DataSchema.new()
+		data.Upgrades.MassGain = 9999
+		data.Upgrades.Gone = 3
+		data.Skills.Gone = true
+		data.Quests.Active.Gone = { Progress = { 1 }, StartedAt = 0 }
+		data.Quests.Tracked = "Gone"
+		data.Cosmetics.Owned.Gone = true
+		data.Cosmetics.Equipped.Trail = { "Gone" }
+		local fixes = ContentSanitizer.apply(data)
+		expect(data.Upgrades.MassGain).toBe(40)
+		expect(data.Upgrades.Gone).toBe(nil)
+		expect(data.Skills.Gone).toBe(nil)
+		expect(data.Quests.Active.Gone).toBe(nil)
+		expect(data.Quests.Tracked).toBe("")
+		expect(data.Cosmetics.Owned.Gone).toBe(nil)
+		expect(data.Cosmetics.Equipped.Trail).toBe(nil)
+		expect(#fixes >= 5).toBe(true)
+	end)
+	it("leaves valid data untouched", function()
+		local data = DataSchema.new()
+		data.Upgrades.MassGain = 3
+		data.Skills.Slide = true
+		expect(#ContentSanitizer.apply(data)).toBe(0)
+		expect(data.Upgrades.MassGain).toBe(3)
+	end)
+end)
