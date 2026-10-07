@@ -59,7 +59,7 @@ terrain.Name = "Terrain"
 terrain.Parent = workspace
 
 local CELL = 64
-local BIG = 512
+local BIG = 2048
 local grid = {} -- key -> set of parts
 local bigParts = {} -- set
 local indexed = {} -- part -> { keys = {...} } or "big"
@@ -174,23 +174,37 @@ local function candidatesInBox(mn, mx)
 	return out
 end
 
-local function filtered(p, params)
+-- Builds a membership test for a params filter list (ancestor walk + set).
+local function filterFor(params)
 	if not params then
-		return true
-	end
-	local list = params.FilterDescendantsInstances or {}
-	local hit = false
-	for _, f in list do
-		if p == f or p:IsDescendantOf(f) then
-			hit = true
-			break
+		return function()
+			return true
 		end
 	end
-	local include = params.FilterType == Enum.RaycastFilterType.Include or params.FilterType == Enum.RaycastFilterType.Whitelist
-	if include then
-		return hit
+	local set = {}
+	local any = false
+	for _, f in params.FilterDescendantsInstances or {} do
+		set[f] = true
+		any = true
 	end
-	return not hit
+	local include = params.FilterType == Enum.RaycastFilterType.Include or params.FilterType == Enum.RaycastFilterType.Whitelist
+	return function(p)
+		local hit = false
+		if any then
+			local x = p
+			while x do
+				if set[x] then
+					hit = true
+					break
+				end
+				x = rawget(x, "__parent")
+			end
+		end
+		if include then
+			return hit
+		end
+		return not hit
+	end
 end
 
 local function rayOBB(origin, dir, p)
@@ -239,9 +253,10 @@ function wm.Raycast(_, origin, direction, params)
 	local finish = origin + direction
 	local cands = candidatesInBox(origin:Min(finish), origin:Max(finish))
 	local respect = params and params.RespectCanCollide
+	local passes = filterFor(params)
 	local bestT, bestPart, bestN = math.huge, nil, nil
 	for p in cands do
-		if (if respect then p.CanCollide else p.CanQuery) and filtered(p, params) then
+		if (if respect then p.CanCollide else p.CanQuery) and passes(p) then
 			local t, n = rayOBB(origin, direction, p)
 			if t and t < bestT then
 				bestT, bestPart, bestN = t, p, n
@@ -265,11 +280,12 @@ function wm.Shapecast(w, part, dir, params)
 end
 local function boxQuery(mn, mx, params)
 	local out = {}
+	local passes = filterFor(params)
 	for p in candidatesInBox(mn, mx) do
 		local a, b = aabb(p)
 		if a.X <= mx.X and b.X >= mn.X and a.Y <= mx.Y and b.Y >= mn.Y and a.Z <= mx.Z and b.Z >= mn.Z then
 			local ok = if params and params.RespectCanCollide then p.CanCollide else p.CanQuery
-			if ok and filtered(p, params) then
+			if ok and passes(p) then
 				table.insert(out, p)
 			end
 		end
@@ -387,6 +403,9 @@ function pm.GetNetworkPing()
 	return 0.05
 end
 function pm.RequestStreamAroundAsync() end
+classes.Player.get.Character = function(p)
+	return rawget(p, "__props").Character
+end
 classes.Player.set.Character = function(p, v)
 	rawget(p, "__props").Character = v
 end

@@ -375,6 +375,9 @@ local EnemyConfig = {
 	ActivationRadiusMultiplier = 3,
 	SleepAfter = 25,
 	AITickRate = 0.2, -- seconds between AI decisions (movement is physics-smoothed)
+	-- Safe zones: enemies never target players within this many zone-player
+	-- heights of a zone spawn or fast-travel pad (no spawn camping).
+	SafeZoneHeights = 12,
 	MaxEnemiesPerServer = 120,
 	StaggerTime = 0.6,
 	RespawnDelay = 18,

@@ -26,6 +26,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local EnemyConfig = require(Shared.Config.EnemyConfig)
 local ZoneConfig = require(Shared.Config.ZoneConfig)
+local SizeConfig = require(Shared.Config.SizeConfig)
 local GameConfig = require(Shared.Config.GameConfig)
 local CombatMath = require(Shared.Formulas.CombatMath)
 local ScaleMath = require(Shared.Formulas.ScaleMath)
@@ -81,6 +82,8 @@ export type Enemy = {
 	Pending: { at: number, position: Vector3, radius: number }?,
 	ExpiresAt: number?,
 	OnDeath: ((enemy: Enemy) -> ())?,
+	GroundAt: Vector3?, -- last ground probe (reused while the goal barely moves)
+	GroundY: number?,
 }
 
 local spawners: { Spawner } = {}
@@ -106,7 +109,15 @@ end
 
 local function setTarget(enemy: Enemy, position: Vector3)
 	local flyer = enemy.Def.Behavior == "Flyer"
-	local y = groundY(position, enemy.H)
+	local y: number?
+	local last = enemy.GroundAt
+	if last and Vector3.new(position.X - last.X, 0, position.Z - last.Z).Magnitude < enemy.H * 0.75 then
+		y = enemy.GroundY
+	else
+		y = groundY(position, enemy.H)
+		enemy.GroundAt = position
+		enemy.GroundY = y
+	end
 	local hover = if flyer then enemy.H * 2.2 else enemy.H * 0.5
 	local targetY = if y then y + hover else enemy.Root.Position.Y
 	enemy.Align.Position = Vector3.new(position.X, targetY, position.Z)
@@ -120,6 +131,19 @@ local function playerScale(player: Player): number
 	return ScaleService:GetScale(player)
 end
 
+-- Safe zones around spawns and fast-travel pads (built in Start).
+local safeZones: { { Position: Vector3, Radius: number } } = {}
+
+local function inSafeZone(position: Vector3): boolean
+	for _, zone in safeZones do
+		local d = position - zone.Position
+		if Vector3.new(d.X, 0, d.Z).Magnitude < zone.Radius then
+			return true
+		end
+	end
+	return false
+end
+
 -- Picks the closest valid player within detect range.
 local function findTarget(enemy: Enemy): Player?
 	local best: Player? = nil
@@ -130,7 +154,11 @@ local function findTarget(enemy: Enemy): Player?
 			local scale = playerScale(player)
 			if scale <= enemy.Def.Scale * EnemyConfig.IgnoreSizeRatio then
 				local d = (root.Position - enemy.Root.Position).Magnitude - ScaleMath.height(scale) * 0.5
-				if d < bestDist and (root.Position - enemy.Home).Magnitude < enemy.LeashRadius * 1.2 then
+				if
+					d < bestDist
+					and (root.Position - enemy.Home).Magnitude < enemy.LeashRadius * 1.2
+					and not inSafeZone(root.Position)
+				then
 					best = player
 					bestDist = d
 				end
@@ -431,7 +459,12 @@ local function tick(enemy: Enemy, now: number)
 	end
 	local target = enemy.Target
 	local targetRoot = target and CharacterService:GetRoot(target)
-	if not targetRoot or not target or playerScale(target) > def.Scale * EnemyConfig.IgnoreSizeRatio then
+	if
+		not targetRoot
+		or not target
+		or playerScale(target) > def.Scale * EnemyConfig.IgnoreSizeRatio
+		or inSafeZone(targetRoot.Position)
+	then
 		enemy.Target = findTarget(enemy)
 		target = enemy.Target
 		targetRoot = target and CharacterService:GetRoot(target)
@@ -541,6 +574,17 @@ function EnemyService:Init()
 end
 
 function EnemyService:Start()
+	for _, zone in ZoneConfig.Zones do
+		local h = ScaleMath.height(SizeConfig.getTier(zone.RecommendedTiers[1]).Scale)
+		table.insert(safeZones, { Position = zone.Spawn, Radius = h * EnemyConfig.SafeZoneHeights })
+	end
+	for _, pad in CollectionService:GetTagged("FastTravelStation") do
+		local zone = ZoneConfig.get(pad:GetAttribute("StationId") :: string)
+		if zone and pad:IsA("BasePart") then
+			local h = ScaleMath.height(SizeConfig.getTier(zone.RecommendedTiers[1]).Scale)
+			table.insert(safeZones, { Position = pad.Position, Radius = h * EnemyConfig.SafeZoneHeights * 0.6 })
+		end
+	end
 	-- Character folders are excluded from ground raycasts as they appear.
 	local function refreshFilter()
 		local list: { Instance } = { folder }

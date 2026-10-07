@@ -32,6 +32,9 @@ type State = {
 	sprinting: boolean,
 	drains: { [string]: number }, -- continuous drains per second (wall run, glide, climb)
 	sprintReported: boolean,
+	sentE: number?, -- last values sent to the client
+	sentM: number?,
+	sentAt: number?,
 }
 
 local states: { [Player]: State } = {}
@@ -145,7 +148,11 @@ function EnergyService:Start()
 					if s.energy > max then
 						s.energy = max
 					end
-					if sync then
+					-- Only correct the client when the value moved (it predicts
+					-- regen itself), with a slow keep-alive.
+					local changed = math.abs(s.energy - (s.sentE or -1)) >= 1 or math.floor(max) ~= s.sentM
+					if sync and (changed or os.clock() - (s.sentAt or 0) > 5) then
+						s.sentE, s.sentM, s.sentAt = s.energy, math.floor(max), os.clock()
 						Net.energy(player, { E = math.floor(s.energy * 10) / 10, M = math.floor(max) })
 					end
 				end

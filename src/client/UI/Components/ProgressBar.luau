@@ -91,6 +91,11 @@ end
 
 function ProgressBar.Set(self: any, fraction: number, instant: boolean?)
 	local f = math.clamp(if fraction ~= fraction then 0 else fraction, 0, 1)
+	-- Callers may update every frame; only animate actual changes.
+	if self._set and math.abs(f - self._fraction) < 1e-4 then
+		return
+	end
+	self._set = true
 	local grew = f > self._fraction + 0.001
 	self._fraction = f
 	if instant then

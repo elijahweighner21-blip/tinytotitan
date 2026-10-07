@@ -14,6 +14,17 @@ local function record(kind, text)
 end
 E.record = record
 
+------------------------------------------------------------------ profiling
+local realClock = os.clock
+E.realClock = realClock
+E.profile = {} -- label -> { time, calls }
+E.profiling = false
+local labels = setmetatable({}, { __mode = "k" })
+local function labelFor(fn)
+	local src, line, name = debug.info(fn, "sln")
+	return string.format("%s:%d %s", tostring(src), line or 0, name or "")
+end
+
 ------------------------------------------------------------------ threads
 local waiting = {} -- array of { thread, wake, token, args }
 local deferred = {} -- array of { thread, args }
@@ -32,7 +43,18 @@ local function resume(co, ...)
 		return
 	end
 	tokens[co] = nil
+	local t0 = if E.profiling then realClock() else 0
 	local ok, a, b = coroutine.resume(co, ...)
+	if E.profiling then
+		local label = labels[co] or "?"
+		local entry = E.profile[label]
+		if not entry then
+			entry = { time = 0, calls = 0 }
+			E.profile[label] = entry
+		end
+		entry.time += realClock() - t0
+		entry.calls += 1
+	end
 	if not ok then
 		reportError(co, a)
 		return
@@ -51,6 +73,7 @@ local function spawnFn(fn, ...)
 		return fn
 	end
 	local co = coroutine.create(fn)
+	labels[co] = labelFor(fn)
 	resume(co, ...)
 	return co
 end
@@ -61,11 +84,17 @@ function task.spawn(fn, ...)
 end
 function task.defer(fn, ...)
 	local co = if type(fn) == "thread" then fn else coroutine.create(fn)
+	if type(fn) == "function" then
+		labels[co] = labelFor(fn)
+	end
 	table.insert(deferred, { thread = co, args = table.pack(...) })
 	return co
 end
 function task.delay(t, fn, ...)
 	local co = if type(fn) == "thread" then fn else coroutine.create(fn)
+	if type(fn) == "function" then
+		labels[co] = labelFor(fn)
+	end
 	local args = table.pack(...)
 	local token = {}
 	tokens[co] = token
@@ -242,6 +271,7 @@ end
 
 ------------------------------------------------------------------ time
 local realOs = os
+E.realOs = realOs
 os = setmetatable({
 	clock = function()
 		return E.now
@@ -269,3 +299,20 @@ DateTime = {
 		return { UnixTimestamp = t, UnixTimestampMillis = t * 1000, __type = "DateTime" }
 	end,
 }
+
+function E.profileReport(top, seconds)
+	local rows = {}
+	local total = 0
+	for label, e in E.profile do
+		table.insert(rows, { label = label, time = e.time, calls = e.calls })
+		total += e.time
+	end
+	table.sort(rows, function(a, b)
+		return a.time > b.time
+	end)
+	print(string.format("   total script CPU: %.1f ms per simulated second", total * 1000 / seconds))
+	for i = 1, math.min(top or 15, #rows) do
+		local r = rows[i]
+		print(string.format("   %6.2f ms/s  %6d calls  %s", r.time * 1000 / seconds, r.calls, r.label))
+	end
+end

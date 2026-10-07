@@ -23,6 +23,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BossConfig = require(Shared.Config.BossConfig)
+local SizeConfig = require(Shared.Config.SizeConfig)
 local GameConfig = require(Shared.Config.GameConfig)
 local Types = require(Shared.Types)
 local CombatMath = require(Shared.Formulas.CombatMath)
@@ -89,12 +90,32 @@ local function insideArena(fight: Fight, position: Vector3, margin: number?): bo
 		and math.abs(position.Y - fight.Center.Y) <= fight.Radius * 1.5 + fight.H * 2
 end
 
+-- Bosses only engage players big enough for the fight; smaller players can
+-- walk through an arena safely (and are told why nothing happens).
+local function eligible(fight: Fight, player: Player): boolean
+	return ((player:GetAttribute("Tier") :: number?) or 1) >= fight.Def.RequiredTier
+end
+
+local tooSmallWarned: { [Player]: number } = {}
+
 local function livingInside(fight: Fight): { Player }
 	local out = {}
 	for _, player in Players:GetPlayers() do
 		local root = CharacterService:GetRoot(player)
 		if root and insideArena(fight, root.Position) then
-			table.insert(out, player)
+			if eligible(fight, player) then
+				table.insert(out, player)
+			elseif os.clock() - (tooSmallWarned[player] or 0) > 30 then
+				tooSmallWarned[player] = os.clock()
+				Net.signal(player, "Notify", {
+					Kind = "Info",
+					Text = string.format(
+						"%s ignores you — grow to %s to challenge it.",
+						fight.Def.Name,
+						SizeConfig.getTier(fight.Def.RequiredTier).Name
+					),
+				})
+			end
 		end
 	end
 	return out
@@ -399,6 +420,7 @@ local function spawnBoss(fight: Fight)
 			return insideArena(fight, origin, BossConfig.ArenaDamageMargin)
 				and (fight.State == "Fighting" or fight.State == "Waiting")
 				and player.Parent ~= nil
+				and eligible(fight, player)
 		end,
 		Damage = function(player, amount)
 			if fight.State == "Waiting" then
@@ -706,6 +728,7 @@ end
 
 function BossService:Start()
 	Players.PlayerRemoving:Connect(function(player)
+		tooSmallWarned[player] = nil
 		for _, fight in fights do
 			fight.Participants[player] = nil
 			if fight.Target == player then
