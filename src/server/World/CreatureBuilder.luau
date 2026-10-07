@@ -581,6 +581,53 @@ builders.Colossus = function(root, H, color)
 	end
 end
 
+-- Surface finish per creature family, so bodies read as carapace, feathers,
+-- metal or stone instead of flat plastic. Neon (eyes, cores) is untouched.
+local FAMILY: { [string]: { Material: Enum.Material, Reflectance: number } } = {
+	Insect = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.14 },
+	Mite = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.08 },
+	Beetle = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.2 },
+	Moth = { Material = Enum.Material.Fabric, Reflectance = 0 },
+	Spider = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.12 },
+	Fly = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.16 },
+	Roach = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.22 },
+	Wasp = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.14 },
+	Frog = { Material = Enum.Material.SmoothPlastic, Reflectance = 0.1 },
+	Crow = { Material = Enum.Material.Fabric, Reflectance = 0 },
+	Toy = { Material = Enum.Material.Plastic, Reflectance = 0.05 },
+	Car = { Material = Enum.Material.Metal, Reflectance = 0.1 },
+	Robot = { Material = Enum.Material.Metal, Reflectance = 0.06 },
+	Drone = { Material = Enum.Material.Metal, Reflectance = 0.08 },
+	Sentinel = { Material = Enum.Material.DiamondPlate, Reflectance = 0.04 },
+	Mech = { Material = Enum.Material.Metal, Reflectance = 0.06 },
+	Vacuum = { Material = Enum.Material.Metal, Reflectance = 0.06 },
+	Mower = { Material = Enum.Material.Metal, Reflectance = 0.06 },
+	Golem = { Material = Enum.Material.Rock, Reflectance = 0 },
+	Colossus = { Material = Enum.Material.Slate, Reflectance = 0 },
+}
+
+local function finish(model: Model, shape: string)
+	local family = FAMILY[shape]
+	if not family then
+		return
+	end
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") and part.Name ~= "Root" and part.Material ~= Enum.Material.Neon then
+			if part.Material == Enum.Material.SmoothPlastic then
+				part.Material = family.Material
+			end
+			if part.Transparency < 0.3 then
+				part.Reflectance = family.Reflectance
+			end
+			-- Legs a shade lighter than pure black so they read in dim rooms.
+			if string.find(part.Name, "Leg") then
+				local c = part.Color
+				part.Color = Color3.new(math.max(c.R, 0.16), math.max(c.G, 0.14), math.max(c.B, 0.13))
+			end
+		end
+	end
+end
+
 function CreatureBuilder.build(name: string, shape: string, color: Color3, scale: number): Model
 	local H = 5 * scale
 	local model = Instance.new("Model")
@@ -600,6 +647,7 @@ function CreatureBuilder.build(name: string, shape: string, color: Color3, scale
 	model.PrimaryPart = root
 	local build = builders[shape] or builders.Insect
 	build(root, H, color)
+	finish(model, shape)
 	return model
 end
 

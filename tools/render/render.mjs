@@ -36,8 +36,8 @@ const opt = (name) => {
 	return i >= 0 ? args[i + 1] : undefined;
 };
 
-const worldFile = path.join(outDir, "world.json");
-if (flag("--fresh") || !fs.existsSync(worldFile)) {
+const worldFile = opt("--world") ? path.resolve(root, opt("--world")) : path.join(outDir, "world.json");
+if (!opt("--world") && (flag("--fresh") || !fs.existsSync(worldFile))) {
 	const rawFile = path.join(outDir, "export.txt");
 	const fd = fs.openSync(rawFile, "w");
 	execFileSync("node", [path.join(root, "tools/test/runner.mjs"), "--play", "tools/render/export.luau"], { cwd: root, stdio: ["ignore", fd, "inherit"] });

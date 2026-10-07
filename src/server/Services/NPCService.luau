@@ -65,6 +65,84 @@ local function buildFallbackRig(def: NPCConfig.NPC): Model
 	return model
 end
 
+local ROLE_COLORS: { [string]: Color3 } = {
+	Guide = Color3.fromRGB(80, 220, 255),
+	Merchant = Color3.fromRGB(255, 205, 60),
+	Quest = Color3.fromRGB(110, 230, 140),
+	Story = Color3.fromRGB(255, 190, 90),
+	Upgrades = Color3.fromRGB(120, 255, 150),
+	Skills = Color3.fromRGB(190, 150, 255),
+	Shop = Color3.fromRGB(255, 205, 60),
+}
+
+-- Name + role floating above the NPC, sized for the screen (not the world)
+-- so it stays readable whether the NPC is a speck or a titan.
+local function nameplate(model: Model, def: NPCConfig.NPC, height: number)
+	local root = model.PrimaryPart
+	if not root then
+		return
+	end
+	local accent = ROLE_COLORS[def.Role] or Color3.fromRGB(200, 205, 215)
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "Nameplate"
+	gui.Adornee = root
+	gui.Size = UDim2.fromOffset(240, 50)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, height * 0.72, 0)
+	gui.MaxDistance = math.max(height * 30, 80)
+	gui.LightInfluence = 0
+	gui.AlwaysOnTop = false
+	gui.Parent = root
+	local name = Instance.new("TextLabel")
+	name.BackgroundTransparency = 1
+	name.Size = UDim2.new(1, 0, 0, 26)
+	name.Text = def.Name
+	name.TextColor3 = Color3.fromRGB(245, 248, 255)
+	name.TextSize = 20
+	name.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Heavy)
+	name.TextStrokeTransparency = 0.45
+	name.Parent = gui
+	local chip = Instance.new("TextLabel")
+	chip.AnchorPoint = Vector2.new(0.5, 0)
+	chip.Position = UDim2.new(0.5, 0, 0, 28)
+	chip.Size = UDim2.fromOffset(0, 18)
+	chip.AutomaticSize = Enum.AutomaticSize.X
+	chip.BackgroundColor3 = accent
+	chip.BackgroundTransparency = 0.1
+	chip.Text = "  " .. string.upper(def.Role) .. "  "
+	chip.TextColor3 = Color3.fromRGB(16, 20, 30)
+	chip.TextSize = 12
+	chip.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	chip.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = chip
+end
+
+-- Subtle life: the default idle animation. Only the root stays anchored so
+-- the limbs can move; any failure leaves a still (but fine) NPC.
+local IDLE_ANIMATION = "rbxassetid://507766666"
+local function idle(model: Model)
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	local root = model.PrimaryPart
+	if not humanoid or not root then
+		return
+	end
+	pcall(function()
+		for _, d in model:GetDescendants() do
+			if d:IsA("BasePart") and d ~= root then
+				d.Anchored = false
+			end
+		end
+		local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator")
+		animator.Parent = humanoid
+		local animation = Instance.new("Animation")
+		animation.AnimationId = IDLE_ANIMATION
+		local track = animator:LoadAnimation(animation)
+		track.Looped = true
+		track:Play(0.3, 1, 0.9 + math.random() * 0.2)
+	end)
+end
+
 local function spawnNpc(def: NPCConfig.NPC, marker: BasePart)
 	local model: Model
 	local ok, result = pcall(function()
@@ -102,6 +180,8 @@ local function spawnNpc(def: NPCConfig.NPC, marker: BasePart)
 	end)
 	local height = ScaleMath.height(def.Scale)
 	model:PivotTo(CFrame.new(marker.Position + Vector3.new(0, height * 0.5, 0)) * marker.CFrame.Rotation)
+	nameplate(model, def, height)
+	idle(model)
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 	CollectionService:AddTag(model, "NPC")
 	model.Parent = workspace:FindFirstChild("World") or workspace

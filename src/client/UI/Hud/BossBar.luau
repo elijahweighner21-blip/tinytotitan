@@ -19,9 +19,13 @@ local Net = require(Client.Net)
 local Theme = require(Client.UI.Theme)
 local Create = require(Client.UI.Create)
 local UIManager = require(Client.UI.UIManager)
+local Hud = require(script.Parent.Hud)
+local CameraController = require(Client.Controllers.CameraController)
 local AudioController = require(Client.Controllers.AudioController)
 
 local BossBar = {}
+
+local barHome: UDim2? = nil
 
 local frame: Frame
 local nameLabel: TextLabel
@@ -105,6 +109,19 @@ function BossBar.mount()
 			current = p.Id
 			frame.Visible = true
 			AudioController:SetBossMusic(true)
+			-- Intro: the boss's name as a cinematic title, the camera eases
+			-- back to take it in, and the health bar slides down into place.
+			Hud.banner(
+				tostring(p.Name),
+				if type(p.Title) == "string" then p.Title else "",
+				Theme.Colors.Danger,
+				"⚠  BOSS FIGHT"
+			)
+			CameraController:PullBack(0.6, 2.2)
+			CameraController:FovKick(6, 1.6)
+			barHome = barHome or frame.Position
+			frame.Position = (barHome :: UDim2) - UDim2.fromOffset(0, 80)
+			TweenService:Create(frame, Theme.Tween.Bounce, { Position = barHome }):Play()
 		end
 		nameLabel.Text = tostring(p.Name)
 			.. (if type(p.Title) == "string" and p.Title ~= "" then "  ·  " .. p.Title else "")

@@ -42,6 +42,7 @@ local ORDER = {
 	"EnvironmentController",
 	"CosmeticsController",
 	"MovementFxController",
+	"EnemyFxController",
 	"OverheadController",
 	"AnimationController",
 	"WorldMarkerController",
