@@ -787,3 +787,65 @@ end
 function rfm.InvokeClient()
 	error("InvokeClient is not allowed by this project", 2)
 end
+
+------------------------------------------------------------------ layout math
+-- Absolute rectangle of a GuiObject (nil when placed by a UI layout, whose
+-- arrangement the emulator doesn't compute). UIScale on the ScreenGui scales
+-- offsets, matching how UIManager scales the whole UI.
+function E.absRect(o)
+	if o:IsA("LayerCollector") then
+		local vs = E.workspace.CurrentCamera.ViewportSize
+		local scale = 1
+		local us = o:FindFirstChildOfClass("UIScale")
+		if us then
+			scale = us.Scale
+		end
+		return { X = 0, Y = 0, W = vs.X, H = vs.Y, S = scale }
+	end
+	local parent = o.Parent
+	if not parent or not parent:IsA("GuiBase2d") then
+		return nil
+	end
+	if parent:FindFirstChildWhichIsA("UIGridStyleLayout") then
+		return nil
+	end
+	local pr = E.absRect(parent)
+	if not pr then
+		return nil
+	end
+	local s = pr.S
+	local size, pos, anchor = o.Size, o.Position, o.AnchorPoint
+	local w = pr.W * size.X.Scale + size.X.Offset * s
+	local h = pr.H * size.Y.Scale + size.Y.Offset * s
+	local auto = o.AutomaticSize
+	if auto == Enum.AutomaticSize.Y or auto == Enum.AutomaticSize.XY then
+		h = math.max(h, E.contentHeight(o, s))
+	end
+	local x = pr.X + pr.W * pos.X.Scale + pos.X.Offset * s - anchor.X * w
+	local y = pr.Y + pr.H * pos.Y.Scale + pos.Y.Offset * s - anchor.Y * h
+	return { X = x, Y = y, W = w, H = h, S = s }
+end
+
+-- Approximate content height for AutomaticSize containers (vertical lists).
+function E.contentHeight(o, s)
+	local layout = o:FindFirstChildOfClass("UIListLayout")
+	local total, count, maxH = 0, 0, 0
+	for _, c in o:GetChildren() do
+		if c:IsA("GuiObject") and c.Visible then
+			local ch = c.Size.Y.Offset * s
+			local a = c.AutomaticSize
+			if a == Enum.AutomaticSize.Y or a == Enum.AutomaticSize.XY then
+				ch = math.max(ch, E.contentHeight(c, s))
+			end
+			total += ch
+			count += 1
+			maxH = math.max(maxH, ch)
+		end
+	end
+	local pad = o:FindFirstChildOfClass("UIPadding")
+	local extra = if pad then (pad.PaddingTop.Offset + pad.PaddingBottom.Offset) * s else 0
+	if layout and layout.FillDirection ~= Enum.FillDirection.Horizontal then
+		return total + math.max(0, count - 1) * layout.Padding.Offset * s + extra
+	end
+	return maxH + extra
+end

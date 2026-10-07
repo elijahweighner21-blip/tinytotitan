@@ -150,5 +150,23 @@ for k, v in E.remoteTraffic do
 end
 table.sort(traffic)
 print("   remote traffic: " .. table.concat(traffic, " "))
+print("== Gamepad menu navigation")
+local UIS = E.game:GetService("UserInputService")
+local GuiService = E.game:GetService("GuiService")
+rawget(UIS, "__props").GamepadEnabled = true
+E.lastInputType = Enum.UserInputType.Gamepad1
+E.sig(UIS, "LastInputTypeChanged"):Fire(Enum.UserInputType.Gamepad1)
+E.run(0.2)
+for _, name in { "Upgrades", "Shop", "Settings", "Skills", "Quests" } do
+	task.spawn(function()
+		UIManager:Open(name)
+	end)
+	E.run(1)
+	local sel = GuiService.SelectedObject
+	E.check(name .. ": a button is selected for the controller", sel ~= nil and sel:IsDescendantOf(menus:FindFirstChild(name)), sel and sel:GetFullName())
+	E.press(Enum.KeyCode.ButtonB, true)
+	E.run(0.3)
+	E.check(name .. ": B closes the menu", UIManager:Current() == nil, UIManager:Current())
+end
 E.showUnknown = true
 E.summary()

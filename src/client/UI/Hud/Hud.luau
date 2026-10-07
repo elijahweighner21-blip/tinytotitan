@@ -42,6 +42,7 @@ local DataController = require(Client.Controllers.DataController)
 local MovementController = require(Client.Controllers.MovementController)
 local InputController = require(Client.Controllers.InputController)
 local CombatController = require(Client.Controllers.CombatController)
+local SettingsController = require(Client.Controllers.SettingsController)
 local ZoneController = require(Client.Controllers.ZoneController)
 
 local Hud = {}
@@ -202,10 +203,13 @@ local function buildCurrencies(parent: Instance)
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -16, 0, 16),
-		Size = UDim2.fromOffset(290, 200),
+		Size = UDim2.fromOffset(290, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		Parent = parent,
 		[Create.Children] = { Create.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Right) },
 	})
+	-- Other right-side panels (quest tracker) stack under currencies + boosts.
+	Hud.rightColumn = column
 	local row = Create("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromOffset(290, 36),
@@ -357,16 +361,38 @@ local function rebuildHotbar()
 	end
 end
 
+local DOCK_TOP = 104 -- below the status panel
+local DOCK_CELL = 43
+
+local function layoutDock()
+	local camera = workspace.CurrentCamera
+	if not dock or not camera then
+		return
+	end
+	local s = math.max(UIManager:GetScale(), 0.01)
+	local height = camera.ViewportSize.Y / s
+	-- Keep clear of the thumbstick on touch screens.
+	local reserve = if InputController:GetDevice() == "Touch" then height * 0.42 else 24
+	local rows = math.max(1, math.floor((height - DOCK_TOP - reserve) / DOCK_CELL))
+	local cols = math.ceil(#DOCK / rows)
+	rows = math.ceil(#DOCK / cols)
+	dock.Size = UDim2.fromOffset(cols * DOCK_CELL, rows * DOCK_CELL)
+end
+
 local function buildDock(parent: Instance)
 	dock = Create("Frame", {
 		Name = "Dock",
 		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 20),
-		Size = UDim2.fromOffset(48, 600),
+		Position = UDim2.fromOffset(12, DOCK_TOP),
+		Size = UDim2.fromOffset(DOCK_CELL, DOCK_CELL * #DOCK),
 		Parent = parent,
 		[Create.Children] = {
-			Create.list(Enum.FillDirection.Vertical, 5, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center),
+			Create("UIGridLayout", {
+				CellSize = UDim2.fromOffset(38, 38),
+				CellPadding = UDim2.fromOffset(5, 5),
+				FillDirection = Enum.FillDirection.Vertical,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
 		},
 	})
 	for i, entry in DOCK do
@@ -694,6 +720,17 @@ function Hud.mount()
 	UIManager.MenuClosed:Connect(function()
 		dock.Visible = true
 		hotbar.Visible = InputController:GetDevice() ~= "Touch"
+	end)
+	layoutDock()
+	local camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutDock)
+	end
+	InputController.DeviceChanged:Connect(layoutDock)
+	SettingsController.Changed:Connect(function(key)
+		if key == "UIScale" then
+			task.defer(layoutDock)
+		end
 	end)
 	local lastBoostTick = 0
 	RunService.RenderStepped:Connect(function()

@@ -16,6 +16,7 @@ local Theme = require(Client.UI.Theme)
 local Create = require(Client.UI.Create)
 local UIManager = require(Client.UI.UIManager)
 local DataController = require(Client.Controllers.DataController)
+local Hud = require(script.Parent.Hud)
 
 local QuestTracker = {}
 
@@ -71,12 +72,12 @@ function QuestTracker.mount()
 		AutoButtonColor = false,
 		BackgroundColor3 = Theme.Colors.Panel,
 		BackgroundTransparency = 0.25,
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -16, 0, 130),
 		Size = UDim2.fromOffset(290, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = 3,
 		Visible = false,
-		Parent = UIManager.Hud,
+		-- Stacks under the currencies/boosts so they can never overlap.
+		Parent = Hud.rightColumn or UIManager.Hud,
 		[Create.Children] = {
 			Create.corner(Theme.Radius),
 			Create.stroke(Theme.Colors.Gold, 0.7),
