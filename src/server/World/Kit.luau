@@ -624,10 +624,34 @@ function Kit.fastTravel(parent: Instance, zoneId: string, position: Vector3, sca
 	)
 	inlay.CanCollide = false
 	inlay.Transparency = 0.25
-	-- Arch on the far side of the pad from the zone's spawn, facing it, so
-	-- arriving players look through the gateway instead of into its back.
 	local zone = ZoneConfig.get(zoneId)
 	local toSpawn = if zone then Vector3.new(zone.Spawn.X - position.X, 0, zone.Spawn.Z - position.Z) else Vector3.zero
+	if toSpawn.Magnitude < h * 3 then
+		-- Right next to the spawn: a see-through gateway (floating spinning
+		-- ring + light beam) so it never blocks the arrival view.
+		local spinner = Kit.model(m, "PortalRing")
+		Kit.ring(
+			spinner,
+			"PortalRing",
+			CFrame.new(position + Vector3.new(0, h * 1.25, 0)) * CFrame.Angles(math.rad(90), 0, 0),
+			h * 0.62,
+			h * 0.07,
+			18,
+			energy
+		)
+		Kit.tag(spinner, "Spin", { Speed = 0.6 })
+		Kit.lightBeam(pad, h * 7, h * 1.1, energy)
+		Kit.sparkles(inlay, energy, h * 0.035, 6)
+		local glow = Instance.new("PointLight")
+		glow.Color = energy
+		glow.Range = math.clamp(h * 3.5, 4, 60)
+		glow.Brightness = 1.4
+		glow.Parent = inlay
+		Kit.tag(pad, "FastTravelStation", { StationId = zoneId })
+		return pad
+	end
+	-- Arch on the far side of the pad from the zone's spawn, facing it, so
+	-- arriving players look through the gateway instead of into its back.
 	local facing = if toSpawn.Magnitude > 0.01 then toSpawn.Unit else Vector3.new(0, 0, -1)
 	local y0 = position.Y + h * 0.08
 	local archCf = CFrame.lookAt(position - facing * h * 0.62, position - facing * h * 0.62 + facing)

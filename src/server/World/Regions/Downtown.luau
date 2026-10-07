@@ -488,12 +488,119 @@ local function plaza(m: Instance)
 	Kit.enemySpawner(m, "Sentinel", PLAZA_CENTER + Vector3.new(0, 4, -900), 3, 500)
 end
 
+-- Street life: double yellow centre lines, lamps at block corners, zebra
+-- crossings and traffic lights at the busiest intersections.
+local function streets(m: Instance)
+	local model = Kit.model(m, "StreetFurniture", true)
+	local yellow = Color3.fromRGB(250, 205, 60)
+	local white = Color3.fromRGB(240, 240, 235)
+	local function flat(name: string, center: Vector3, size: Vector3, color: Color3)
+		local p = Kit.block(model, name, center, size, color, Enum.Material.SmoothPlastic)
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CastShadow = false
+	end
+	local streetX = {}
+	for i = 1, #XS - 1 do
+		table.insert(streetX, XS[i] + BLOCK + (XS[i + 1] - XS[i] - BLOCK) / 2)
+	end
+	local streetZ = {}
+	for i = 1, #ZS - 1 do
+		table.insert(streetZ, ZS[i] + BLOCK + (ZS[i + 1] - ZS[i] - BLOCK) / 2)
+	end
+	-- Centre lines (one part per street, two lines each).
+	for _, x in streetX do
+		for _, off in { -5, 5 } do
+			flat("CenterLine", Vector3.new(x + off, 0.15, 5200), Vector3.new(5, 0.3, 5800), yellow)
+		end
+	end
+	for _, z in streetZ do
+		for _, off in { -5, 5 } do
+			flat("CenterLine", Vector3.new(400, 0.15, z + off), Vector3.new(5800, 0.3, 5), yellow)
+		end
+	end
+	-- Lamps at every block corner (25 ft ≈ 330 studs).
+	local function lamp(base: Vector3, facing: Vector3)
+		local pole = Kit.pillar(model, "LampPole", base, 330, 12, Color3.fromRGB(50, 55, 60), Enum.Material.Metal)
+		pole.CanCollide = true
+		local arm = Kit.block(
+			model,
+			"LampArm",
+			base + Vector3.new(0, 325, 0) + facing * 40,
+			Vector3.new(math.abs(facing.X) * 80 + 8, 8, math.abs(facing.Z) * 80 + 8),
+			Color3.fromRGB(50, 55, 60),
+			Enum.Material.Metal
+		)
+		arm.CanCollide = false
+		local head = Kit.block(
+			model,
+			"LampHead",
+			base + Vector3.new(0, 318, 0) + facing * 76,
+			Vector3.new(30, 10, 30),
+			Color3.fromRGB(255, 226, 170),
+			Enum.Material.Neon
+		)
+		head.CanCollide = false
+		Kit.light(head, Color3.fromRGB(255, 214, 160), 60, 1.2)
+	end
+	for _, x in XS do
+		for _, z in ZS do
+			if not inPlaza(x, z) then
+				lamp(Vector3.new(x + 20, 3, z + 20), Vector3.new(-1, 0, 0))
+				lamp(Vector3.new(x + BLOCK - 20, 3, z + BLOCK - 20), Vector3.new(1, 0, 0))
+			end
+		end
+	end
+	-- Zebra crossings + traffic lights at the intersections near the spawn
+	-- and around the plaza.
+	local busy = {
+		Vector2.new(streetX[3], streetZ[1]),
+		Vector2.new(streetX[2], streetZ[1]),
+		Vector2.new(streetX[3], streetZ[3]),
+		Vector2.new(streetX[2], streetZ[4]),
+	}
+	for _, c in busy do
+		for _, dir in { Vector2.new(1, 0), Vector2.new(-1, 0), Vector2.new(0, 1), Vector2.new(0, -1) } do
+			local center = Vector3.new(c.X + dir.X * 230, 0.2, c.Y + dir.Y * 230)
+			for i = -4, 4 do
+				local along = if dir.X ~= 0 then Vector3.new(0, 0, i * 36) else Vector3.new(i * 36, 0, 0)
+				local size = if dir.X ~= 0 then Vector3.new(90, 0.4, 20) else Vector3.new(20, 0.4, 90)
+				flat("Crosswalk", center + along, size, white)
+			end
+		end
+		local corner = Vector3.new(c.X + 190, 3, c.Y + 190)
+		local post = Kit.pillar(model, "SignalPost", corner, 300, 14, Color3.fromRGB(45, 48, 52), Enum.Material.Metal)
+		post.CanCollide = true
+		local box = Kit.block(
+			model,
+			"SignalHead",
+			corner + Vector3.new(0, 330, 0),
+			Vector3.new(30, 80, 30),
+			Color3.fromRGB(35, 38, 42),
+			Enum.Material.Metal
+		)
+		box.CanCollide = false
+		for i, color in { Color3.fromRGB(255, 70, 60), Color3.fromRGB(255, 190, 60), Color3.fromRGB(80, 230, 120) } do
+			local lens = Kit.ball(
+				model,
+				"SignalLens",
+				corner + Vector3.new(-16, 330 + (2 - i) * 24, 0),
+				16,
+				color,
+				if i == 3 then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			)
+			lens.CanCollide = false
+		end
+	end
+end
+
 function Downtown.build(root: Instance)
 	local m = Kit.folder(root, "Downtown")
 	Kit.ground(m, "Street", -2600, 2200, 3400, 8200, 0, 6, Kit.Colors.Asphalt, Enum.Material.Asphalt)
 	landmarkBuildings(m)
 	cityBlocks(m)
 	plaza(m)
+	streets(m)
 	-- Subway entrance at the spawn.
 	local subway = Kit.model(m, "SubwayEntrance", true)
 	Kit.box(
