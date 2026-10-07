@@ -39,7 +39,7 @@ only then calls the handler. Handlers never trust client numbers for rewards, po
 | `AbandonQuest` | 2 | 4 | QuestService | Guard.shape | Drop an active non-story quest. |
 | `AcceptQuest` | 3 | 5 | QuestService | Guard.shape | Start a quest the player qualifies for. |
 | `Admin` | 4 | 10 | AdminService | Guard.shape | Developer commands. Rejected unless the UserId is authorised. |
-| `Ascend` | 0.1 | 1 | AscensionService | Guard.shape | Perform Ascension (prestige). |
+| `Ascend` | 0.2 | 3 | AscensionService | Guard.shape | Perform Ascension (prestige). |
 | `BuyAscensionNode` | 3 | 5 | AscensionService | Guard.shape | Rank up an Ascension tree node. |
 | `BuyUpgrade` | 6 | 10 | UpgradeService | Guard.shape | Purchase the next level of an upgrade with Growth Energy. |
 | `ClaimCollection` | 2 | 4 | CollectibleService | Guard.shape | Claim a completed zone collection reward. |

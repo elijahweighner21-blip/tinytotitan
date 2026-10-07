@@ -13,9 +13,32 @@
 | Economy pacing | `node tools/test/runner.mjs --script tools/sim/economy.luau` | time-to-tier curve for an idealised free player |
 | Remote audit | `node tools/test/runner.mjs --script tools/docs/remote-audit.luau` | regenerates [REMOTE_AUDIT.md](REMOTE_AUDIT.md) |
 
+## Play scenarios (headless engine emulator)
+
+`tools/play/` is a small Roblox engine emulator: instances, attributes/tags, CFrame/Vector3 math, model scaling, humanoids and character loading, raycasts, remotes (with wire copies and separate client/server module caches), DataStores (with failure injection), MarketplaceService receipts, tweens, input and a virtual-time scheduler. Scenarios boot the **real, unmodified** server and client code and drive it like players would:
+
+```bash
+node tools/test/runner.mjs --play tools/play/scenarios/<name>.luau
+```
+
+| Scenario | Covers |
+|---|---|
+| `boot` | world build, every zone spawn has ground and clearance, stations/NPCs reachable |
+| `lifecycle` | join → spawn alive → collect → exploit attempts (far pickups, malformed remotes, speed, hovering) → upgrade → grow → save → rejoin → respawn → purchases, including a DataStore outage mid-receipt |
+| `client` | client boot, every menu and tab opens, input bindings, purchase prompt from the UI, respawn without leaked connections, gamepad selection and B to close |
+| `systems` | tutorial (including catch-up for returning players), quests, discoveries, skills, fast travel, daily rewards, ascension resets/keeps |
+| `combat` | challenge run honestly / teleporting / leaving / dying; a boss fight start to finish |
+| `layout` | HUD and menus at six resolutions (phone portrait to 4K): on-screen, no overlaps, windows fit |
+| `datasafety` | corrupted, old-version and raw saves, session-lock handoff between servers, save outages |
+| `load` | 12 players of every size for 60 s with a script profiler (server CPU per service) |
+
+A scenario prints `@@FAIL@@` and exits non-zero on any failed check or server/client error.
+
+The emulator does **not** simulate physics (gravity, collisions, joints), rendering, animation, sound playback or real network latency, so it proves logic and wiring — not feel.
+
 ## What automation can't cover
 
-Physics, rendering, character scaling, DataStores, MarketplaceService and real devices only exist inside Roblox. Before each release, play-test in Studio (and a live private server for purchases/DataStores):
+Physics, rendering, how character scaling looks, live DataStore throttling, real MarketplaceService prompts and real devices only exist inside Roblox. Before each release, play-test in Studio (and a live private server for purchases/DataStores):
 
 ### Core loop
 - [ ] Loading screen steps through *Loading World → Loading Progress → Preparing Character*, then fades

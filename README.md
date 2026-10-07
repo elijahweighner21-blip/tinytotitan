@@ -28,9 +28,10 @@ In Studio: **Game Settings → Security → Enable Studio Access to API Services
 ./scripts/test.sh    # headless unit/contract tests (configs, formulas, saves, receipts, client⇄server contracts)
 node tools/test/runner.mjs --script tools/sim/economy.luau      # economy pacing simulation
 node tools/test/runner.mjs --script tools/docs/remote-audit.luau > docs/REMOTE_AUDIT.md
+node tools/test/runner.mjs --play tools/play/scenarios/lifecycle.luau  # full game in a headless engine emulator
 ```
 
-Roblox engine behaviour (physics, rendering, MarketplaceService, DataStores) cannot run outside Roblox, so those parts are verified by strict typing against the official API definitions plus the Studio checklist in [docs/VERIFICATION.md](docs/VERIFICATION.md).
+The play scenarios (`tools/play/scenarios`) run the real server and client code against a headless Roblox engine emulator: joining, saving, rejoining, purchases, menus, combat, layout at several resolutions and server load. Physics, rendering and real devices still need Studio — see the checklist in [docs/VERIFICATION.md](docs/VERIFICATION.md).
 
 ## Before publishing
 
@@ -65,7 +66,7 @@ src/
     Controllers/     movement, camera, input, audio, effects, interaction, cosmetics…
     UI/              UIManager, theme, components, HUD overlays, 15 menus
 tests/               headless specs (run by tools/test/runner.mjs)
-tools/               test runner, economy simulator, doc generators
+tools/               test runner, engine emulator + play scenarios, economy simulator, doc generators
 docs/                architecture, content guides, monetization, audits, verification
 ```
 

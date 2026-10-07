@@ -21,7 +21,7 @@ The server is authoritative for everything that matters: currencies, Mass and si
 
 | Client does | Server verifies |
 |---|---|
-| Moves the character (parkour state machine, custom gravity) | speed/teleport sanity, zone access (`ZoneService`, `AntiExploitService`) |
+| Moves the character (parkour state machine, custom gravity) | speed/teleport/hover sanity, zone access (`ZoneService`, `AntiExploitService`) |
 | Plays an ability immediately | skill owned, cooldown, energy (rejections resync the client) |
 | Swings an attack | cooldown, energy, range and arc from the server's view of positions |
 | Reports a pickup | distance (with latency grace), per-player cooldown, ownership |
