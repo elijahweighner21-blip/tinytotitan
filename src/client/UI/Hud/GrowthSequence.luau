@@ -9,6 +9,7 @@
 	Shrinking back (Ascension, Shrink Mode ending) gets a softer version.
 ]]
 
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -34,6 +35,8 @@ local tierName: TextLabel
 local flavor: TextLabel
 local unlocks: TextLabel
 local token = 0
+local band: Frame
+local letterbox: { Frame } = {}
 
 local function fade(label: TextLabel, to: number, time: number)
 	TweenService:Create(
@@ -48,7 +51,7 @@ function GrowthSequence.play(newTier: number, oldTier: number, unlockList: { str
 	local myToken = token
 	local def = SizeConfig.getTier(newTier)
 	local grew = newTier > oldTier
-	heading.Text = if grew then "YOU GREW!" else "SIZE CHANGED"
+	heading.Text = if grew then "NEW SIZE" else "SIZE CHANGED"
 	tierName.Text = string.upper(def.Name)
 	tierName.TextColor3 = def.Color
 	flavor.Text = def.Flavor
@@ -59,6 +62,16 @@ function GrowthSequence.play(newTier: number, oldTier: number, unlockList: { str
 		unlocks.Visible = false
 	end
 	frame.Visible = true
+	-- Cinematic letterbox and a soft glow band behind the title.
+	band.BackgroundColor3 = def.Color
+	band.BackgroundTransparency = 1
+	TweenService:Create(band, Theme.Tween.Slow, { BackgroundTransparency = 0.55 }):Play()
+	if grew then
+		for _, bar in letterbox do
+			TweenService:Create(bar, Theme.Tween.Slow, { Size = UDim2.new(1, 0, 0.09, 0) }):Play()
+		end
+		CameraController:FovKick(8, 2.2)
+	end
 	for _, label in { heading, tierName, flavor, unlocks } do
 		label.TextTransparency = 1
 		label.TextStrokeTransparency = 1
@@ -104,6 +117,10 @@ function GrowthSequence.play(newTier: number, oldTier: number, unlockList: { str
 		for _, label in { heading, tierName, flavor, unlocks } do
 			fade(label, 1, 0.6)
 		end
+		TweenService:Create(band, Theme.Tween.Slow, { BackgroundTransparency = 1 }):Play()
+		for _, bar in letterbox do
+			TweenService:Create(bar, Theme.Tween.Slow, { Size = UDim2.new(1, 0, 0, 0) }):Play()
+		end
 		task.delay(0.7, function()
 			if token == myToken then
 				frame.Visible = false
@@ -132,7 +149,47 @@ function GrowthSequence.mount()
 			Parent = frame,
 		})
 	end
-	heading = line("YOU GREW!", Theme.TextSize.Title, Theme.Colors.Text, Theme.Fonts.Title, 1)
+	-- Own unscaled layer so the letterbox always spans the full screen.
+	local cinematic = Create("ScreenGui", {
+		Name = "TT_Cinematic",
+		ResetOnSpawn = false,
+		IgnoreGuiInset = true,
+		DisplayOrder = 9,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
+	})
+	band = Create("Frame", {
+		Name = "GlowBand",
+		BackgroundColor3 = Theme.Colors.Mass,
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.32),
+		Size = UDim2.new(1, 0, 0, 170),
+		ZIndex = 0,
+		Parent = cinematic,
+		[Create.Children] = {
+			Create("UIGradient", {
+				Transparency = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(0.5, 0.2),
+					NumberSequenceKeypoint.new(1, 1),
+				}),
+			}),
+		},
+	})
+	for i, edge in { 0, 1 } do
+		letterbox[i] = Create("Frame", {
+			Name = "Letterbox",
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BorderSizePixel = 0,
+			AnchorPoint = Vector2.new(0, edge),
+			Position = UDim2.fromScale(0, edge),
+			Size = UDim2.new(1, 0, 0, 0),
+			ZIndex = 0,
+			Parent = cinematic,
+		})
+	end
+	heading = line("NEW SIZE", Theme.TextSize.Title, Theme.Colors.Text, Theme.Fonts.Title, 1)
 	tierName = line("", 60, Theme.Colors.Mass, Theme.Fonts.Display, 2)
 	flavor = line("", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, 3)
 	unlocks = line("", Theme.TextSize.Body, Theme.Colors.Gold, Theme.Fonts.Title, 4)

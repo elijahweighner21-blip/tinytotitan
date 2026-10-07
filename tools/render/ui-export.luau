@@ -180,6 +180,15 @@ pcall(function()
 	UIManager:CloseAll()
 end)
 E.run(2)
+do
+	-- Re-show the loading screen on top of the loaded game to capture it.
+	local LoadingScreen = client("UI.Hud.LoadingScreen")
+	LoadingScreen.show()
+	E.run(2)
+	snapshot("loading")
+	p.PlayerGui.TT_Loading.Loading:Destroy()
+	E.run(0.5)
+end
 snapshot("hud")
 for _, menu in (E.uiMenus or {
 	"Upgrades",

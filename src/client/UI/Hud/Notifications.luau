@@ -398,6 +398,7 @@ function Notifications.mount()
 	end)
 	Net.onSignal("LevelUp", function(p)
 		if type(p) == "table" then
+			Hud.levelUp()
 			local points = tonumber(p.SkillPoints) or 0
 			Notifications.card(
 				"⭐",

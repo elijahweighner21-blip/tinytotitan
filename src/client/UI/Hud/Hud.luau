@@ -40,6 +40,7 @@ local MassBar = require(script.Parent.MassBar)
 local ProgressBar = require(Client.UI.Components.ProgressBar)
 local DataController = require(Client.Controllers.DataController)
 local MovementController = require(Client.Controllers.MovementController)
+local EffectsController = require(Client.Controllers.EffectsController)
 local InputController = require(Client.Controllers.InputController)
 local CombatController = require(Client.Controllers.CombatController)
 local SettingsController = require(Client.Controllers.SettingsController)
@@ -68,6 +69,7 @@ local DOCK: { { Menu: string, Icon: string, Key: string, Label: string } } = {
 
 -- UI elements ------------------------------------------------------------------
 local levelText: TextLabel
+local levelBadge: Frame? = nil
 local tierText: TextLabel
 local xpBar: ProgressBar.ProgressBar
 local massBar: MassBar.MassBar
@@ -83,6 +85,10 @@ local hintFrame: Frame
 local hintText: TextLabel
 local bannerFrame: Frame
 local bannerTitle: TextLabel
+local bannerCaption: TextLabel
+local bannerScale: UIScale
+local bannerLines: { Frame } = {}
+local seenZones: { [string]: boolean } = {}
 local bannerSub: TextLabel
 local dock: Frame
 local shrinkChip: TextLabel
@@ -142,12 +148,14 @@ local function buildStatus(parent: Instance)
 		Parent = parent,
 	})
 	local badge = Create("Frame", {
+		Name = "LevelBadge",
 		BackgroundColor3 = Theme.Colors.XP,
 		Size = UDim2.fromOffset(50, 50),
 		Position = UDim2.fromOffset(8, 8),
 		Parent = frame,
 		[Create.Children] = { Create.corner(Theme.RadiusPill) },
 	})
+	levelBadge = badge
 	levelText = Create.label("1", Theme.TextSize.Heading, Color3.fromRGB(20, 10, 40), Theme.Fonts.Display, {
 		Size = UDim2.fromScale(1, 1),
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -478,19 +486,45 @@ local function buildHint(parent: Instance)
 		Name = "ZoneBanner",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 70),
-		Size = UDim2.fromOffset(600, 70),
+		Position = UDim2.new(0.5, 0, 0, 74),
+		Size = UDim2.fromOffset(700, 110),
 		Visible = false,
 		Parent = parent,
 	})
-	bannerTitle = Create.label("", Theme.TextSize.Hero, Theme.Colors.Text, Theme.Fonts.Display, {
-		Size = UDim2.new(1, 0, 0, 48),
+	bannerScale = Create("UIScale", { Scale = 1, Parent = bannerFrame }) :: UIScale
+	bannerCaption = Create.label("", Theme.TextSize.Small, Theme.Colors.Accent, Theme.Fonts.Display, {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.fromScale(0.5, 0),
+		Size = UDim2.fromOffset(320, 18),
 		TextXAlignment = Enum.TextXAlignment.Center,
-		TextStrokeTransparency = 0.4,
 		Parent = bannerFrame,
 	})
-	bannerSub = Create.label("", Theme.TextSize.Body, Theme.Colors.TextDim, Theme.Fonts.Body, {
-		Position = UDim2.fromOffset(0, 48),
+	for _, side in { -1, 1 } do
+		local line = Create("Frame", {
+			Name = "Line",
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BorderSizePixel = 0,
+			AnchorPoint = Vector2.new(if side < 0 then 1 else 0, 0.5),
+			Position = UDim2.new(0.5, side * 170, 0, 9),
+			Size = UDim2.fromOffset(0, 2),
+			Parent = bannerFrame,
+			[Create.Children] = {
+				Create("UIGradient", {
+					Transparency = NumberSequence.new(if side < 0 then 1 else 0, if side < 0 then 0 else 1),
+				}),
+			},
+		})
+		table.insert(bannerLines, line)
+	end
+	bannerTitle = Create.label("", Theme.TextSize.Hero + 8, Theme.Colors.Text, Theme.Fonts.Display, {
+		Position = UDim2.fromOffset(0, 20),
+		Size = UDim2.new(1, 0, 0, 58),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = bannerFrame,
+		[Create.Children] = { Create.textStroke(Color3.fromRGB(10, 12, 24), 0.35, 2.5) },
+	})
+	bannerSub = Create.label("", Theme.TextSize.Body, Theme.Colors.Text, Theme.Fonts.Body, {
+		Position = UDim2.fromOffset(0, 80),
 		Size = UDim2.new(1, 0, 0, 20),
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextStrokeTransparency = 0.5,
@@ -611,25 +645,48 @@ local function refreshHint()
 	hintFrame.Visible = not UIManager:IsMenuOpen()
 end
 
-function Hud.banner(title: string, subtitle: string, color: Color3?)
+-- Cinematic area title: caption between growing lines, the name settling
+-- in from slightly larger, then the description.
+function Hud.banner(title: string, subtitle: string, color: Color3?, caption: string?)
+	local accent = color or Theme.Colors.Accent
+	bannerCaption.Text = caption or "ENTERING"
+	bannerCaption.TextColor3 = accent:Lerp(Color3.new(1, 1, 1), 0.25)
 	bannerTitle.Text = string.upper(title)
-	bannerTitle.TextColor3 = color or Theme.Colors.Text
+	bannerTitle.TextColor3 = accent:Lerp(Color3.new(1, 1, 1), 0.55)
 	bannerSub.Text = subtitle
 	bannerFrame.Visible = true
-	bannerTitle.TextTransparency = 1
-	bannerSub.TextTransparency = 1
-	TweenService:Create(bannerTitle, Theme.Tween.Slow, { TextTransparency = 0 }):Play()
-	TweenService:Create(bannerSub, Theme.Tween.Slow, { TextTransparency = 0 }):Play()
+	for _, label in { bannerCaption, bannerTitle, bannerSub } do
+		label.TextTransparency = 1
+	end
+	bannerScale.Scale = 1.12
+	TweenService
+		:Create(bannerScale, TweenInfo.new(0.9, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 })
+		:Play()
+	TweenService:Create(bannerCaption, Theme.Tween.Normal, { TextTransparency = 0 }):Play()
+	for _, line in bannerLines do
+		line.BackgroundColor3 = accent
+		line.Size = UDim2.fromOffset(0, 2)
+		TweenService:Create(line, Theme.Tween.Slow, { Size = UDim2.fromOffset(150, 2) }):Play()
+	end
+	task.delay(0.15, function()
+		TweenService:Create(bannerTitle, Theme.Tween.Slow, { TextTransparency = 0 }):Play()
+	end)
+	task.delay(0.45, function()
+		TweenService:Create(bannerSub, Theme.Tween.Slow, { TextTransparency = 0.1 }):Play()
+	end)
 	local token = os.clock()
 	bannerFrame:SetAttribute("Token", token)
-	task.delay(3.2, function()
+	task.delay(3.6, function()
 		if bannerFrame:GetAttribute("Token") ~= token then
 			return
 		end
-		TweenService:Create(bannerTitle, Theme.Tween.Slow, { TextTransparency = 1 }):Play()
-		local t = TweenService:Create(bannerSub, Theme.Tween.Slow, { TextTransparency = 1 })
-		t:Play()
-		t.Completed:Once(function()
+		for _, label in { bannerCaption, bannerTitle, bannerSub } do
+			TweenService:Create(label, Theme.Tween.Slow, { TextTransparency = 1 }):Play()
+		end
+		for _, line in bannerLines do
+			TweenService:Create(line, Theme.Tween.Slow, { Size = UDim2.fromOffset(0, 2) }):Play()
+		end
+		task.delay(0.5, function()
 			if bannerFrame:GetAttribute("Token") == token then
 				bannerFrame.Visible = false
 			end
@@ -713,8 +770,11 @@ function Hud.mount()
 	ZoneController.ZoneChanged:Connect(function(zoneId, old)
 		local zone = ZoneConfig.get(zoneId)
 		if zone and old then
-			Hud.banner(zone.Name, zone.Description, zone.MapColor)
+			local data = DataController:Get()
+			local known = seenZones[zoneId] or (data ~= nil and data.FastTravel[zoneId] == true)
+			Hud.banner(zone.Name, zone.Description, zone.MapColor, if known then "ENTERING" else "NEW AREA DISCOVERED")
 		end
+		seenZones[zoneId] = true
 	end)
 	UIManager.MenuOpened:Connect(function()
 		dock.Visible = false
@@ -746,6 +806,39 @@ function Hud.mount()
 			refreshBoosts()
 		end
 	end)
+end
+
+-- Level-up flourish on the status badge: a pulse and an expanding ring,
+-- plus a burst of light around the character.
+function Hud.levelUp()
+	if not levelBadge then
+		return
+	end
+	local pulse = levelBadge:FindFirstChildOfClass("UIScale") or Create("UIScale", { Parent = levelBadge })
+	pulse.Scale = 1.35
+	TweenService:Create(pulse, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
+		:Play()
+	local ring = Create("Frame", {
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		Parent = levelBadge,
+		[Create.Children] = { Create.corner(Theme.RadiusPill), Create.stroke(Theme.Colors.XP, 0, 3) },
+	})
+	local stroke = ring:FindFirstChildOfClass("UIStroke") :: UIStroke
+	TweenService:Create(ring, TweenInfo.new(0.7, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(2.6, 2.6) }):Play()
+	local fade = TweenService:Create(stroke, TweenInfo.new(0.7, Enum.EasingStyle.Quad), { Transparency = 1 })
+	fade.Completed:Once(function()
+		ring:Destroy()
+	end)
+	fade:Play()
+	local root = MovementController:GetRoot()
+	if root then
+		local h = MovementController:GetHeight()
+		EffectsController:Burst(root.Position, Theme.Colors.XP, h * 0.4, 22)
+		EffectsController:Ring(root.Position - Vector3.new(0, h * 0.5, 0), Theme.Colors.XP, h * 2.5, 0.6)
+	end
 end
 
 function Hud.hurt()

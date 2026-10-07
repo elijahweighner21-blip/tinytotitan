@@ -59,6 +59,16 @@ function Create.stroke(color: Color3?, transparency: number?, thickness: number?
 	})
 end
 
+-- Outline around the glyphs of a text object (not its box).
+function Create.textStroke(color: Color3?, transparency: number?, thickness: number?): any
+	return create("UIStroke", {
+		Color = color or Color3.new(0, 0, 0),
+		Transparency = transparency or 0.4,
+		Thickness = thickness or 1.5,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
+	})
+end
+
 function Create.padding(all: number?, horizontal: number?): any
 	local p = UDim.new(0, all or Theme.Padding)
 	local h = UDim.new(0, horizontal or all or Theme.Padding)

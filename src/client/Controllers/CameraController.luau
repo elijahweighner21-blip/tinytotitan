@@ -49,6 +49,18 @@ function CameraController:ShakeAt(position: Vector3, amount: number, radius: num
 	end
 end
 
+-- A brief field-of-view swell (growth, big impacts). Respects FovEffects.
+local fovKick = 0
+function CameraController:FovKick(degrees: number, seconds: number)
+	if SettingsController:Get("FovEffects") == false then
+		return
+	end
+	fovKick = degrees
+	task.delay(seconds, function()
+		fovKick = 0
+	end)
+end
+
 function CameraController:PullBack(amount: number, seconds: number)
 	pullBackTarget = math.clamp(amount, 0, 1.5)
 	task.delay(seconds, function()
@@ -91,7 +103,7 @@ local function onRender(dt: number)
 			targetBoost = 4
 		end
 	end
-	fovBoost = MathUtil.damp(fovBoost, targetBoost, 6, dt)
+	fovBoost = MathUtil.damp(fovBoost, targetBoost + fovKick, if fovKick > 0 then 2.5 else 6, dt)
 	camera.FieldOfView = baseFov + fovBoost
 	-- Motion effects: lean into wall runs and slides (comfort setting).
 	local targetRoll = 0
