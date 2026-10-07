@@ -66,7 +66,7 @@ src/
     Controllers/     movement, camera, input, audio, effects, interaction, cosmetics…
     UI/              UIManager, theme, components, HUD overlays, 15 menus
 tests/               headless specs (run by tools/test/runner.mjs)
-tools/               test runner, engine emulator + play scenarios, economy simulator, doc generators
+tools/               test runner, engine emulator + play scenarios, screenshot renderer, economy simulator, doc generators
 docs/                architecture, content guides, monetization, audits, verification
 ```
 

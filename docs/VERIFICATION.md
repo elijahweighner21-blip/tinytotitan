@@ -40,6 +40,20 @@ A scenario prints `@@FAIL@@` and exits non-zero on any failed check, server/clie
 
 The emulator does **not** simulate physics (gravity, collisions, joints), rendering, animation, sound playback or real network latency, so it proves logic and wiring — not feel.
 
+## Screenshots (visual review without Studio)
+
+`tools/render/` turns the emulator's world and UI into screenshots, so environment, lighting and UI changes can be judged from real images at player scale:
+
+```bash
+node tools/render/render.mjs --fresh                 # every zone: player view (4 directions) + overview
+node tools/render/render.mjs --shots my-shots.json   # custom cameras ({ name, zone, at, scale, yaw } or { camera, target })
+node tools/test/runner.mjs --play tools/render/lineup.luau   # every creature side by side (render with --world)
+node tools/render/ui.mjs --fresh                     # loading screen, HUD and every menu (CSS layout of the real GUI tree)
+python3 tools/render/sheet.py out.png 3 a.png b.png  # contact sheet
+```
+
+The world renderer (three.js) approximates Roblox lighting: no material textures, approximate atmosphere and ambient. Use it for composition, colour, scale and mood; confirm final looks in Studio. Needs `npm install three` in `.tools/render` and Playwright's Chromium.
+
 ## What automation can't cover
 
 Physics, rendering, how character scaling looks, live DataStore throttling, real MarketplaceService prompts and real devices only exist inside Roblox. Before each release, play-test in Studio (and a live private server for purchases/DataStores):

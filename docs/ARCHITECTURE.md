@@ -56,13 +56,14 @@ Additive sources (VIP, events, upgrades, ascension, party) are summed and capped
 
 ## Client structure
 
-* **Controllers** own one concern each (input, movement, camera, audio, effects, interaction, collectibles, zones, environment, cosmetics, overhead tags, animation, world markers).
+* **Controllers** own one concern each (input, movement, camera, audio, effects, interaction, collectibles, zones, environment, cosmetics, overhead tags, animation, world markers). `EnvironmentController` blends a full lighting look per zone (sun, ambient, atmosphere, clouds, grade, bloom, rays, distance blur); `MovementFxController` and `EnemyFxController` add baseline movement effects and threat outlines.
 * **UI**: `UIManager` owns the ScreenGuis and the one-menu-at-a-time rule; `MenuBase` gives every menu a window, tabs, close handling and re-render-on-data-change *only while open*; `Bus` lets gameplay controllers request UI (toasts, dialogue) without depending on screens.
 
 ## Performance
 
 * World geometry is mostly anchored, non-colliding decor where possible. `StreamingEnabled` is off: the world is ~4k parts, and streaming could leave a freshly spawned player without a floor.
 * Collectibles: proximity checks every 0.1s, only the ~80 nearest animate.
-* Effects are pooled, scaled by the Particles setting and graphics preset; other players' effects are capped (closest N) and can be hidden.
+* Effects are pooled, scaled by the Particles setting and graphics preset; other players' effects are capped (closest N) and can be hidden. Rarity auras, threat outlines and spinning holograms only exist on the nearest few objects.
+* World dressing (`World/Props.luau`) is anchored, mostly non-colliding and shadow-light; the world is ~6.7k parts.
 * The Auto graphics preset steps quality down when FPS stays low and recovers slowly.
 * Fx broadcasts use an `UnreliableRemoteEvent`; data replication sends key-level patches, not whole saves.
