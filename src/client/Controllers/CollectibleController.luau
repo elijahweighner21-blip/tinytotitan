@@ -54,6 +54,8 @@ local lastAnimRefresh = 0
 local beaconFolder: Folder
 
 local MAX_ANIMATED = 80
+local combo = 0
+local lastCollect = 0
 
 local function isAvailable(e: Entry, now: number): boolean
 	return (hiddenUntil[e.Id] or 0) <= now
@@ -101,6 +103,93 @@ local function unregister(instance: Instance)
 	end
 end
 
+-- Rarity auras for the nearby (animated) collectibles only, so the cost
+-- stays bounded: sparkles + a soft light for Rare and up, and a light shaft
+-- for Epic/Legendary. Rarer things look rarer.
+local auras: { [Entry]: Instance } = {}
+local SHAFT = { Epic = true, Legendary = true }
+
+local function addAura(e: Entry)
+	if auras[e] or e.Def.Rarity == "Common" then
+		return
+	end
+	local color = Theme.rarityColor(e.Def.Rarity)
+	local size = math.max(e.Part.Size.X, e.Part.Size.Y)
+	local folder = Instance.new("Folder")
+	folder.Name = "TT_Aura"
+	local attachment = Instance.new("Attachment")
+	attachment.Parent = e.Part
+	local sparkles = Instance.new("ParticleEmitter")
+	sparkles.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	sparkles.LightEmission = 1
+	sparkles.LightInfluence = 0
+	sparkles.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.3, size * 0.12),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	sparkles.Transparency = NumberSequence.new(0.1, 1)
+	sparkles.Lifetime = NumberRange.new(0.8, 1.4)
+	sparkles.Rate = if SHAFT[e.Def.Rarity] then 10 else 5
+	sparkles.Speed = NumberRange.new(size * 0.4, size * 0.9)
+	sparkles.SpreadAngle = Vector2.new(180, 180)
+	sparkles.Parent = attachment
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Range = math.clamp(size * 4, 4, 40)
+	light.Brightness = 0.8
+	light.Parent = e.Part
+	if SHAFT[e.Def.Rarity] then
+		local top = Instance.new("Attachment")
+		top.Position = Vector3.new(0, size * 14, 0)
+		top.Parent = e.Part
+		local beam = Instance.new("Beam")
+		beam.Attachment0 = attachment
+		beam.Attachment1 = top
+		beam.FaceCamera = true
+		beam.LightEmission = 1
+		beam.Width0 = size * 0.9
+		beam.Width1 = size * 0.3
+		beam.Color = ColorSequence.new(color)
+		beam.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.45),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		beam.Parent = e.Part
+		top.Parent = e.Part
+		local holder = Instance.new("ObjectValue")
+		holder.Name = "Top"
+		holder.Value = top
+		holder.Parent = folder
+		local beamRef = Instance.new("ObjectValue")
+		beamRef.Name = "Beam"
+		beamRef.Value = beam
+		beamRef.Parent = folder
+	end
+	local refs: { [string]: Instance } = { Attachment = attachment, Light = light }
+	for name, inst in refs do
+		local ref = Instance.new("ObjectValue")
+		ref.Name = name
+		ref.Value = inst
+		ref.Parent = folder
+	end
+	auras[e] = folder
+end
+
+local function removeAura(e: Entry)
+	local folder = auras[e]
+	if not folder then
+		return
+	end
+	auras[e] = nil
+	for _, ref in folder:GetChildren() do
+		if ref:IsA("ObjectValue") and ref.Value then
+			ref.Value:Destroy()
+		end
+	end
+	folder:Destroy()
+end
+
 local function flyToPlayer(e: Entry)
 	local root = MovementController:GetRoot()
 	if not root then
@@ -123,7 +212,7 @@ local function flyToPlayer(e: Entry)
 			root.Position,
 			e.Def.Color,
 			MovementController:GetHeight() * 0.25,
-			if e.Def.Unique then 24 else 8
+			if e.Def.Unique then 24 elseif e.Def.Rarity ~= "Common" then 14 else 8
 		)
 	end)
 end
@@ -141,9 +230,17 @@ local function onCollected(payload: { [string]: any })
 	if e then
 		flyToPlayer(e)
 		setVisible(e, false)
+		removeAura(e)
 		local def = CollectibleConfig.get(payload.Type or e.Type)
-		local rare = def ~= nil and (def.Unique or def.Rarity == "Rare")
-		AudioController:Play(if rare then "RareCollect" else "Collect", { Position = e.Part.Position })
+		local rare = def ~= nil and (def.Unique or def.Rarity ~= "Common")
+		-- Quick successive pickups climb in pitch: a trail of orbs sings.
+		local now = os.clock()
+		combo = if now - lastCollect < 1.2 then math.min(combo + 1, 10) else 0
+		lastCollect = now
+		AudioController:Play(
+			if rare then "RareCollect" else "Collect",
+			{ Position = e.Part.Position, Pitch = 1 + combo * 0.045 }
+		)
 	end
 end
 
@@ -178,6 +275,10 @@ end
 
 -- Picks the closest visible collectibles to animate.
 local function refreshAnimated(now: number)
+	local before: { [Entry]: boolean } = {}
+	for _, e in animated do
+		before[e] = true
+	end
 	table.clear(animated)
 	local camera = workspace.CurrentCamera
 	if not camera then
@@ -198,7 +299,15 @@ local function refreshAnimated(now: number)
 		return a.d < b.d
 	end)
 	for i = 1, math.min(#candidates, MAX_ANIMATED) do
-		table.insert(animated, candidates[i].e)
+		local e = candidates[i].e
+		table.insert(animated, e)
+		before[e] = nil
+		if not e.Def.Hidden then
+			addAura(e)
+		end
+	end
+	for e in before do
+		removeAura(e)
 	end
 end
 

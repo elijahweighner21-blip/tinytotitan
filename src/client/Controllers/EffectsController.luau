@@ -504,10 +504,37 @@ function EffectsController:Init()
 		if typeof(p.P) == "Vector3" then
 			local h = (p.S :: number?) or 10
 			local t = (p.T :: number?) or 6
-			local rock = flatPart(Color3.fromRGB(120, 200, 255), 0)
+			local rock = flatPart(Color3.fromRGB(255, 150, 70), 0)
 			rock.Shape = Enum.PartType.Ball
 			rock.Size = Vector3.new(h, h, h)
 			rock.Position = p.P + Vector3.new(h * 30, h * 120, 0)
+			-- A burning streak: fire, smoke trail and a glow lighting the ground.
+			local fire = Instance.new("Fire")
+			fire.Size = math.min(h * 2, 30)
+			fire.Heat = 12
+			fire.Color = Color3.fromRGB(255, 160, 60)
+			fire.SecondaryColor = Color3.fromRGB(255, 230, 140)
+			fire.Parent = rock
+			local glow = Instance.new("PointLight")
+			glow.Color = Color3.fromRGB(255, 180, 90)
+			glow.Range = math.clamp(h * 8, 8, 60)
+			glow.Brightness = 3
+			glow.Parent = rock
+			local a0 = Instance.new("Attachment")
+			a0.Position = Vector3.new(0, h * 0.4, 0)
+			a0.Parent = rock
+			local a1 = Instance.new("Attachment")
+			a1.Position = Vector3.new(0, -h * 0.4, 0)
+			a1.Parent = rock
+			local streak = Instance.new("Trail")
+			streak.Attachment0 = a0
+			streak.Attachment1 = a1
+			streak.Lifetime = 0.8
+			streak.LightEmission = 1
+			streak.FaceCamera = true
+			streak.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), Color3.fromRGB(255, 90, 40))
+			streak.Transparency = NumberSequence.new(0.1, 1)
+			streak.Parent = rock
 			TweenService
 				:Create(rock, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = p.P })
 				:Play()

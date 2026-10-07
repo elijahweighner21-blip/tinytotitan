@@ -543,15 +543,77 @@ local function animateAmbient(now: number)
 	end
 end
 
+-- Growth Surge: green energy motes drifting through the air around you.
+local surgeAnchor: Part? = nil
+local surgeConn: RBXScriptConnection? = nil
+local function setSurge(on: boolean)
+	if on and not surgeAnchor then
+		local anchor = Instance.new("Part")
+		anchor.Name = "TT_SurgeMotes"
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.CanQuery = false
+		anchor.CanTouch = false
+		anchor.Transparency = 1
+		anchor.Size = Vector3.new(1, 1, 1)
+		anchor.Parent = workspace
+		local motes = Instance.new("ParticleEmitter")
+		motes.Color = ColorSequence.new(Color3.fromRGB(130, 255, 160), Color3.fromRGB(220, 255, 170))
+		motes.LightEmission = 1
+		motes.LightInfluence = 0
+		motes.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.3, 0.3),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		motes.Lifetime = NumberRange.new(2.5, 4)
+		motes.Rate = if effectivePreset == "Low" then 6 else 18
+		motes.SpreadAngle = Vector2.new(180, 180)
+		motes.Parent = anchor
+		surgeAnchor = anchor
+		surgeConn = RunService.RenderStepped:Connect(function()
+			local camera = workspace.CurrentCamera
+			if camera and surgeAnchor then
+				-- Follow the camera; motes sized to the player's scale.
+				local h = MovementController:GetHeight()
+				surgeAnchor.Size = Vector3.new(h * 12, h * 6, h * 12)
+				surgeAnchor.CFrame = CFrame.new(camera.CFrame.Position + camera.CFrame.LookVector * h * 4)
+				motes.Size = NumberSequence.new(h * 0.06)
+				motes.Speed = NumberRange.new(h * 0.1, h * 0.4)
+			end
+		end)
+	elseif not on and surgeAnchor then
+		surgeAnchor:Destroy()
+		surgeAnchor = nil
+		if surgeConn then
+			surgeConn:Disconnect()
+			surgeConn = nil
+		end
+	end
+end
+
 function EnvironmentController:Init()
 	Net.onSignal("WorldEvent", function(payload)
 		if type(payload) ~= "table" then
 			return
 		end
 		if payload.State == "Lighting" and type(payload.Preset) == "string" then
+			-- Zone-limited looks (a storm over the titan lands) only apply
+			-- to players standing in those zones.
+			local zones = payload.Zones
+			if type(zones) == "table" and #zones > 0 and not table.find(zones, ZoneController:GetZone()) then
+				return
+			end
 			EnvironmentController:SetOverride(payload.Preset, (payload.Duration :: number?) or 60)
-		elseif payload.State == "End" and override then
-			EnvironmentController:SetOverride(nil)
+		elseif payload.State == "Start" and payload.Id == "GrowthSurge" then
+			setSurge(true)
+		elseif payload.State == "End" then
+			if payload.Id == "GrowthSurge" then
+				setSurge(false)
+			end
+			if override then
+				EnvironmentController:SetOverride(nil)
+			end
 		end
 	end)
 	ZoneController.ZoneChanged:Connect(function(zoneId)

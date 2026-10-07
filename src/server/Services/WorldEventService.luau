@@ -387,6 +387,14 @@ handlers.RarePortal = function(event)
 end
 
 handlers.TitanStorm = function(event)
+	-- The sky turns: only players in the storm's zones see it.
+	Net.signalAll("WorldEvent", {
+		State = "Lighting",
+		Id = event.Def.Id,
+		Preset = "Storm",
+		Duration = event.Def.Duration,
+		Zones = event.Def.Zones,
+	})
 	local strikes = event.Def.Params.Strikes :: number
 	local interval = event.Def.Duration / math.max(1, strikes)
 	event.Trove:Add(task.spawn(function()

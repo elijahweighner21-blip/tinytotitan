@@ -27,6 +27,7 @@ local Create = require(UI.Create)
 local MenuBase = require(UI.MenuBase)
 local Button = require(UI.Components.Button)
 local Scroll = require(UI.Components.Scroll)
+local ScreenFade = require(UI.Hud.ScreenFade)
 local UIManager = require(UI.UIManager)
 local DataController = require(Client.Controllers.DataController)
 local ZoneController = require(Client.Controllers.ZoneController)
@@ -147,9 +148,17 @@ local function render(menu: MenuBase.Menu, _tab: string)
 				TextSize = Theme.TextSize.Small,
 				Parent = row,
 				OnClick = function()
+					-- Cover the jump; the arrival flash reveals the new place.
+					ScreenFade.cover(0.18)
 					local result = Common.request("FastTravel", { Station = zone.Id })
 					if result.ok then
 						UIManager:Close("Map")
+						-- Never leave the screen covered, even if a signal is missed.
+						task.delay(0.6, function()
+							ScreenFade.reveal(0.3)
+						end)
+					else
+						ScreenFade.reveal(0.25)
 					end
 				end,
 			})
