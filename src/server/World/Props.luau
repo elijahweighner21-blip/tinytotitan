@@ -388,6 +388,85 @@ function Props.boulder(parent: Instance, base: Vector3, size: number, seed: numb
 	return m
 end
 
+-- A garden flower (real size: daisy ~8 in, tulip ~14 in). `kind` picks the
+-- head: "Daisy" (flat petals around a centre) or "Tulip" (a closed cup).
+function Props.flower(parent: Instance, base: Vector3, height: number, seed: number, color: Color3, kind: string?)
+	local rng = Random.new(seed)
+	local m = Kit.model(parent, "Flower")
+	local lean = CFrame.Angles(rng:NextNumber(-0.12, 0.12), rng:NextNumber(0, 6.28), rng:NextNumber(-0.12, 0.12))
+	local stem = CFrame.new(base) * lean
+	deco(m, {
+		Name = "Stem",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(height, height * 0.05, height * 0.05),
+		CFrame = stem * CFrame.new(0, height * 0.5, 0) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(80, 140, 60),
+		Material = Enum.Material.Grass,
+		CastShadow = false,
+	})
+	deco(m, {
+		Name = "Leaf",
+		Size = Vector3.new(height * 0.06, height * 0.32, height * 0.14),
+		CFrame = stem * CFrame.new(height * 0.08, height * 0.2, 0) * CFrame.Angles(0, 0, math.rad(-30)),
+		Color = Color3.fromRGB(90, 155, 66),
+		Material = Enum.Material.Grass,
+		CastShadow = false,
+	})
+	local head = stem * CFrame.new(0, height, 0)
+	local hs = height * (if kind == "Tulip" then 0.26 else 0.42)
+	if kind == "Tulip" then
+		deco(m, {
+			Name = "Bloom",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(hs * 0.85, hs * 1.25, hs * 0.85),
+			CFrame = head * CFrame.new(0, hs * 0.4, 0),
+			Color = color,
+			Material = Enum.Material.SmoothPlastic,
+		})
+	else
+		for i = 0, 4 do
+			deco(m, {
+				Name = "Petal",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(hs * 0.62, hs * 0.1, hs * 0.3),
+				CFrame = head
+					* CFrame.Angles(0, i * math.pi * 0.4, 0)
+					* CFrame.new(hs * 0.34, 0, 0)
+					* CFrame.Angles(0, 0, math.rad(14)),
+				Color = color,
+				Material = Enum.Material.SmoothPlastic,
+				CastShadow = false,
+			})
+		end
+		deco(m, {
+			Name = "Centre",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(hs * 0.34, hs * 0.2, hs * 0.34),
+			CFrame = head * CFrame.new(0, hs * 0.05, 0),
+			Color = Color3.fromRGB(250, 190, 40),
+			Material = Enum.Material.SmoothPlastic,
+			CastShadow = false,
+		})
+	end
+	return m
+end
+
+-- A fallen leaf lying flat (real size: an oak leaf is ~5 in long).
+function Props.leaf(parent: Instance, base: Vector3, length: number, seed: number)
+	local rng = Random.new(seed)
+	local tone = Color3.fromRGB(196, 120, 50):Lerp(Color3.fromRGB(150, 140, 60), rng:NextNumber(0, 1))
+	return deco(parent, {
+		Name = "FallenLeaf",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(length, length * 0.04, length * 0.55),
+		CFrame = CFrame.new(base + Vector3.new(0, length * 0.02, 0))
+			* CFrame.Angles(rng:NextNumber(-0.08, 0.08), rng:NextNumber(0, 6.28), 0),
+		Color = tone,
+		Material = Enum.Material.Fabric,
+		CastShadow = false,
+	})
+end
+
 -- A coffee mug standing on `base` (real size: 3.8 in tall).
 function Props.mug(parent: Instance, base: Vector3, color: Color3, yaw: number?)
 	local m = Kit.model(parent, "Mug")

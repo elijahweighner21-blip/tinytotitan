@@ -15,6 +15,7 @@
 ]]
 
 local Kit = require(script.Parent.Parent.Kit)
+local Props = require(script.Parent.Parent.Props)
 
 local Backyard = {}
 
@@ -414,6 +415,54 @@ local function birdbath(m: Instance)
 	Kit.collectible(m, "LostCoin", ZONE, Vector3.new(100, 56, -760))
 end
 
+-- Set dressing only (non-colliding): paver joints, potted plants and party
+-- lights on the patio, flower beds out on the open lawn, leaves under the oak.
+local function decor(m: Instance)
+	local d = Kit.model(m, "BackyardDecor")
+	Props.tileGrid(d, 150, -520, 470, -306, 2.02, 26.75, Color3.fromRGB(150, 146, 138))
+	local pots = { Color3.fromRGB(196, 110, 74), Color3.fromRGB(70, 110, 150), Color3.fromRGB(230, 225, 215) }
+	for i, at in { Vector3.new(162, 2, -508), Vector3.new(458, 2, -508), Vector3.new(458, 2, -318) } do
+		Props.plant(d, at, 22, 300 + i, pots[i])
+	end
+	-- Two thin posts carry big-bulb lights across the patio.
+	local warm = { Color3.fromRGB(255, 214, 140), Color3.fromRGB(255, 160, 110), Color3.fromRGB(255, 240, 190) }
+	for _, x in { 158, 462 } do
+		Kit.pillar(d, "LightPost", Vector3.new(x, 2, -312), 82, 2.4, Color3.fromRGB(70, 60, 52), Enum.Material.Metal)
+	end
+	Props.stringLights(d, Vector3.new(158, 83, -312), Vector3.new(462, 83, -312), 16, 10, warm, 3)
+	-- Flower beds in open lawn, clear of paths, arenas and spawners.
+	local beds: { { At: Vector3, Count: number, Color: Color3, Kind: string } } = {
+		{ At = Vector3.new(40, 0, -420), Count = 9, Color = Color3.fromRGB(255, 255, 255), Kind = "Daisy" },
+		{ At = Vector3.new(80, 0, -560), Count = 7, Color = Color3.fromRGB(240, 70, 90), Kind = "Tulip" },
+		{ At = Vector3.new(-20, 0, -720), Count = 6, Color = Color3.fromRGB(255, 220, 60), Kind = "Daisy" },
+		{ At = Vector3.new(620, 0, -1060), Count = 8, Color = Color3.fromRGB(250, 140, 190), Kind = "Tulip" },
+		{ At = Vector3.new(520, 0, -330), Count = 6, Color = Color3.fromRGB(255, 255, 255), Kind = "Daisy" },
+		{ At = Vector3.new(670, 0, -560), Count = 7, Color = Color3.fromRGB(170, 120, 240), Kind = "Tulip" },
+	}
+	for b, bed in beds do
+		local rng = Random.new(900 + b)
+		for i = 1, bed.Count do
+			local a = rng:NextNumber(0, math.pi * 2)
+			local r = rng:NextNumber(0, 26)
+			local h = if bed.Kind == "Tulip" then rng:NextNumber(13, 16) else rng:NextNumber(8, 11)
+			Props.flower(
+				d,
+				bed.At + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r),
+				h,
+				b * 50 + i,
+				bed.Color,
+				bed.Kind
+			)
+		end
+	end
+	local rng = Random.new(77)
+	for i = 1, 26 do
+		local a = rng:NextNumber(0, math.pi * 2)
+		local r = rng:NextNumber(32, 150)
+		Props.leaf(d, Vector3.new(560 + math.cos(a) * r, 0, -450 + math.sin(a) * r), rng:NextNumber(9, 13), 500 + i)
+	end
+end
+
 function Backyard.build(root: Instance)
 	local m = Kit.folder(root, "Backyard")
 	Kit.ground(m, "Lawn", -400, -1200, 720, -300, 0, 6, Kit.Colors.Grass, Enum.Material.Grass)
@@ -425,6 +474,7 @@ function Backyard.build(root: Instance)
 	shed(m)
 	oak(m)
 	birdbath(m)
+	decor(m)
 	Kit.bossArena(m, "Lawnmower", Vector3.new(150, 0, -850))
 	Kit.spawnPad(m, ZONE, Vector3.new(265, 2, -370), 3)
 	Kit.fastTravel(m, ZONE, Vector3.new(220, 2, -360), 3)
