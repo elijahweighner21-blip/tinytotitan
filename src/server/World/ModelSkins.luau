@@ -148,6 +148,7 @@ local function dress(model: Instance)
 		part.CFrame = base * CFrame.new(piece.Offset.Position * stretch) * r
 		part.Color = spec.Color
 		part.Material = spec.Material
+		part.Reflectance = spec.Reflectance or 0
 		part.Transparency = if spec.Material == Enum.Material.Glass then 0.45 else 0
 		part.Anchored = true
 		part.CanCollide = false
@@ -275,6 +276,7 @@ function ModelSkins.apply(model: Model, root: BasePart, name: string, color: Col
 		part.CFrame = base * CFrame.new(piece.Offset.Position * s) * piece.Offset.Rotation
 		part.Color = tinted(color, spec.Tint, spec.Color)
 		part.Material = spec.Material
+		part.Reflectance = spec.Reflectance or 0
 		part.Transparency = if spec.Material == Enum.Material.Glass then 0.45 else 0
 		part.Anchored = false
 		part.Massless = true

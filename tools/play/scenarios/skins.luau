@@ -54,8 +54,8 @@ E.run(0.5)
 local model, root = wasp.Model, wasp.Root
 E.check("model marked as skinned", model:GetAttribute("Skin") == "Wasp")
 local head = model:FindFirstChild("Head.001")
-local stinger = model:FindFirstChild("Stinger.001")
-local body = model:FindFirstChild("Body.001")
+local stinger = model:FindFirstChild("Sting.001")
+local body = model:FindFirstChild("Gaster.001")
 E.check("parts present", head ~= nil and stinger ~= nil and body ~= nil)
 local look = root.CFrame.LookVector
 local headAhead = (head.Position - root.Position):Dot(look)

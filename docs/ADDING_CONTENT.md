@@ -94,7 +94,7 @@ Create `client/UI/Screens/<Name>Menu.luau` using `MenuBase.new{ Name, Title, Tab
 
 ## 3D models — `tools/models/`
 
-Creatures have real 3D models built from Blender scripts (`tools/models/creatures.py`, one function per creature shape). Each part is a named role coloured in game, so there are no textures; roles marked `"Tint"`/`"TintDark"`/`"TintLight"` take the enemy's config colour.
+Creatures have real 3D models built from Blender scripts (`tools/models/realistic.py`, one function per creature shape, with real anatomy: jointed legs, compound eyes, segmented bodies, glossy shells). Each part is a named role coloured in game (glossy roles also get Reflectance), so there are no textures; roles marked `"Tint"`/`"TintDark"`/`"TintLight"` take the enemy's config colour.
 
 1. Build: `.tools/blender-venv/bin/python tools/models/build.py [Name ...]` writes `build/models/<Name>.fbx`, a manifest and a preview PNG. (Set up once with `python3 -m venv .tools/blender-venv && .tools/blender-venv/bin/pip install bpy`.)
 2. Regenerate the library: `python3 tools/models/manifest.py` → `shared/Config/ModelLibrary.luau`.

@@ -41,9 +41,18 @@ def tint_rgb(mode):
     return tuple(round(c + (target - c) * abs(k)) for c in base)
 
 
+# Role -> Roblox Reflectance for glossy parts (chitin, eyes, enamel).
+GLOSS = {}
+
+
+def gloss(role, reflectance=0.12):
+    GLOSS[role] = reflectance
+
+
 def reset(preview_tint=(200, 80, 60)):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     PREVIEW_TINT[0] = preview_tint
+    GLOSS.clear()
 
 
 def _material(color, material):
@@ -366,6 +375,12 @@ def export(name, preview=True, collision=None):
         }
         if "tint" in obj:
             parts[role]["Tint"] = obj["tint"]
+        if role in GLOSS:
+            parts[role]["Reflectance"] = GLOSS[role]
+            for slot in obj.material_slots:
+                bsdf = slot.material.node_tree.nodes["Principled BSDF"]
+                bsdf.inputs["Roughness"].default_value = 0.12
+                bsdf.inputs["Coat Weight"].default_value = 0.6
         assert tris <= 20000, f"{name}.{role}: {tris} triangles (Roblox limit 20000)"
     bpy.ops.object.select_all(action="DESELECT")
     for obj in joined.values():

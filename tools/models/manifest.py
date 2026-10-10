@@ -30,7 +30,7 @@ lines = [
     "-- material, tint mode (coloured by the enemy) and bounding box (centre",
     "-- and extent, for orienting the imported mesh).",
     "",
-    "export type Part = { Color: Color3, Material: Enum.Material, Tint: string?, Center: Vector3, Extent: Vector3 }",
+    "export type Part = { Color: Color3, Material: Enum.Material, Tint: string?, Reflectance: number?, Center: Vector3, Extent: Vector3 }",
     "export type Model = { Size: Vector3, Parts: { [string]: Part } }",
     "",
     "local ModelLibrary: { [string]: Model } = {",
@@ -43,6 +43,8 @@ for name in sorted(f[:-5] for f in os.listdir(SRC) if f.endswith(".json")):
     for role in sorted(m["Parts"]):
         p = m["Parts"][role]
         tint = f', Tint = "{p["Tint"]}"' if "Tint" in p else ""
+        if "Reflectance" in p:
+            tint += f", Reflectance = {num(p['Reflectance'])}"
         color = "Color3.fromRGB(" + ", ".join(str(c) for c in p["Color"]) + ")"
         lines.append(
             f"\t\t\t{role} = {{ Color = {color}, Material = Enum.Material.{p['Material']}{tint}, Center = {vec(p['Center'])}, Extent = {vec(p['Extent'])} }},"
