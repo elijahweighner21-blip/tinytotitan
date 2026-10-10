@@ -206,7 +206,8 @@ local function fridge(m: Instance)
 		Color3.fromRGB(150, 150, 155),
 		Enum.Material.Metal
 	)
-	-- Magnets as hand-holds up the door for climbers.
+	Kit.skin(model, "Fridge", model:GetChildren())
+	-- Magnets as hand-holds up the door for climbers (left visible).
 	for i = 0, 6 do
 		Kit.box(
 			model,

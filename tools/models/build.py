@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 import creatures  # noqa: E402
+import props  # noqa: E402
 from lib import export, reset  # noqa: E402
 
 # Name -> (builder, preview tint). Creature names match CreatureBuilder shapes;
@@ -34,6 +35,15 @@ MODELS = {
     "Mower": (creatures.mower, (210, 50, 40)),
     "Mech": (creatures.mech, (80, 160, 255)),
     "Colossus": (creatures.colossus, (170, 120, 255)),
+    # World props (dress the block versions via Kit.skin).
+    "Couch": (props.couch, (90, 110, 140)),
+    "Sneaker": (props.sneaker, (60, 110, 200)),
+    "Bed": (props.bed, (80, 120, 190)),
+    "Dresser": (props.dresser, (160, 110, 70)),
+    "ToyChest": (props.toy_chest, (160, 110, 70)),
+    "Fridge": (props.fridge, (235, 238, 240)),
+    "Tree": (props.tree, (86, 150, 72)),
+    "Pine": (props.pine, (52, 108, 70)),
 }
 
 names = [a for a in sys.argv[1:] if not a.startswith("-")] or list(MODELS)

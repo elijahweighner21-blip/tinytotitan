@@ -65,6 +65,7 @@ local function bed(m: Instance)
 		Enum.Material.Fabric
 	)
 	Kit.box(model, "Headboard", Vector3.new(-282, 0, 180), Vector3.new(4, 60, 120), C.Wood, Enum.Material.Wood)
+	Kit.skin(model, "Bed", model:GetChildren())
 	-- A dangling quilt corner makes a ramp from the floor onto the bed.
 	Kit.ramp(
 		model,
@@ -281,6 +282,7 @@ local function dresser(m: Instance)
 		Color3.fromRGB(120, 40, 80),
 		Enum.Material.Fabric
 	)
+	Kit.skin(model, "Dresser", model:GetChildren())
 	Kit.discovery(m, "DresserPeak", Vector3.new(-242, 51, 40), Vector3.new(50, 8, 36))
 	Kit.collectible(m, "LostCoin", ZONE, Vector3.new(-230, 47, 45))
 	Kit.collectible(m, "MemoryFragment", ZONE, Vector3.new(-255, 54, 33))
@@ -373,6 +375,7 @@ local function toyChest(m: Instance)
 		Color = C.Wood,
 		Material = Enum.Material.Wood,
 	})
+	Kit.skin(model, "ToyChest", model:GetChildren())
 	Kit.interactable(
 		model,
 		"Dice",

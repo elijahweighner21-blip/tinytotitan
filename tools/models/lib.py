@@ -165,6 +165,36 @@ def cylinder(role, center, radius, depth, color, material="SmoothPlastic", rotat
     return obj
 
 
+def loft(role, sections, color, material="SmoothPlastic", sides=24, power=2.6):
+    """A smooth body through cross-sections along Blender X. Each section is
+    (x, y_centre, z_bottom, half_width, height): a rounded-rectangle-ish
+    (superellipse) ring whose bottom sits at z_bottom. Ends are capped."""
+    bm = bmesh.new()
+    rings = []
+    for x, yc, zb, hw, h in sections:
+        ring = []
+        for k in range(sides):
+            t = k / sides * math.tau
+            c, sn = math.cos(t), math.sin(t)
+            # Superellipse: flatter sides, rounded corners.
+            ex = math.copysign(abs(c) ** (2 / power), c)
+            ez = math.copysign(abs(sn) ** (2 / power), sn)
+            ring.append(bm.verts.new((x, yc + ex * hw, zb + h / 2 + ez * h / 2)))
+        rings.append(ring)
+    for r0, r1 in zip(rings, rings[1:]):
+        for k in range(sides):
+            bm.faces.new((r0[k], r1[k], r1[(k + 1) % sides], r0[(k + 1) % sides]))
+    bm.faces.new(rings[0])
+    bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh = bpy.data.meshes.new(role)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new(role, mesh)
+    bpy.context.collection.objects.link(obj)
+    return _finish(obj, role, color, material, subdiv=1)
+
+
 def cone(role, base, tip, radius, color, material="SmoothPlastic", sides=12):
     """A pointed cone from `base` to `tip` (horns, crystals, spikes)."""
     return tube(role, [base, tip], [radius, radius * 0.02], color, material, sides=sides)

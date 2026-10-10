@@ -365,6 +365,7 @@ function Props.pine(parent: Instance, base: Vector3, height: number, seed: numbe
 		Material = Enum.Material.Grass,
 	})
 	tip.CanCollide = false
+	Kit.skin(m, "Pine", m:GetChildren())
 	return m
 end
 
@@ -846,6 +847,7 @@ function Props.tree(parent: Instance, base: Vector3, height: number, seed: numbe
 		}).CanCollide =
 			false
 	end
+	Kit.skin(m, "Tree", m:GetChildren())
 	return m
 end
 

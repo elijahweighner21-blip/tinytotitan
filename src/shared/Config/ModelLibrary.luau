@@ -10,6 +10,77 @@ export type Part = { Color: Color3, Material: Enum.Material, Tint: string?, Cent
 export type Model = { Size: Vector3, Parts: { [string]: Part } }
 
 local ModelLibrary: { [string]: Model } = {
+	Bed = {
+		Size = Vector3.new(1.9, 1, 2.0067),
+		Parts = {
+			Finial = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.8833, 0.975, -0),
+				Extent = Vector3.new(0.0733, 0.05, 2.0067),
+			},
+			Frame = {
+				Color = Color3.fromRGB(160, 110, 70),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0.0333, 0.2167, 0),
+				Extent = Vector3.new(1.8333, 0.1, 2),
+			},
+			Headboard = {
+				Color = Color3.fromRGB(160, 110, 70),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.8833, 0.5667, 0),
+				Extent = Vector3.new(0.1333, 0.8, 1.9333),
+			},
+			Leg = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0.0333, 0.085, 0),
+				Extent = Vector3.new(1.7667, 0.17, 1.9333),
+			},
+			Mattress = {
+				Color = Color3.fromRGB(235, 235, 245),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.0333, 0.3583, 0),
+				Extent = Vector3.new(1.7667, 0.1833, 1.9333),
+			},
+			Panel = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.8517, 0.6, 0),
+				Extent = Vector3.new(0.0067, 0.4667, 1.6),
+			},
+			Pillow = {
+				Color = Color3.fromRGB(250, 250, 250),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.6333, 0.5, 0),
+				Extent = Vector3.new(0.3667, 0.1, 1.5),
+			},
+			Post = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.8833, 0.4833, 0),
+				Extent = Vector3.new(0.0733, 0.9667, 2.0067),
+			},
+			Quilt = {
+				Color = Color3.fromRGB(80, 120, 190),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.275, 0.3958, 0),
+				Extent = Vector3.new(1.3167, 0.1583, 1.9667),
+			},
+			QuiltFold = {
+				Color = Color3.fromRGB(110, 150, 215),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.3833, 0.4667, 0),
+				Extent = Vector3.new(0.0533, 0.0533, 1.95),
+			},
+			Stitch = {
+				Color = Color3.fromRGB(60, 95, 160),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.275, 0.4767, -0.0838),
+				Extent = Vector3.new(1.25, 0.0095, 1.509),
+			},
+		},
+	},
 	Beetle = {
 		Size = Vector3.new(1.9919, 1, 2.4365),
 		Parts = {
@@ -244,6 +315,47 @@ local ModelLibrary: { [string]: Model } = {
 			},
 		},
 	},
+	Couch = {
+		Size = Vector3.new(1.6538, 1, 3.4769),
+		Parts = {
+			Button = {
+				Color = Color3.fromRGB(70, 88, 115),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(-0.1731, 0.4827, 0),
+				Extent = Vector3.new(0.0462, 0.0154, 1.9692),
+			},
+			Cushion = {
+				Color = Color3.fromRGB(108, 128, 158),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.125, 0.6538, 0),
+				Extent = Vector3.new(1.25, 0.5385, 2.8462),
+			},
+			Leg = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0, 0.0808, 0),
+				Extent = Vector3.new(1.5769, 0.1615, 3.3846),
+			},
+			Pillow = {
+				Color = Color3.fromRGB(235, 170, 80),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.1346, 0.5769, -1.2692),
+				Extent = Vector3.new(0.2046, 0.2245, 0.2597),
+			},
+			Piping = {
+				Color = Color3.fromRGB(70, 88, 115),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.2202, 0.6962, 0),
+				Extent = Vector3.new(1.0635, 0.4772, 2.7692),
+			},
+			Upholstery = {
+				Color = Color3.fromRGB(90, 110, 140),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0, 0.5769, -0),
+				Extent = Vector3.new(1.6538, 0.8462, 3.4769),
+			},
+		},
+	},
 	Crow = {
 		Size = Vector3.new(0.5911, 1, 1.6526),
 		Parts = {
@@ -311,6 +423,65 @@ local ModelLibrary: { [string]: Model } = {
 				Tint = "TintDark",
 				Center = Vector3.new(0, 0.5644, 0.2475),
 				Extent = Vector3.new(0.5911, 0.4798, 1.1248),
+			},
+		},
+	},
+	Dresser = {
+		Size = Vector3.new(1.3333, 1, 0.7407),
+		Parts = {
+			Body = {
+				Color = Color3.fromRGB(160, 110, 70),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.162, 0.4444, 0),
+				Extent = Vector3.new(1.0093, 0.8148, 0.7407),
+			},
+			Clasp = {
+				Color = Color3.fromRGB(230, 195, 90),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(-0.3889, 0.9722, -0.2296),
+				Extent = Vector3.new(0.037, 0.0296, 0.0148),
+			},
+			Drawer = {
+				Color = Color3.fromRGB(200, 160, 110),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0.5, 0.4213, 0),
+				Extent = Vector3.new(0.2963, 0.6944, 0.6667),
+			},
+			DrawerFront = {
+				Color = Color3.fromRGB(200, 160, 110),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0.5259, 0.463, 0),
+				Extent = Vector3.new(0.2444, 0.7778, 0.7037),
+			},
+			JewelryBox = {
+				Color = Color3.fromRGB(120, 40, 80),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.3889, 0.9259, -0.1296),
+				Extent = Vector3.new(0.2593, 0.1111, 0.1852),
+			},
+			JewelryLid = {
+				Color = Color3.fromRGB(140, 50, 95),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(-0.3889, 0.9815, -0.1296),
+				Extent = Vector3.new(0.2704, 0.037, 0.1963),
+			},
+			Knob = {
+				Color = Color3.fromRGB(220, 190, 90),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(0.5426, 0.4722, -0),
+				Extent = Vector3.new(0.2481, 0.6519, 0.337),
+			},
+			Plinth = {
+				Color = Color3.fromRGB(105, 70, 45),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.1574, 0.0231, 0),
+				Extent = Vector3.new(0.9815, 0.0463, 0.7037),
+			},
+			Top = {
+				Color = Color3.fromRGB(140, 95, 60),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.1574, 0.8519, 0),
+				Extent = Vector3.new(1.0185, 0.037, 0.7407),
 			},
 		},
 	},
@@ -448,6 +619,47 @@ local ModelLibrary: { [string]: Model } = {
 				Material = Enum.Material.Glass,
 				Center = Vector3.new(0, 0.8796, 0.1542),
 				Extent = Vector3.new(1.4578, 0.2295, 0.6537),
+			},
+		},
+	},
+	Fridge = {
+		Size = Vector3.new(0.4814, 1, 0.45),
+		Parts = {
+			Body = {
+				Color = Color3.fromRGB(235, 238, 240),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(0.017, 0.5, 0),
+				Extent = Vector3.new(0.4475, 1, 0.45),
+			},
+			Display = {
+				Color = Color3.fromRGB(40, 60, 80),
+				Material = Enum.Material.Glass,
+				Center = Vector3.new(-0.213, 0.65, -0.0625),
+				Extent = Vector3.new(0.005, 0.05, 0.075),
+			},
+			Door = {
+				Color = Color3.fromRGB(245, 247, 250),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(-0.2055, 0.505, 0),
+				Extent = Vector3.new(0.0175, 0.975, 0.44),
+			},
+			Handle = {
+				Color = Color3.fromRGB(150, 150, 155),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(-0.2248, 0.55, 0.1625),
+				Extent = Vector3.new(0.0319, 0.5617, 0.0187),
+			},
+			Kick = {
+				Color = Color3.fromRGB(60, 60, 66),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(-0.1999, 0.0075, 0),
+				Extent = Vector3.new(0.0187, 0.015, 0.425),
+			},
+			Seal = {
+				Color = Color3.fromRGB(150, 150, 155),
+				Material = Enum.Material.Rubber,
+				Center = Vector3.new(-0.2055, 0.5031, 0),
+				Extent = Vector3.new(0.0075, 0.9937, 0.445),
 			},
 		},
 	},
@@ -959,6 +1171,29 @@ local ModelLibrary: { [string]: Model } = {
 			},
 		},
 	},
+	Pine = {
+		Size = Vector3.new(0.6851, 1, 0.7027),
+		Parts = {
+			Needles = {
+				Color = Color3.fromRGB(52, 108, 70),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(0, 0.5236, 0),
+				Extent = Vector3.new(0.6851, 0.6824, 0.7027),
+			},
+			NeedlesLight = {
+				Color = Color3.fromRGB(66, 126, 80),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(0, 0.6993, 0),
+				Extent = Vector3.new(0.5533, 0.6014, 0.5676),
+			},
+			Trunk = {
+				Color = Color3.fromRGB(96, 66, 46),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0, 0.2027, 0),
+				Extent = Vector3.new(0.0925, 0.4054, 0.0973),
+			},
+		},
+	},
 	Roach = {
 		Size = Vector3.new(3.0878, 1, 3.5957),
 		Parts = {
@@ -1219,6 +1454,71 @@ local ModelLibrary: { [string]: Model } = {
 			},
 		},
 	},
+	Sneaker = {
+		Size = Vector3.new(3.3097, 1, 1.4184),
+		Parts = {
+			Collar = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(1.2766, 0.9409, 0),
+				Extent = Vector3.new(0.6856, 0.0946, 0.9456),
+			},
+			Heel = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Leather,
+				Center = Vector3.new(1.4894, 0.4965, 0),
+				Extent = Vector3.new(0.331, 0.6147, 1.1347),
+			},
+			Lace = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.0414, 0.6833, 0),
+				Extent = Vector3.new(0.8107, 0.1707, 0.7638),
+			},
+			Opening = {
+				Color = Color3.fromRGB(40, 50, 80),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(1.2766, 0.9574, 0),
+				Extent = Vector3.new(0.5437, 0.0851, 0.8038),
+			},
+			Sole = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Rubber,
+				Center = Vector3.new(0, 0.1241, 0),
+				Extent = Vector3.new(3.3097, 0.13, 1.4184),
+			},
+			Swoosh = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Leather,
+				Center = Vector3.new(0.1783, 0.4022, 0),
+				Extent = Vector3.new(1.7772, 0.3498, 1.357),
+			},
+			ToeCap = {
+				Color = Color3.fromRGB(240, 240, 240),
+				Material = Enum.Material.Leather,
+				Center = Vector3.new(-1.3239, 0.2482, 0),
+				Extent = Vector3.new(0.6147, 0.1986, 1.1584),
+			},
+			Tongue = {
+				Color = Color3.fromRGB(80, 130, 215),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.7329, 0.721, 0),
+				Extent = Vector3.new(0.5201, 0.4019, 0.8511),
+			},
+			Tread = {
+				Color = Color3.fromRGB(180, 180, 185),
+				Material = Enum.Material.Rubber,
+				Center = Vector3.new(0, 0.0355, 0),
+				Extent = Vector3.new(3.2151, 0.0709, 1.3239),
+			},
+			Upper = {
+				Color = Color3.fromRGB(60, 110, 200),
+				Material = Enum.Material.Fabric,
+				Center = Vector3.new(0.0239, 0.5719, 0),
+				Extent = Vector3.new(3.2352, 0.7644, 1.2888),
+			},
+		},
+	},
 	Spider = {
 		Size = Vector3.new(2.4634, 1, 2.0025),
 		Parts = {
@@ -1381,6 +1681,76 @@ local ModelLibrary: { [string]: Model } = {
 				Material = Enum.Material.SmoothPlastic,
 				Center = Vector3.new(0, 0.1538, 0.0269),
 				Extent = Vector3.new(0.2692, 0.1846, 0.1154),
+			},
+		},
+	},
+	ToyChest = {
+		Size = Vector3.new(0.7704, 1, 0.9442),
+		Parts = {
+			Chest = {
+				Color = Color3.fromRGB(160, 110, 70),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0, 0.1888, -0.0869),
+				Extent = Vector3.new(0.7553, 0.3777, 0.7553),
+			},
+			Lid = {
+				Color = Color3.fromRGB(160, 110, 70),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0, 0.642, 0.3285),
+				Extent = Vector3.new(0.7553, 0.716, 0.2871),
+			},
+			Star = {
+				Color = Color3.fromRGB(250, 210, 70),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(0, 0.6798, 0.3153),
+				Extent = Vector3.new(0.1888, 0.0702, 0.1774),
+			},
+			Strap = {
+				Color = Color3.fromRGB(60, 60, 66),
+				Material = Enum.Material.Metal,
+				Center = Vector3.new(0, 0.1888, -0.0869),
+				Extent = Vector3.new(0.7704, 0.3777, 0.7704),
+			},
+			Stripe = {
+				Color = Color3.fromRGB(230, 80, 80),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(0, 0.2172, -0.0869),
+				Extent = Vector3.new(0.7666, 0.2077, 0.7364),
+			},
+		},
+	},
+	Tree = {
+		Size = Vector3.new(0.752, 1, 0.73),
+		Parts = {
+			Branch = {
+				Color = Color3.fromRGB(100, 74, 52),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.0185, 0.516, -0.0297),
+				Extent = Vector3.new(0.3612, 0.2533, 0.3167),
+			},
+			Leaves = {
+				Color = Color3.fromRGB(86, 150, 72),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(0, 0.7445, 0.1181),
+				Extent = Vector3.new(0.752, 0.482, 0.4938),
+			},
+			LeavesLight = {
+				Color = Color3.fromRGB(120, 175, 90),
+				Material = Enum.Material.SmoothPlastic,
+				Center = Vector3.new(-0.0174, 0.7509, -0.0376),
+				Extent = Vector3.new(0.5684, 0.4981, 0.6549),
+			},
+			Root = {
+				Color = Color3.fromRGB(100, 74, 52),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(0.0161, 0.0489, 0.0104),
+				Extent = Vector3.new(0.1628, 0.0978, 0.1844),
+			},
+			Trunk = {
+				Color = Color3.fromRGB(100, 74, 52),
+				Material = Enum.Material.Wood,
+				Center = Vector3.new(-0.0054, 0.3108, 0.0107),
+				Extent = Vector3.new(0.1609, 0.6064, 0.161),
 			},
 		},
 	},

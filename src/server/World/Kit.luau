@@ -288,6 +288,33 @@ function Kit.tag(instance: Instance, tag: string, attributes: { [string]: any }?
 	CollectionService:AddTag(instance, tag)
 end
 
+-- Mark a prop for its 3D model (tools/models/props.py): once the model has
+-- loaded, ModelSkins fits it to the bounding box of `parts` and hides them;
+-- they stay as invisible collision, so climbing is unchanged. Without an
+-- uploaded model the blocks simply stay visible.
+function Kit.skin(model: Model, name: string, parts: { Instance })
+	local lo = Vector3.new(math.huge, math.huge, math.huge)
+	local hi = -lo
+	for _, part in parts do
+		if part:IsA("BasePart") then
+			local half = part.Size / 2
+			local r = part.CFrame.Rotation
+			local extent = Vector3.new(
+				math.abs(r.XVector.X) * half.X + math.abs(r.YVector.X) * half.Y + math.abs(r.ZVector.X) * half.Z,
+				math.abs(r.XVector.Y) * half.X + math.abs(r.YVector.Y) * half.Y + math.abs(r.ZVector.Y) * half.Z,
+				math.abs(r.XVector.Z) * half.X + math.abs(r.YVector.Z) * half.Y + math.abs(r.ZVector.Z) * half.Z
+			)
+			lo = lo:Min(part.Position - extent)
+			hi = hi:Max(part.Position + extent)
+			part:SetAttribute("SkinHidden", true)
+		end
+	end
+	model:SetAttribute("SkinName", name)
+	model:SetAttribute("SkinMin", lo)
+	model:SetAttribute("SkinMax", hi)
+	CollectionService:AddTag(model, "Skinned")
+end
+
 -- Invisible, non-colliding marker volume.
 function Kit.region(parent: Instance, name: string, center: Vector3, size: Vector3): Part
 	return Kit.part(parent, {

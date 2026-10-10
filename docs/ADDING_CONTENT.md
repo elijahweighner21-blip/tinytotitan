@@ -100,4 +100,6 @@ Creatures have real 3D models built from Blender scripts (`tools/models/creature
 2. Regenerate the library: `python3 tools/models/manifest.py` → `shared/Config/ModelLibrary.luau`.
 3. Upload: `ROBLOX_API_KEY=… ROBLOX_USER_ID=… node tools/models/upload.mjs [Name ...]` (Open Cloud key with Assets read + write, under the account or group that owns the game). Ids land in `shared/Config/ModelAssets.luau`; re-uploading keeps the id.
 
+World props have models too (`tools/models/props.py`: couch, sneaker, bed, dresser, toy chest, fridge, trees, pines), built in game studs at the exact layout of their block versions. A region marks a prop with `Kit.skin(model, "Name", parts)`; once the model loads it is fitted to those parts' bounding box and the parts turn invisible but keep colliding, so climbing is unchanged.
+
 In game, `server/World/ModelSkins.luau` loads each uploaded model at boot, orients it against the manifest and swaps it in for the creature's block body. Without an id (or while loading) the blocks stay, so models can go live one at a time.

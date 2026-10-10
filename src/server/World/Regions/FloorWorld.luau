@@ -189,6 +189,7 @@ local function shoe(m: Instance)
 	)
 	Kit.box(shoeModel, "Collar", base + Vector3.new(11.5, 0.8, 0), Vector3.new(2.5, 3.6, 6), blue, Enum.Material.Fabric)
 	Kit.box(shoeModel, "Heel", base + Vector3.new(13, 0.8, 0.5), Vector3.new(1, 2.6, 5), white, Enum.Material.Rubber)
+	Kit.skin(shoeModel, "Sneaker", shoeModel:GetChildren())
 	Kit.discovery(shoeModel, "ShoeSummit", base + Vector3.new(12.7, 6, 3), Vector3.new(3.5, 3, 6))
 	Kit.collectible(shoeModel, "TitanShard", ZONE, base + Vector3.new(12.7, 4.4, 3))
 	Kit.orbLine(shoeModel, ZONE, base + Vector3.new(1, 0.8, 3), base + Vector3.new(10, 3.6, 3), 5)
@@ -275,6 +276,7 @@ local function couch(m: Instance)
 			Enum.Material.Fabric
 		)
 	end
+	Kit.skin(couchModel, "Couch", couchModel:GetChildren())
 	-- Under the couch: dust bunnies and lost things (gap is 8 studs tall).
 	Kit.discovery(m, "UnderTheCouch", Vector3.new(270, 4, 170), Vector3.new(60, 7, 140))
 	local rng = Random.new(404)

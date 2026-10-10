@@ -106,4 +106,40 @@ E.check("every library model solves its own import", (function()
 	end
 	return true
 end)())
+
+print("== Props wear their models over invisible collision")
+ModelAssets.Couch = 9003
+E.insertAssets[9003] = fakeImport("Couch")
+ModelSkins.preload()
+E.run(2)
+local couch = E.workspace:FindFirstChild("Couch", true)
+local skin = couch and couch:FindFirstChild("Skin")
+E.check("couch dressed", skin ~= nil and #skin:GetChildren() > 0)
+local blocksHidden, blocksSolid = true, true
+for _, p in couch:GetChildren() do
+	if p:IsA("BasePart") then
+		blocksHidden = blocksHidden and p.Transparency == 1
+		blocksSolid = blocksSolid and p.CanCollide
+	end
+end
+E.check("block parts invisible", blocksHidden)
+E.check("block parts still collide", blocksSolid)
+local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
+for _, p in skin:GetChildren() do
+	E.check("skin part " .. p.Name .. " is cosmetic", p.Anchored and not p.CanCollide and not p.CanQuery)
+	local half = p.Size / 2
+	local r = p.CFrame.Rotation
+	local ext = Vector3.new(
+		math.abs(r.XVector.X) * half.X + math.abs(r.YVector.X) * half.Y + math.abs(r.ZVector.X) * half.Z,
+		math.abs(r.XVector.Y) * half.X + math.abs(r.YVector.Y) * half.Y + math.abs(r.ZVector.Y) * half.Z,
+		math.abs(r.XVector.Z) * half.X + math.abs(r.YVector.Z) * half.Y + math.abs(r.ZVector.Z) * half.Z
+	)
+	mn = mn:Min(p.Position - ext)
+	mx = mx:Max(p.Position + ext)
+end
+local lo, hi = couch:GetAttribute("SkinMin"), couch:GetAttribute("SkinMax")
+E.check("model fills the couch's box", (mn - lo).Magnitude < 1.5 and (mx - hi).Magnitude < 1.5, tostring(mn) .. " .. " .. tostring(mx))
+local hit = E.workspace:Raycast(Vector3.new(264, 80, 170), Vector3.new(0, -100, 0))
+E.check("players still land on the cushions", hit ~= nil and hit.Instance:IsDescendantOf(couch) and math.abs(hit.Position.Y - 25) < 0.5, hit and tostring(hit.Position))
+E.check("sneaker without a model keeps its blocks", E.workspace:FindFirstChild("Sneaker", true):FindFirstChild("Skin") == nil)
 E.summary()

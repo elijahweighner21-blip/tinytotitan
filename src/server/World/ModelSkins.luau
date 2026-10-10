@@ -6,11 +6,16 @@
 	visual parts change: the Root and everything gameplay touches stay the
 	same. A model with no asset id, or one still loading, keeps its blocks.
 
+	World props marked with Kit.skin are dressed the same way: the model is
+	fitted to the prop's box and the block parts turn invisible but keep
+	colliding, so every climb works exactly as before.
+
 	The importer may pick different axes and units than Blender, so every
 	loaded model is oriented by matching its parts' bounding-box centres to
 	the manifest (ModelLibrary), trying the 24 axis-aligned rotations.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local InsertService = game:GetService("InsertService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -110,6 +115,63 @@ function ModelSkins.solve(name: string, parts: { BasePart }): { Piece }?
 	return pieces
 end
 
+-- Fit a loaded model over a prop marked with Kit.skin.
+local function dress(model: Instance)
+	if not model:IsA("Model") or model:GetAttribute("Dressed") then
+		return
+	end
+	local name = model:GetAttribute("SkinName")
+	local lo, hi = model:GetAttribute("SkinMin"), model:GetAttribute("SkinMax")
+	local pieces = if type(name) == "string" then templates[name] else nil
+	local def = if type(name) == "string" then ModelLibrary[name] else nil
+	if not pieces or not def or typeof(lo) ~= "Vector3" or typeof(hi) ~= "Vector3" then
+		return
+	end
+	model:SetAttribute("Dressed", true)
+	local box = hi - lo
+	-- Per-axis stretch so the model fills the box the blocks fill.
+	local stretch = Vector3.new(box.X / def.Size.X, box.Y / def.Size.Y, box.Z / def.Size.Z)
+	local base = CFrame.new((lo.X + hi.X) / 2, lo.Y, (lo.Z + hi.Z) / 2)
+	local folder = Instance.new("Model")
+	folder.Name = "Skin"
+	for _, piece in pieces do
+		local spec = def.Parts[piece.Role]
+		local r = piece.Offset.Rotation
+		-- The stretch along each of the part's own axes (all axis-aligned).
+		local local_ = Vector3.new(
+			math.abs(r.XVector:Dot(stretch)),
+			math.abs(r.YVector:Dot(stretch)),
+			math.abs(r.ZVector:Dot(stretch))
+		)
+		local part = piece.Part:Clone()
+		part.Size = piece.Size * local_
+		part.CFrame = base * CFrame.new(piece.Offset.Position * stretch) * r
+		part.Color = spec.Color
+		part.Material = spec.Material
+		part.Transparency = if spec.Material == Enum.Material.Glass then 0.45 else 0
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.Parent = folder
+	end
+	folder.Parent = model
+	for _, part in model:GetChildren() do
+		if part:IsA("BasePart") and part:GetAttribute("SkinHidden") then
+			part.Transparency = 1
+			part.CastShadow = false
+		end
+	end
+end
+
+local function dressAll(name: string)
+	for _, model in CollectionService:GetTagged("Skinned") do
+		if model:GetAttribute("SkinName") == name then
+			dress(model)
+		end
+	end
+end
+
 local function load(name: string, assetId: number)
 	loading[name] = true
 	local ok, container = pcall(function()
@@ -129,13 +191,19 @@ local function load(name: string, assetId: number)
 	local pieces = ModelSkins.solve(name, parts)
 	if pieces then
 		templates[name] = pieces
+		dressAll(name)
 	else
 		warn(string.format("[ModelSkins] %s (asset %d) doesn't match its manifest; keeping blocks", name, assetId))
 	end
 end
 
 -- Start loading every uploaded model (non-blocking).
+local watching = false
 function ModelSkins.preload()
+	if not watching then
+		watching = true
+		CollectionService:GetInstanceAddedSignal("Skinned"):Connect(dress)
+	end
 	for name, assetId in ModelAssets do
 		if ModelLibrary[name] and not templates[name] and not loading[name] then
 			task.spawn(load, name, assetId)
