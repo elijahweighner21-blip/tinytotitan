@@ -25,7 +25,7 @@ node tools/test/runner.mjs --play tools/play/scenarios/<name>.luau
 |---|---|
 | `boot` | world build, every zone spawn has ground and clearance, stations/NPCs reachable |
 | `lifecycle` | join → spawn alive → collect → exploit attempts (far pickups, malformed remotes, speed, hovering) → upgrade → grow → save → rejoin → respawn → purchases, including a DataStore outage mid-receipt |
-| `client` | client boot, every menu and tab opens, input bindings, purchase prompt from the UI, respawn without leaked connections, gamepad selection and B to close |
+| `client` | client boot, every menu and tab opens, input bindings, purchase prompt from the UI, respawn without leaked connections, gamepad selection and B to close, tutorial beacons follow the current hint |
 | `systems` | tutorial (including catch-up for returning players), quests, discoveries, skills, fast travel, daily rewards, ascension resets/keeps |
 | `combat` | challenge run honestly / teleporting / leaving / dying; a boss fight start to finish |
 | `layout` | HUD and menus at six resolutions (phone portrait to 4K): on-screen, no overlaps, windows fit |

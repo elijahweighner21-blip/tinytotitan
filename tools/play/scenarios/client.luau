@@ -168,5 +168,25 @@ for _, name in { "Upgrades", "Shop", "Settings", "Skills", "Quests" } do
 	E.run(0.3)
 	E.check(name .. ": B closes the menu", UIManager:Current() == nil, UIManager:Current())
 end
+
+print("== Tutorial beacons")
+local tdata = DataController:Get()
+tdata.Tutorial.Done = false
+local markerFolder = E.workspace:FindFirstChild("TT_Markers")
+local function tutorialMarker()
+	return markerFolder and markerFolder:FindFirstChild("Marker_Tutorial")
+end
+tdata.Tutorial.Step = 2 -- "Orb"
+E.run(1)
+local orbMarker = tutorialMarker()
+E.check("orb step: beacon on a growth orb", orbMarker ~= nil)
+tdata.Tutorial.Step = 3 -- "Parkour"
+E.run(1)
+local ledge = E.game:GetService("ReplicatedStorage"):FindFirstChild("WorldIndex"):GetAttribute("Discovery_CrumbMountain")
+local ledgeMarker = tutorialMarker()
+E.check("parkour step: beacon on the marked ledge", ledgeMarker ~= nil and ledge ~= nil and (ledgeMarker.Position - ledge).Magnitude < 0.01)
+tdata.Tutorial.Done = true
+E.run(1)
+E.check("beacon gone once the tutorial is done", tutorialMarker() == nil)
 E.showUnknown = true
 E.summary()

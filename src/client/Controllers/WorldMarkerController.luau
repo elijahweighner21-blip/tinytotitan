@@ -8,6 +8,8 @@
 	    objectives) with distance in world feet
 	  * an arrow at the screen edge when the target is off-screen
 	  * temporary markers for world events (meteor sites, supply drops)
+	  * during the tutorial, a beacon on what the current hint asks for:
+	    the nearest orb, the marked ledge, then the first big climb
 ]]
 
 local RunService = game:GetService("RunService")
@@ -16,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local QuestConfig = require(Shared.Config.QuestConfig)
 local GameConfig = require(Shared.Config.GameConfig)
+local TutorialConfig = require(Shared.Config.TutorialConfig)
 
 local Client = script.Parent.Parent
 local Net = require(Client.Net)
@@ -25,6 +28,7 @@ local Create = require(Client.UI.Create)
 local UIManager = require(Client.UI.UIManager)
 local DataController = require(script.Parent.DataController)
 local MovementController = require(script.Parent.MovementController)
+local CollectibleController = require(script.Parent.CollectibleController)
 
 local WorldMarkerController = {}
 
@@ -202,6 +206,46 @@ local function refreshQuest()
 	end
 end
 
+local function tutorialTarget(origin: Vector3): (Vector3?, string?)
+	local data = DataController:Get()
+	if not data or data.Tutorial.Done then
+		return nil, nil
+	end
+	local step = TutorialConfig.Steps[data.Tutorial.Step + 1]
+	if not step then
+		return nil, nil
+	end
+	if step.Id == "Orb" then
+		return CollectibleController:Nearest(origin, "GrowthOrb"), "Grab the orb"
+	elseif step.Id == "Parkour" then
+		return WorldIndex.get("Discovery", TutorialConfig.FirstGoalDiscovery), "Climb up here"
+	elseif step.Id == "Sprint" and not data.Discoveries[TutorialConfig.BigGoalDiscovery] then
+		-- Grown once: point at something that was out of reach before.
+		return WorldIndex.get("Discovery", TutorialConfig.BigGoalDiscovery), "You can reach this now!"
+	end
+	return nil, nil
+end
+
+local function refreshTutorial()
+	local root = MovementController:GetRoot()
+	local position, text = nil, nil
+	if root then
+		position, text = tutorialTarget(root.Position)
+	end
+	if position and text then
+		local m = markers.Tutorial
+		if m and m.Label == text then
+			-- Same goal: just follow it (the nearest orb changes as you move).
+			m.Position = position
+			m.Anchor.Position = position
+		else
+			place("Tutorial", position, text, Theme.Colors.Accent, "✦")
+		end
+	else
+		remove("Tutorial")
+	end
+end
+
 local function update()
 	local camera = workspace.CurrentCamera
 	local root = MovementController:GetRoot()
@@ -298,9 +342,13 @@ function WorldMarkerController:Start()
 			refreshQuest()
 		end
 	end)
-	local last = 0
+	local last, lastTutorial = 0, 0
 	RunService.RenderStepped:Connect(function()
 		local now = os.clock()
+		if now - lastTutorial >= 0.5 then
+			lastTutorial = now
+			refreshTutorial()
+		end
 		if now - last >= 0.05 then
 			last = now
 			update()

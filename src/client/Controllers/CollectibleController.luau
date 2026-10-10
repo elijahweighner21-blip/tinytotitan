@@ -397,6 +397,21 @@ function CollectibleController:IsCollected(id: string): boolean
 	return hiddenUntil[id] == math.huge
 end
 
+-- The closest collectible of a type the player can pick up right now.
+function CollectibleController:Nearest(origin: Vector3, typeId: string): Vector3?
+	local now = os.clock()
+	local best: Vector3?, bestD = nil, math.huge
+	for _, e in entries do
+		if e.Type == typeId and not e.Def.Hidden and isAvailable(e, now) then
+			local d = (e.Home.Position - origin).Magnitude
+			if d < bestD then
+				best, bestD = e.Home.Position, d
+			end
+		end
+	end
+	return best
+end
+
 function CollectibleController:Init()
 	beaconFolder = Instance.new("Folder")
 	beaconFolder.Name = "TT_Collectibles"
