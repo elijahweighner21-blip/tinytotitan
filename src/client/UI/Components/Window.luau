@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 
 local UI = script.Parent.Parent
 local Theme = require(UI.Theme)
+local UIManager = require(UI.UIManager)
 local Create = require(UI.Create)
 local Button = require(script.Parent.Button)
 
@@ -120,6 +121,7 @@ function Window.new(props: {
 		Title = title,
 		Subtitle = subtitle,
 		_scale = scale,
+		_designSize = props.Size or UDim2.fromOffset(900, 560),
 		_open = false,
 		OnClose = nil,
 	}, Window)
@@ -137,7 +139,28 @@ function Window.new(props: {
 		end,
 		Parent = body,
 	})
+	self:Fit()
+	local camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+			self:Fit()
+		end)
+	end
 	return (self :: any) :: Window
+end
+
+-- Fit the screen: the design height shrinks on short screens (content
+-- areas scroll), so a menu is never cut off.
+function Window.Fit(self: any)
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+	local scale = math.max(UIManager:GetScale(), 0.01)
+	local available = camera.ViewportSize.Y / scale - 28
+	local design = self._designSize :: UDim2
+	self.Root.Size =
+		UDim2.new(design.X.Scale, design.X.Offset, design.Y.Scale, math.min(design.Y.Offset, math.max(available, 300)))
 end
 
 function Window.Open(self: any)
@@ -145,6 +168,7 @@ function Window.Open(self: any)
 		return
 	end
 	self._open = true
+	self:Fit()
 	self.Root.Visible = true
 	self._scale.Scale = 0.92
 	self.Body.BackgroundTransparency = 0.6

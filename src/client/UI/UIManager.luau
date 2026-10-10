@@ -115,6 +115,11 @@ local function viewportScale(): number
 	local camera = workspace.CurrentCamera
 	local size = if camera then camera.ViewportSize else Theme.ReferenceSize
 	local s = math.min(size.X / Theme.ReferenceSize.X, size.Y / Theme.ReferenceSize.Y)
+	if size.Y < 500 then
+		-- Short (landscape phone) screens: scale by width instead, so text
+		-- stays readable; menu windows shrink in height to fit (Window).
+		s = math.max(s, math.min(0.74, size.X / 1180))
+	end
 	return math.clamp(s, 0.58, 1.3)
 end
 

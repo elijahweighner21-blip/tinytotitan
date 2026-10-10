@@ -151,6 +151,8 @@ function runPlay(scenario) {
 	}
 	entries.sort((a, b) => a.vp.length - b.vp.length);
 	let bundle = engine + "\nlocal E = __E\n" + apiTable();
+	// PLAY_DEFINES='{"phone":true}' → E.defines in the scenario.
+	bundle += `E.defines = E.game:GetService("HttpService"):JSONDecode(${longString(process.env.PLAY_DEFINES ?? "{}")})\n`;
 	for (const e of entries) {
 		const vp = "{" + e.vp.map((x) => JSON.stringify(x)).join(",") + "}";
 		bundle += `E.mount(${vp}, ${JSON.stringify(e.kind)}, ${longString(e.source)}, ${JSON.stringify(e.file)})\n`;

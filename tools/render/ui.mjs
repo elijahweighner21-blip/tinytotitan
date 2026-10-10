@@ -30,11 +30,16 @@ function loadPlaywright() {
 }
 const { chromium } = loadPlaywright();
 
-const uiFile = path.join(outDir, "ui.json");
+const phone = args.includes("--phone");
+const uiFile = path.join(outDir, phone ? "ui-phone.json" : "ui.json");
 if (args.includes("--fresh") || !fs.existsSync(uiFile)) {
 	const rawFile = path.join(outDir, "export.txt");
 	const fd = fs.openSync(rawFile, "w");
-	execFileSync("node", [path.join(root, "tools/test/runner.mjs"), "--play", "tools/render/ui-export.luau"], { cwd: root, stdio: ["ignore", fd, "inherit"] });
+	execFileSync("node", [path.join(root, "tools/test/runner.mjs"), "--play", "tools/render/ui-export.luau"], {
+		cwd: root,
+		stdio: ["ignore", fd, "inherit"],
+		env: { ...process.env, PLAY_DEFINES: JSON.stringify({ phone }) },
+	});
 	fs.closeSync(fd);
 	const snaps = {};
 	for (const line of fs.readFileSync(rawFile, "utf8").split("\n")) {
@@ -69,11 +74,13 @@ const server = http.createServer((req, res) => {
 });
 await new Promise((r) => server.listen(0, r));
 const browser = await chromium.launch();
-const tab = await browser.newPage({ viewport: { width: Number(opt("--width", 1280)), height: Number(opt("--height", 720)) } });
+const tab = await browser.newPage({
+	viewport: phone ? { width: 844, height: 390 } : { width: Number(opt("--width", 1280)), height: Number(opt("--height", 720)) },
+});
 tab.on("pageerror", (e) => console.error("[page]", e.message));
 await tab.goto(`http://localhost:${server.address().port}/`);
 await tab.waitForFunction(() => window.ready === true);
-const suffix = opt("--suffix", "");
+const suffix = opt("--suffix", phone ? "-phone" : "");
 for (const name of Object.keys(ui)) {
 	if (only && !only.includes(name)) continue;
 	await tab.evaluate((n) => window.show(n), name);

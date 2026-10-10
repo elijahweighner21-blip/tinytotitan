@@ -4,6 +4,15 @@ local E = __E
 local HttpService = E.game:GetService("HttpService")
 E.startServer()
 E.run(3)
+if E.defines.phone then
+	-- A touch phone (844×390), so the UI lays itself out for mobile.
+	local UIS = E.game:GetService("UserInputService")
+	rawget(UIS, "__props").TouchEnabled = true
+	rawget(UIS, "__props").KeyboardEnabled = false
+	rawget(UIS, "__props").MouseEnabled = false
+	E.lastInputType = Enum.UserInputType.Touch
+	E.workspace.CurrentCamera.ViewportSize = Vector2.new(844, 390)
+end
 local p = E.addPlayer("Viewer", { UserId = 9191, client = true })
 E.startClient(p)
 local PDS = E.serverModule("Services.PlayerDataService")
