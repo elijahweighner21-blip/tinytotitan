@@ -22,6 +22,14 @@ local ZONE = "TitanCity"
 local GOLD = Color3.fromRGB(230, 195, 120)
 local STONE = Kit.Colors.TitanStone
 
+local function deco(part: Part)
+	part.CanCollide = false
+	part.CanQuery = false
+end
+
+-- A titan-scale tower: podium, main shaft with gold corner pilasters and
+-- glowing window strips, a set-back upper tier, a crown and a beacon. The
+-- climbable ledges spiral up the +X face whichever tier they're on.
 local function megaTower(
 	parent: Instance,
 	name: string,
@@ -31,33 +39,108 @@ local function megaTower(
 	color: Color3
 )
 	local model = Kit.model(parent, name, true)
-	Kit.tower(model, "Body", base, Vector2.new(footprint, footprint), height, color, Enum.Material.Sandstone)
+	local lowerH = math.floor(height * 0.62)
+	local upperW = footprint * 0.72
+	Kit.block(
+		model,
+		"Podium",
+		base + Vector3.new(0, 60, 0),
+		Vector3.new(footprint + 160, 120, footprint + 160),
+		GOLD:Lerp(STONE, 0.3),
+		Enum.Material.Marble
+	)
+	Kit.tower(model, "Body", base, Vector2.new(footprint, footprint), lowerH, color, Enum.Material.Sandstone)
+	Kit.tower(
+		model,
+		"Upper",
+		base + Vector3.new(0, lowerH, 0),
+		Vector2.new(upperW, upperW),
+		height - lowerH,
+		color:Lerp(GOLD, 0.15),
+		Enum.Material.Sandstone
+	)
+	-- Setback cornice where the tiers meet.
+	Kit.block(
+		model,
+		"Cornice",
+		base + Vector3.new(0, lowerH + 15, 0),
+		Vector3.new(footprint + 40, 30, footprint + 40),
+		GOLD,
+		Enum.Material.Marble
+	)
+	local half = footprint / 2
+	for _, c in { Vector2.new(1, 1), Vector2.new(1, -1), Vector2.new(-1, 1), Vector2.new(-1, -1) } do
+		for _, part in
+			Kit.tower(
+				model,
+				"Pilaster",
+				base + Vector3.new(c.X * half, 120, c.Y * half),
+				Vector2.new(50, 50),
+				lowerH - 120,
+				GOLD,
+				Enum.Material.Marble
+			)
+		do
+			deco(part)
+		end
+	end
+	-- Window strips: two per face, glowing warm.
+	local stripH = math.min(lowerH - 360, 2000)
+	local glow = Color3.fromRGB(255, 214, 140)
+	for _, face in { Vector3.new(1, 0, 0), Vector3.new(-1, 0, 0), Vector3.new(0, 0, 1), Vector3.new(0, 0, -1) } do
+		local side = Vector3.new(face.Z, 0, face.X)
+		for _, k in { -0.22, 0.22 } do
+			local strip = Kit.block(
+				model,
+				"WindowStrip",
+				base + face * (half + 2) + side * (footprint * k) + Vector3.new(0, 200 + stripH / 2, 0),
+				Vector3.new(if face.X ~= 0 then 4 else 40, stripH, if face.X ~= 0 then 40 else 4),
+				glow,
+				Enum.Material.Neon
+			)
+			strip.Transparency = 0.25
+			deco(strip)
+		end
+	end
 	for y = 450, height - 300, 500 do
+		local w = if y < lowerH then footprint else upperW
 		Kit.block(
 			model,
 			"Ledge",
-			base + Vector3.new(footprint / 2 + 60, y, 0),
-			Vector3.new(120, 30, footprint * 0.6),
+			base + Vector3.new(w / 2 + 60, y, 0),
+			Vector3.new(120, 30, w * 0.6),
 			GOLD,
 			Enum.Material.Marble
 		)
-		Kit.block(
-			model,
-			"Rune",
-			base + Vector3.new(0, y + 120, footprint / 2 + 2),
-			Vector3.new(footprint * 0.4, 60, 4),
-			Color3.fromRGB(255, 220, 120),
-			Enum.Material.Neon
-		).CanCollide =
-			false
+		deco(
+			Kit.block(
+				model,
+				"Rune",
+				base + Vector3.new(0, y + 120, w / 2 + 2),
+				Vector3.new(w * 0.4, 60, 4),
+				Color3.fromRGB(255, 220, 120),
+				Enum.Material.Neon
+			)
+		)
 	end
 	Kit.block(
 		model,
 		"Crown",
 		base + Vector3.new(0, height + 20, 0),
-		Vector3.new(footprint + 60, 40, footprint + 60),
+		Vector3.new(upperW + 60, 40, upperW + 60),
 		GOLD,
 		Enum.Material.Marble
+	)
+	Kit.pillar(model, "Mast", base + Vector3.new(0, height + 40, 0), 260, 24, GOLD, Enum.Material.Metal)
+	deco(
+		Kit.ball(
+			model,
+			"Beacon",
+			base + Vector3.new(0, height + 310, 0),
+			60,
+			Color3.fromRGB(255, 236, 170),
+			Enum.Material.Neon
+		)
 	)
 end
 
