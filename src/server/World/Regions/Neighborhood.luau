@@ -24,6 +24,14 @@ local Neighborhood = {}
 
 local ZONE = "Neighborhood"
 
+-- Decorative part: no collision, no queries (raycasts pass through).
+local function trim(parent: Instance, name: string, cf: CFrame, size: Vector3, color: Color3, material: Enum.Material?)
+	local p = Kit.part(parent, { Name = name, Size = size, CFrame = cf, Color = color, Material = material })
+	p.CanCollide = false
+	p.CanQuery = false
+	return p
+end
+
 local function ground(m: Instance)
 	local C = Kit.Colors
 	-- Ground around the house + backyard rectangle (x -400..720, z -1200..324).
@@ -60,11 +68,146 @@ local function ground(m: Instance)
 	end
 	-- Sidewalk path from the yard gate to the back road.
 	Kit.box(m, "Sidewalk", Vector3.new(230, 0, -1350), Vector3.new(70, 1, 150), C.Concrete, Enum.Material.Concrete)
+	-- Street lamps along both roads (glowing heads; no light objects, so
+	-- they cost nothing). Skips the cross streets and the spawn.
+	local function lamp(x: number, z: number)
+		local pole = Color3.fromRGB(60, 64, 70)
+		Kit.pillar(m, "LampPost", Vector3.new(x, 0, z), 180, 8, pole, Enum.Material.Metal)
+		trim(m, "LampArm", CFrame.new(x, 178, z - 22), Vector3.new(6, 6, 50), pole, Enum.Material.Metal)
+		trim(
+			m,
+			"LampHead",
+			CFrame.new(x, 172, z - 44),
+			Vector3.new(20, 8, 30),
+			Color3.fromRGB(255, 236, 190),
+			Enum.Material.Neon
+		)
+	end
+	for _, x in { -1975, -400, 325, 2000, 2675 } do
+		lamp(x, 1050)
+	end
+	for _, x in { -2400, -1800, -600, 1600, 2200, 2800 } do
+		lamp(x, -1320)
+	end
+end
+
+-- Street face (-Z): framed windows with sills and shutters on both floors,
+-- a porch with steps, trim lines, hedges and a mailbox at the curb.
+local function facade(model: Model, center: Vector3, w: number, d: number, h: number, seed: number)
+	local rng = Random.new(seed)
+	local white = Color3.fromRGB(245, 243, 236)
+	local shutter = Color3.fromHSV(rng:NextNumber(), 0.35, 0.45)
+	local face = center.Z - d / 2
+	trim(
+		model,
+		"Foundation",
+		CFrame.new(center + Vector3.new(0, 7, 0)),
+		Vector3.new(w + 6, 14, d + 6),
+		Color3.fromRGB(150, 146, 140),
+		Enum.Material.Concrete
+	)
+	trim(model, "Fascia", CFrame.new(center + Vector3.new(0, h, 0)), Vector3.new(w + 8, 10, d + 8), white)
+	trim(model, "FloorBand", CFrame.new(center + Vector3.new(0, 140, 0)), Vector3.new(w + 3, 6, d + 3), white)
+	for _, spot in { Vector2.new(-180, 210), Vector2.new(180, 210), Vector2.new(-180, 75), Vector2.new(190, 75) } do
+		local at = Vector3.new(center.X + spot.X, spot.Y, face)
+		local lit = rng:NextNumber() < 0.45
+		trim(model, "WindowFrame", CFrame.new(at - Vector3.new(0, 0, 1)), Vector3.new(92, 82, 2), white)
+		local glass = trim(
+			model,
+			"Window",
+			CFrame.new(at - Vector3.new(0, 0, 2)),
+			Vector3.new(80, 70, 1),
+			if lit then Color3.fromRGB(255, 222, 160) else Kit.Colors.Glass,
+			if lit then Enum.Material.Neon else Enum.Material.Glass
+		)
+		glass.Transparency = if lit then 0.35 else 0.25
+		trim(model, "Mullion", CFrame.new(at - Vector3.new(0, 0, 2.6)), Vector3.new(4, 70, 1), white)
+		trim(model, "Sill", CFrame.new(at - Vector3.new(0, 43, 4)), Vector3.new(100, 5, 8), white)
+		for _, side in { -1, 1 } do
+			trim(
+				model,
+				"Shutter",
+				CFrame.new(at + Vector3.new(side * 60, 0, -1.5)),
+				Vector3.new(24, 82, 2),
+				shutter,
+				Enum.Material.WoodPlanks
+			)
+		end
+	end
+	-- Front door off-centre, porch roof on two posts, real steps.
+	local door = Vector3.new(center.X + 70, 0, face)
+	trim(model, "DoorFrame", CFrame.new(door + Vector3.new(0, 56, -1)), Vector3.new(62, 112, 2), white)
+	trim(
+		model,
+		"FrontDoor",
+		CFrame.new(door + Vector3.new(0, 51, -2)),
+		Vector3.new(48, 100, 1),
+		Color3.fromHSV(rng:NextNumber(), 0.6, 0.55),
+		Enum.Material.Wood
+	)
+	trim(
+		model,
+		"Knob",
+		CFrame.new(door + Vector3.new(16, 50, -3)),
+		Vector3.new(4, 4, 2),
+		Color3.fromRGB(220, 190, 90),
+		Enum.Material.Metal
+	)
+	Kit.box(
+		model,
+		"PorchStep",
+		door + Vector3.new(-40, 0, -28),
+		Vector3.new(80, 8, 28),
+		Color3.fromRGB(170, 165, 158),
+		Enum.Material.Concrete
+	)
+	Kit.box(
+		model,
+		"PorchStep",
+		door + Vector3.new(-35, 8, -14),
+		Vector3.new(70, 6, 14),
+		Color3.fromRGB(180, 175, 168),
+		Enum.Material.Concrete
+	)
+	trim(model, "PorchRoof", CFrame.new(door + Vector3.new(0, 128, -26)), Vector3.new(110, 6, 54), white)
+	for _, side in { -1, 1 } do
+		trim(model, "PorchPost", CFrame.new(door + Vector3.new(side * 50, 64, -48)), Vector3.new(6, 128, 6), white)
+	end
+	-- Hedges along the front, clear of the porch.
+	for _, x in { -230, -110 } do
+		trim(
+			model,
+			"Hedge",
+			CFrame.new(center.X + x, 14, face - 18),
+			Vector3.new(100, 28, 26),
+			Color3.fromRGB(70, 120, 60),
+			Enum.Material.Grass
+		)
+	end
+	-- Mailbox at the curb.
+	local mail = Vector3.new(center.X + 200, 0, face - 150)
+	trim(
+		model,
+		"MailPost",
+		CFrame.new(mail + Vector3.new(0, 22, 0)),
+		Vector3.new(5, 44, 5),
+		Kit.Colors.Wood,
+		Enum.Material.Wood
+	)
+	trim(
+		model,
+		"MailBox",
+		CFrame.new(mail + Vector3.new(0, 50, 0)),
+		Vector3.new(12, 12, 24),
+		Color3.fromHSV(rng:NextNumber(), 0.5, 0.6),
+		Enum.Material.Metal
+	)
 end
 
 local function house(m: Instance, center: Vector3, color: Color3, special: string?)
 	local model = Kit.model(m, special or "House", true)
 	local w, d, h = 560, 480, 300
+	facade(model, center, w, d, h, math.floor(center.X + center.Z * 7))
 	Kit.block(
 		model,
 		"Walls",
