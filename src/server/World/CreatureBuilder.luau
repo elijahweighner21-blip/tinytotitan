@@ -9,9 +9,11 @@
 
 	Height H = 5 × scale (same convention as player characters).
 
-	Final art: swap in meshes by giving the model a "Visual" child and
-	hiding the generated parts — the Root contract stays the same.
+	When a creature's 3D model has been uploaded (tools/models), ModelSkins
+	swaps these generated parts for it; the Root contract stays the same.
 ]]
+
+local ModelSkins = require(script.Parent.ModelSkins)
 
 local CreatureBuilder = {}
 
@@ -647,7 +649,9 @@ function CreatureBuilder.build(name: string, shape: string, color: Color3, scale
 	model.PrimaryPart = root
 	local build = builders[shape] or builders.Insect
 	build(root, H, color)
-	finish(model, shape)
+	if not ModelSkins.apply(model, root, shape, color) then
+		finish(model, shape)
+	end
 	return model
 end
 

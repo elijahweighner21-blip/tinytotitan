@@ -931,6 +931,23 @@ classes.AnalyticsService.methods.LogEconomyEvent = function() end
 classes.AnalyticsService.methods.LogProgressionEvent = function() end
 classes.AnalyticsService.methods.LogOnboardingFunnelStepEvent = function() end
 
+-- InsertService: scenarios register asset builders in E.insertAssets[id];
+-- anything else fails like an asset the game's owner can't load.
+class("InsertService", "Instance")
+service("InsertService")
+E.insertAssets = {}
+classes.InsertService.methods.LoadAsset = function(_, id)
+	local make = E.insertAssets[id]
+	if not make then
+		error("InsertService:LoadAsset: asset " .. tostring(id) .. " is not available", 2)
+	end
+	task.wait(0.2)
+	local container = new("Model")
+	container.Name = "Model"
+	make().Parent = container
+	return container
+end
+
 class("Stats", "Instance", { defaults = { InstanceCount = 0 } })
 local stats = service("Stats")
 classes.Stats.methods.GetTotalMemoryUsageMb = function()

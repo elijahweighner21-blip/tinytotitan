@@ -31,6 +31,7 @@ node tools/test/runner.mjs --play tools/play/scenarios/<name>.luau
 | `layout` | HUD and menus at six resolutions (phone portrait to 4K): on-screen, no overlaps, windows fit |
 | `datasafety` | corrupted, old-version and raw saves, session-lock handoff between servers, save outages |
 | `load` | 12 players of every size for 60 s with a script profiler (server CPU per service) |
+| `skins` | an uploaded 3D model (faked, imported with other axes and units) replaces a creature's block body facing forward, upright, tinted and sized; missing or mismatched models keep the blocks; every library model can be oriented |
 | `clientperf` | a client playing at 60 fps as a speck in the Floor World and as a titan in Titan City: script time per frame must stay under 4 ms, with the costliest handlers listed |
 | `resilience` | the spawn region fails to build *and* `LoadCharacterAsync` is missing: the player still spawns (legacy fallback, safety pad), the loading screen clears, the watchdog replaces a lost body and releases a frozen one |
 | `resilience-world` | the whole world build throws: services still start, the save loads, the player spawns |

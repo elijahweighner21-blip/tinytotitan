@@ -17,6 +17,7 @@ local Server = script.Parent
 local Net = require(Server.Net)
 local Loader = require(Server.Loader)
 local WorldBuilder = require(Server.World.WorldBuilder)
+local ModelSkins = require(Server.World.ModelSkins)
 
 -- Characters must not spawn until the world exists and the save is loaded:
 -- an auto-spawned character would fall into the void while the world is
@@ -24,6 +25,9 @@ local WorldBuilder = require(Server.World.WorldBuilder)
 game:GetService("Players").CharacterAutoLoads = false
 
 Net.init()
+-- Start fetching uploaded 3D models now; creatures use their block bodies
+-- until each model arrives.
+ModelSkins.preload()
 -- A world-building error must never stop the services from starting:
 -- without them nobody's save loads and nobody spawns.
 local built, buildErr = pcall(function()

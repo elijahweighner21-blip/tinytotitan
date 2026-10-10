@@ -91,3 +91,13 @@ Create `client/UI/Screens/<Name>Menu.luau` using `MenuBase.new{ Name, Title, Tab
 ## Sounds and animations
 
 `AudioConfig` holds every sound (category, volume, pitch variance, anti-stacking limits). `AnimationConfig.Ids` takes uploaded animation ids for parkour/combat moves; empty ids use procedural poses.
+
+## 3D models — `tools/models/`
+
+Creatures have real 3D models built from Blender scripts (`tools/models/creatures.py`, one function per creature shape). Each part is a named role coloured in game, so there are no textures; roles marked `"Tint"`/`"TintDark"`/`"TintLight"` take the enemy's config colour.
+
+1. Build: `.tools/blender-venv/bin/python tools/models/build.py [Name ...]` writes `build/models/<Name>.fbx`, a manifest and a preview PNG. (Set up once with `python3 -m venv .tools/blender-venv && .tools/blender-venv/bin/pip install bpy`.)
+2. Regenerate the library: `python3 tools/models/manifest.py` → `shared/Config/ModelLibrary.luau`.
+3. Upload: `ROBLOX_API_KEY=… ROBLOX_USER_ID=… node tools/models/upload.mjs [Name ...]` (Open Cloud key with Assets read + write, under the account or group that owns the game). Ids land in `shared/Config/ModelAssets.luau`; re-uploading keeps the id.
+
+In game, `server/World/ModelSkins.luau` loads each uploaded model at boot, orients it against the manifest and swaps it in for the creature's block body. Without an id (or while loading) the blocks stay, so models can go live one at a time.
